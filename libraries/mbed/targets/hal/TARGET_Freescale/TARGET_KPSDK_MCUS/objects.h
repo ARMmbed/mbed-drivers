@@ -20,6 +20,7 @@
 #include "PortNames.h"
 #include "PeripheralNames.h"
 #include "PinNames.h"
+#include "dma_api.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,6 +55,7 @@ struct i2c_s {
 
 struct spi_s {
     uint32_t instance;
+    DMA_USAGE_Enum dma_state;
 };
 
 struct dac_s {

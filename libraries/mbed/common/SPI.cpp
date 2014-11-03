@@ -88,7 +88,7 @@ void SPI::interrupt_handler_asynch(void)
     // TODO_LP - Transaction is complete, check if there are more waiting transfers and notify userland
     // TODO_LP - if transaction complete (tx, rx =0) then queued buffers
 
-    uint32_t event = spi_irq_handler_generic(&_spi);
+    uint32_t event = spi_irq_handler_asynch(&_spi);
     if (_user_callback && event) {
         _user_callback(event);
     }

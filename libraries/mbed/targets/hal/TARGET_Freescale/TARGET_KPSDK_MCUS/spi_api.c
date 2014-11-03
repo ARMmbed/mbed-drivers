@@ -136,4 +136,76 @@ void spi_slave_write(spi_t *obj, int value) {
     DSPI_HAL_WriteDataSlavemode(spi_address[obj->spi.instance], (uint32_t)value);
 }
 
+void spi_enable_event(spi_t *obj, uint32_t event, uint8_t enable)
+{
+
+}
+
+void spi_enable_interrupt(spi_t *obj, uint32_t handler, uint8_t enable)
+{
+
+}
+
+void spi_enable_dma(spi_t *obj, DMA_USAGE_Enum enable)
+{
+
+}
+
+void spi_master_transfer_dma(spi_t *obj, void *rxdata, void *txdata, int length, void* cb, DMA_USAGE_Enum hint)
+{
+    if (hint != DMA_USAGE_NEVER && obj->spi.dma_state == DMA_USAGE_ALLOCATED) {
+        // setup dma done, activate
+    } else if (hint == DMA_USAGE_NEVER) {
+        obj->spi.dma_state = DMA_USAGE_NEVER;
+        // use IRQ
+    } else {
+        // setup and activate
+    }
+}
+
+int spi_master_write_asynch(spi_t *obj)
+{
+    return 0;
+}
+
+int spi_master_read_asynch(spi_t *obj)
+{
+    return 0;
+}
+
+void spi_irq_handler(spi_t *obj)
+{
+
+}
+
+uint32_t spi_irq_handler_asynch(spi_t *obj)
+{
+    if (obj->spi.dma_state == DMA_USAGE_ALLOCATED || obj->spi.dma_state == DMA_USAGE_TEMPORARY_ALLOCATED) {
+        /* DMA implementation */
+    } else {
+        // IRQ
+    }
+    return 0;
+}
+
+uint8_t spi_active(spi_t *obj)
+{
+    switch(obj->spi.dma_state) {
+        case DMA_USAGE_TEMPORARY_ALLOCATED:
+            return 1;
+        case DMA_USAGE_ALLOCATED:
+            /* Check whether the allocated DMA channel is active */
+            return 0;
+        default:
+            /* Check whether interrupt for spi is enabled */
+            return 0; // TODO implement check if interrupt is enabled
+    }
+}
+
+void spi_buffer_set(spi_t *obj, void *tx, uint32_t tx_length, void *rx, uint32_t rx_length)
+{
+
+}
+
+
 #endif

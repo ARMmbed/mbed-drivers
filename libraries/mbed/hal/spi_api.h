@@ -46,24 +46,31 @@ int  spi_busy         (spi_t *obj);
 
 /* asynch */
 
+// Enable events
 void spi_enable_event(spi_t *obj, uint32_t event, uint8_t enable);
 
+// Enable SPI interrupts
 void spi_enable_interrupt(spi_t *obj, uint32_t handler, uint8_t enable);
 
-void spi_enable_dma(spi_t *obj, DMA_USAGE_Enum enable);
-
+// Initiate the transfer
 void spi_master_transfer_dma(spi_t *obj, void *rxdata, void *txdata, int length, void* cb, DMA_USAGE_Enum hint);
 
+// write data until hw buffer is full
 int spi_master_write_asynch(spi_t *obj);
 
+// Read available data
 int spi_master_read_asynch(spi_t *obj);
 
+// Synch handler
 void spi_irq_handler(spi_t *obj);
 
-uint32_t spi_irq_handler_generic(spi_t *obj);
+// Asynch irq handler
+uint32_t spi_irq_handler_asynch(spi_t *obj);
 
+// returns if spi transaction is ongoing
 uint8_t spi_active(spi_t *obj);
 
+// Initialiaze tx and rx buffers
 void spi_buffer_set(spi_t *obj, void *tx, uint32_t tx_length, void *rx, uint32_t rx_length);
 
 #ifdef __cplusplus
