@@ -17,6 +17,8 @@
 #define MBED_SPI_API_H
 
 #include "device.h"
+#include "dma_api.h"
+#include "buffer.h"
 
 #if DEVICE_SPI
 
@@ -24,7 +26,13 @@
 extern "C" {
 #endif
 
-typedef struct spi_s spi_t;
+#define SPI_EVENT_COMPLETE (1 << 0)
+
+typedef struct {
+    struct spi_s    spi;
+    struct buffer_s tx_buff;
+    struct buffer_s rx_buff;
+} spi_t;
 
 void spi_init         (spi_t *obj, PinName mosi, PinName miso, PinName sclk, PinName ssel);
 void spi_free         (spi_t *obj);
@@ -35,6 +43,28 @@ int  spi_slave_receive(spi_t *obj);
 int  spi_slave_read   (spi_t *obj);
 void spi_slave_write  (spi_t *obj, int value);
 int  spi_busy         (spi_t *obj);
+
+/* asynch */
+
+void spi_enable_event(spi_t *obj, uint32_t event, uint8_t enable);
+
+void spi_enable_interrupt(spi_t *obj, uint32_t handler, uint8_t enable);
+
+void spi_enable_dma(spi_t *obj, DMA_USAGE_Enum enable);
+
+void spi_master_transfer_dma(spi_t *obj, void *rxdata, void *txdata, int length, void* cb, DMA_USAGE_Enum hint);
+
+int spi_master_write_asynch(spi_t *obj);
+
+int spi_master_read_asynch(spi_t *obj);
+
+void spi_irq_handler(spi_t *obj);
+
+uint32_t spi_irq_handler_generic(spi_t *obj);
+
+uint8_t spi_active(spi_t *obj);
+
+void spi_buffer_set(spi_t *obj, void *tx, uint32_t tx_length, void *rx, uint32_t rx_length);
 
 #ifdef __cplusplus
 }

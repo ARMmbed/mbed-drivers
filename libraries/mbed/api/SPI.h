@@ -21,6 +21,7 @@
 #if DEVICE_SPI
 
 #include "spi_api.h"
+#include "CThunk.h"
 
 namespace mbed {
 
@@ -92,12 +93,19 @@ public:
     */
     virtual int write(int value);
 
+    virtual int write(void *tx_buffer, uint32_t tx_length, void *rx_buffer, uint32_t rx_length, uint32_t event, void (*callback)(uint32_t));
+
+    void interrupt_handler_asynch(void);
+    void irq_handler(void);
+
 public:
     virtual ~SPI() {
     }
 
 protected:
     spi_t _spi;
+    CThunk<SPI> _irq;
+    void (*_user_callback)(uint32_t event);
 
     void aquire(void);
     static SPI *_owner;
