@@ -36,24 +36,24 @@ void spi_init(spi_t *obj, PinName mosi, PinName miso, PinName sclk, PinName ssel
     uint32_t spi_data = pinmap_merge(spi_mosi, spi_miso);
     uint32_t spi_cntl = pinmap_merge(spi_sclk, spi_ssel);
 
-    obj->instance = pinmap_merge(spi_data, spi_cntl);
-    MBED_ASSERT((int)obj->instance != NC);
+    obj->spi.instance = pinmap_merge(spi_data, spi_cntl);
+    MBED_ASSERT((int)obj->spi.instance != NC);
 
-    CLOCK_SYS_EnableSpiClock(obj->instance);
+    CLOCK_SYS_EnableSpiClock(obj->spi.instance);
     uint32_t spi_address[] = SPI_BASE_ADDRS;
-    DSPI_HAL_Init(spi_address[obj->instance]);
-    DSPI_HAL_Disable(spi_address[obj->instance]);
+    DSPI_HAL_Init(spi_address[obj->spi.instance]);
+    DSPI_HAL_Disable(spi_address[obj->spi.instance]);
     // set default format and frequency
     if (ssel == NC) {
         spi_format(obj, 8, 0, 0);  // 8 bits, mode 0, master
     } else {
         spi_format(obj, 8, 0, 1);  // 8 bits, mode 0, slave
     }
-    DSPI_HAL_SetDelay(spi_address[obj->instance], kDspiCtar0, 0, 0, kDspiPcsToSck);
+    DSPI_HAL_SetDelay(spi_address[obj->spi.instance], kDspiCtar0, 0, 0, kDspiPcsToSck);
     spi_frequency(obj, 1000000);
 
-    DSPI_HAL_Enable(spi_address[obj->instance]);
-    DSPI_HAL_StartTransfer(spi_address[obj->instance]);
+    DSPI_HAL_Enable(spi_address[obj->spi.instance]);
+    DSPI_HAL_StartTransfer(spi_address[obj->spi.instance]);
 
     // pin out the spi pins
     pinmap_pinout(mosi, PinMap_SPI_MOSI);
@@ -74,15 +74,15 @@ void spi_format(spi_t *obj, int bits, int mode, int slave) {
     config.clkPhase = (mode & 0x1) ? kDspiClockPhase_SecondEdge : kDspiClockPhase_FirstEdge;
     config.direction = kDspiMsbFirst;
     uint32_t spi_address[] = SPI_BASE_ADDRS;
-    dspi_status_t result = DSPI_HAL_SetDataFormat(spi_address[obj->instance], kDspiCtar0, &config);
+    dspi_status_t result = DSPI_HAL_SetDataFormat(spi_address[obj->spi.instance], kDspiCtar0, &config);
     if (result != kStatus_DSPI_Success) {
         error("Failed to configure SPI data format");
     }
 
     if (slave) {
-        DSPI_HAL_SetMasterSlaveMode(spi_address[obj->instance], kDspiSlave);
+        DSPI_HAL_SetMasterSlaveMode(spi_address[obj->spi.instance], kDspiSlave);
     } else {
-        DSPI_HAL_SetMasterSlaveMode(spi_address[obj->instance], kDspiMaster);
+        DSPI_HAL_SetMasterSlaveMode(spi_address[obj->spi.instance], kDspiMaster);
     }
 }
 
@@ -90,17 +90,17 @@ void spi_frequency(spi_t *obj, int hz) {
     uint32_t busClock;
     CLOCK_SYS_GetFreq(kBusClock, &busClock);
     uint32_t spi_address[] = SPI_BASE_ADDRS;
-    DSPI_HAL_SetBaudRate(spi_address[obj->instance], kDspiCtar0, (uint32_t)hz, busClock);
+    DSPI_HAL_SetBaudRate(spi_address[obj->spi.instance], kDspiCtar0, (uint32_t)hz, busClock);
 }
 
 static inline int spi_writeable(spi_t * obj) {
     uint32_t spi_address[] = SPI_BASE_ADDRS;
-    return DSPI_HAL_GetStatusFlag(spi_address[obj->instance], kDspiTxFifoFillRequest);
+    return DSPI_HAL_GetStatusFlag(spi_address[obj->spi.instance], kDspiTxFifoFillRequest);
 }
 
 static inline int spi_readable(spi_t * obj) {
     uint32_t spi_address[] = SPI_BASE_ADDRS;
-    return DSPI_HAL_GetStatusFlag(spi_address[obj->instance], kDspiRxFifoDrainRequest);
+    return DSPI_HAL_GetStatusFlag(spi_address[obj->spi.instance], kDspiRxFifoDrainRequest);
 }
 
 int spi_master_write(spi_t *obj, int value) {
@@ -111,13 +111,13 @@ int spi_master_write(spi_t *obj, int value) {
     dspi_command_config_t command = {0};
     command.isEndOfQueue = true;
     command.isChipSelectContinuous = 0;
-    DSPI_HAL_WriteDataMastermode(spi_address[obj->instance], &command, (uint16_t)value);
-    DSPI_HAL_ClearStatusFlag(spi_address[obj->instance], kDspiTxFifoFillRequest);
+    DSPI_HAL_WriteDataMastermode(spi_address[obj->spi.instance], &command, (uint16_t)value);
+    DSPI_HAL_ClearStatusFlag(spi_address[obj->spi.instance], kDspiTxFifoFillRequest);
 
     // wait rx buffer full
     while (!spi_readable(obj));
-    DSPI_HAL_ClearStatusFlag(spi_address[obj->instance], kDspiRxFifoDrainRequest);
-    return DSPI_HAL_ReadData(spi_address[obj->instance]) & 0xff;
+    DSPI_HAL_ClearStatusFlag(spi_address[obj->spi.instance], kDspiRxFifoDrainRequest);
+    return DSPI_HAL_ReadData(spi_address[obj->spi.instance]) & 0xff;
 }
 
 int spi_slave_receive(spi_t *obj) {
@@ -125,15 +125,15 @@ int spi_slave_receive(spi_t *obj) {
 }
 
 int spi_slave_read(spi_t *obj) {
-    DSPI_HAL_ClearStatusFlag(obj->instance, kDspiRxFifoDrainRequest);
+    DSPI_HAL_ClearStatusFlag(obj->spi.instance, kDspiRxFifoDrainRequest);
     uint32_t spi_address[] = SPI_BASE_ADDRS;
-    return DSPI_HAL_ReadData(spi_address[obj->instance]);
+    return DSPI_HAL_ReadData(spi_address[obj->spi.instance]);
 }
 
 void spi_slave_write(spi_t *obj, int value) {
     while (!spi_writeable(obj));
     uint32_t spi_address[] = SPI_BASE_ADDRS;
-    DSPI_HAL_WriteDataSlavemode(spi_address[obj->instance], (uint32_t)value);
+    DSPI_HAL_WriteDataSlavemode(spi_address[obj->spi.instance], (uint32_t)value);
 }
 
 #endif

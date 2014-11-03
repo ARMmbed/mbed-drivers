@@ -21,6 +21,7 @@ namespace mbed {
 
 SPI::SPI(PinName mosi, PinName miso, PinName sclk, PinName _unused) :
         _spi(),
+        _irq(this),
         _bits(8),
         _mode(0),
         _hz(1000000) {
