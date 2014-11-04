@@ -22,6 +22,7 @@
 
 #include "spi_api.h"
 #include "CThunk.h"
+#include "dma_api.h"
 
 namespace mbed {
 
@@ -95,6 +96,7 @@ public:
 
     virtual int write(void *tx_buffer, uint32_t tx_length, void *rx_buffer, uint32_t rx_length, uint32_t event, void (*callback)(uint32_t));
 
+    void set_asynch_usage(DMA_USAGE_Enum usage);
     void interrupt_handler_asynch(void);
     void irq_handler(void);
 
@@ -106,6 +108,7 @@ protected:
     spi_t _spi;
     CThunk<SPI> _irq;
     void (*_user_callback)(uint32_t event);
+    DMA_USAGE_Enum _usage;
 
     void aquire(void);
     static SPI *_owner;

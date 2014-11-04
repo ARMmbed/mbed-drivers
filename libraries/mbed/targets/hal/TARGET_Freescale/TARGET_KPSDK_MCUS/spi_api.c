@@ -70,6 +70,7 @@ void spi_free(spi_t *obj) {
 void spi_format(spi_t *obj, int bits, int mode, int slave) {
     dspi_data_format_config_t config = {0};
     config.bitsPerFrame = (uint32_t)bits;
+    obj->spi.bits = bits;
     config.clkPolarity = (mode & 0x2) ? kDspiClockPolarity_ActiveLow : kDspiClockPolarity_ActiveHigh;
     config.clkPhase = (mode & 0x1) ? kDspiClockPhase_SecondEdge : kDspiClockPhase_FirstEdge;
     config.direction = kDspiMsbFirst;
@@ -138,12 +139,28 @@ void spi_slave_write(spi_t *obj, int value) {
 
 void spi_enable_event(spi_t *obj, uint32_t event, uint8_t enable)
 {
-
+    // TODO other events which map to SPI peripheral flags
+    if (enable) {
+        obj->spi.event |= event;
+    } else {
+        obj->spi.event &= ~event;
+    }
 }
 
 void spi_enable_interrupt(spi_t *obj, uint32_t handler, uint8_t enable)
 {
-
+    uint32_t spi_irq[] = SPI_IRQS;
+    uint32_t spi_address[] = SPI_BASE_ADDRS;
+    if (enable) {
+        NVIC_SetVector(spi_irq[obj->spi.instance], handler);
+        DSPI_HAL_SetRxFifoDrainDmaIntMode(spi_address[obj->spi.instance], kDspiGenerateIntReq, true);
+        NVIC_EnableIRQ(spi_irq[obj->spi.instance]);
+    }
+    else {
+        NVIC_SetVector(spi_irq[obj->spi.instance], handler);
+        DSPI_HAL_SetRxFifoDrainDmaIntMode(spi_address[obj->spi.instance], kDspiGenerateIntReq, false);
+        NVIC_DisableIRQ(spi_irq[obj->spi.instance]);
+    }
 }
 
 void spi_master_transfer(spi_t *obj, void *rxdata, void *txdata, int length, void* cb, DMA_USAGE_Enum hint)
@@ -153,19 +170,89 @@ void spi_master_transfer(spi_t *obj, void *rxdata, void *txdata, int length, voi
     } else if (hint == DMA_USAGE_NEVER) {
         obj->spi.dma_state = DMA_USAGE_NEVER;
         // use IRQ
+        spi_master_write_asynch(obj);
+        spi_enable_interrupt(obj, (uint32_t)cb, true);
     } else {
         // setup and activate
     }
 }
 
+uint32_t spi_event_check(spi_t *obj)
+{
+    uint32_t event = obj->spi.event;
+    if ((event & SPI_EVENT_COMPLETE) && !(obj->rx_buff.pos == obj->rx_buff.length)) {
+        event &= ~SPI_EVENT_COMPLETE;
+    }
+
+    return event;
+}
+
+static void spi_buffer_tx_write(spi_t *obj)
+{
+    int data;
+    dspi_command_config_t command = {0};
+    command.isEndOfQueue = false;
+    command.isChipSelectContinuous = 0;
+    uint32_t spi_address[] = SPI_BASE_ADDRS;
+
+    if (obj->spi.bits <= 8) {
+        if (obj->tx_buff.buffer == 0) {
+            data = 0xFF;
+        } else {
+            uint8_t *tx = (uint8_t *)(obj->tx_buff.buffer);
+            data = tx[obj->tx_buff.pos];
+        }
+        DSPI_HAL_WriteDataMastermode(spi_address[obj->spi.instance], &command, (uint16_t)data);
+    } else {
+        // TODO_LP implement
+    }
+    obj->tx_buff.pos++;
+    DSPI_HAL_ClearStatusFlag(spi_address[obj->spi.instance], kDspiTxFifoFillRequest);
+}
+
+static void spi_buffer_rx_read(spi_t *obj)
+{
+    uint32_t spi_address[] = SPI_BASE_ADDRS;
+    if (obj->spi.bits <= 8) {
+        int data = (int)DSPI_HAL_ReadData(spi_address[obj->spi.instance]);
+        if (obj->rx_buff.buffer) {
+            uint8_t *rx = (uint8_t *)(obj->rx_buff.buffer);
+            rx[obj->rx_buff.pos] = data;
+        }
+    } else {
+        // TODO_LP implement
+    }
+    obj->rx_buff.pos++;
+    DSPI_HAL_ClearStatusFlag(spi_address[obj->spi.instance], kDspiRxFifoDrainRequest);
+}
+
+
 int spi_master_write_asynch(spi_t *obj)
 {
-    return 0;
+    int ndata = 0;
+    uint32_t spi_address[] = SPI_BASE_ADDRS;
+    while ((obj->tx_buff.pos < obj->tx_buff.length) && (DSPI_HAL_GetStatusFlag(spi_address[obj->spi.instance], kDspiTxFifoFillRequest) == 1)) {
+        spi_buffer_tx_write(obj);
+        ndata++;
+    }
+    return ndata;
 }
 
 int spi_master_read_asynch(spi_t *obj)
 {
-    return 0;
+    int ndata = 0;
+    uint32_t spi_address[] = SPI_BASE_ADDRS;
+    while ((obj->rx_buff.pos < obj->rx_buff.length) && DSPI_HAL_GetStatusFlag(spi_address[obj->spi.instance], kDspiRxFifoDrainRequest)) {
+        spi_buffer_rx_read(obj);
+        ndata++;
+    }
+    // all sent but still more to receive? need to align tx buffer
+    if ((obj->rx_buff.pos == obj->rx_buff.length) && (obj->rx_buff.pos < obj->rx_buff.length)) {
+        obj->rx_buff.buffer = (void *)0;
+        obj->rx_buff.length = obj->rx_buff.length;
+    }
+
+    return ndata;
 }
 
 void spi_irq_handler(spi_t *obj)
@@ -179,12 +266,23 @@ uint32_t spi_irq_handler_asynch(spi_t *obj)
         /* DMA implementation */
     } else {
         // IRQ
+        spi_master_read_asynch(obj);
+        spi_master_write_asynch(obj);
+
+        uint32_t event = spi_event_check(obj);
+        if (event == SPI_EVENT_COMPLETE) {
+            /* disable interrupts */
+            spi_enable_interrupt(obj, 0, false);
+            /* Return the event back to userland */
+            return event;
+        }
     }
     return 0;
 }
 
 uint8_t spi_active(spi_t *obj)
 {
+    uint32_t spi_address[] = SPI_BASE_ADDRS;
     switch(obj->spi.dma_state) {
         case DMA_USAGE_TEMPORARY_ALLOCATED:
             return 1;
@@ -193,13 +291,18 @@ uint8_t spi_active(spi_t *obj)
             return 0;
         default:
             /* Check whether interrupt for spi is enabled */
-            return 0; // TODO implement check if interrupt is enabled
+            return DSPI_HAL_GetIntMode(spi_address[obj->spi.instance], kDspiRxFifoDrainRequest);
     }
 }
 
 void spi_buffer_set(spi_t *obj, void *tx, uint32_t tx_length, void *rx, uint32_t rx_length)
 {
-
+    obj->tx_buff.buffer = tx;
+    obj->tx_buff.length = tx_length;
+    obj->tx_buff.pos = 0;
+    obj->rx_buff.buffer = rx;
+    obj->rx_buff.length = rx_length;
+    obj->rx_buff.pos = 0;
 }
 
 

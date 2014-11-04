@@ -22,6 +22,7 @@ namespace mbed {
 SPI::SPI(PinName mosi, PinName miso, PinName sclk, PinName _unused) :
         _spi(),
         _irq(this),
+        _usage(DMA_USAGE_NEVER),
         _bits(8),
         _mode(0),
         _hz(1000000) {
@@ -78,9 +79,14 @@ int SPI::write(void *tx_buffer, uint32_t tx_length, void *rx_buffer, uint32_t rx
     spi_enable_event(&_spi, event, true);
 
     spi_buffer_set(&_spi, tx_buffer, tx_length, rx_buffer, rx_length);
-    spi_master_transfer(&_spi, tx_buffer, rx_buffer, (tx_length > rx_length ? tx_length : rx_length), (void*)_irq.entry(), DMA_USAGE_NEVER);
+    spi_master_transfer(&_spi, tx_buffer, rx_buffer, (tx_length > rx_length ? tx_length : rx_length), (void*)_irq.entry(), _usage);
     
     return 0;
+}
+
+void SPI::set_asynch_usage(DMA_USAGE_Enum usage)
+{
+    _usage = usage;
 }
 
 void SPI::interrupt_handler_asynch(void)
