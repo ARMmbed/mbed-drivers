@@ -78,7 +78,7 @@ int SPI::write(void *tx_buffer, uint32_t tx_length, void *rx_buffer, uint32_t rx
     spi_enable_event(&_spi, event, true);
 
     spi_buffer_set(&_spi, tx_buffer, tx_length, rx_buffer, rx_length);
-    spi_master_transfer_dma(&_spi, tx_buffer, rx_buffer, (tx_length > rx_length ? tx_length : rx_length), (void*)_irq.entry(), DMA_USAGE_ALWAYS);
+    spi_master_transfer(&_spi, tx_buffer, rx_buffer, (tx_length > rx_length ? tx_length : rx_length), (void*)_irq.entry(), DMA_USAGE_NEVER);
     
     return 0;
 }

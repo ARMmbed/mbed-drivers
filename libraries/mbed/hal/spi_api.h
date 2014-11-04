@@ -53,7 +53,7 @@ void spi_enable_event(spi_t *obj, uint32_t event, uint8_t enable);
 void spi_enable_interrupt(spi_t *obj, uint32_t handler, uint8_t enable);
 
 // Initiate the transfer
-void spi_master_transfer_dma(spi_t *obj, void *rxdata, void *txdata, int length, void* cb, DMA_USAGE_Enum hint);
+void spi_master_transfer(spi_t *obj, void *rxdata, void *txdata, int length, void* cb, DMA_USAGE_Enum hint);
 
 // write data until hw buffer is full
 int spi_master_write_asynch(spi_t *obj);
