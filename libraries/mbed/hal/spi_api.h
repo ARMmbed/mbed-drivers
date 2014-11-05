@@ -26,7 +26,9 @@
 extern "C" {
 #endif
 
-#define SPI_EVENT_COMPLETE (1 << 0)
+#define SPI_EVENT_ERROR       (1 << 1)
+#define SPI_EVENT_COMPLETE    (1 << 2)
+#define SPI_EVENT_RX_OVERFLOW (1 << 3)
 
 typedef struct {
     struct spi_s    spi;
@@ -50,7 +52,7 @@ int  spi_busy         (spi_t *obj);
 void spi_enable_event(spi_t *obj, uint32_t event, uint8_t enable);
 
 // Enable SPI interrupts
-void spi_enable_interrupt(spi_t *obj, uint32_t handler, uint8_t enable);
+void spi_enable_vector_interrupt(spi_t *obj, uint32_t handler, uint8_t enable);
 
 // Initiate the transfer
 void spi_master_transfer(spi_t *obj, void *rxdata, void *txdata, int length, void* cb, DMA_USAGE_Enum hint);
@@ -60,9 +62,6 @@ int spi_master_write_asynch(spi_t *obj);
 
 // Read available data
 int spi_master_read_asynch(spi_t *obj);
-
-// Synch handler
-void spi_irq_handler(spi_t *obj);
 
 // Asynch irq handler
 uint32_t spi_irq_handler_asynch(spi_t *obj);

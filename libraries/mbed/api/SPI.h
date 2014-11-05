@@ -97,8 +97,7 @@ public:
     virtual int write(void *tx_buffer, uint32_t tx_length, void *rx_buffer, uint32_t rx_length, uint32_t event, void (*callback)(uint32_t));
 
     void set_asynch_usage(DMA_USAGE_Enum usage);
-    void interrupt_handler_asynch(void);
-    void irq_handler(void);
+    void irq_handler_asynch(void);
 
 public:
     virtual ~SPI() {

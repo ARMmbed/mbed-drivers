@@ -55,6 +55,7 @@ struct i2c_s {
 
 struct spi_s {
     uint32_t instance;
+    uint32_t address;
     DMA_USAGE_Enum dma_state;
     uint8_t bits;
     uint32_t event;

@@ -74,7 +74,7 @@ int SPI::write(void *tx_buffer, uint32_t tx_length, void *rx_buffer, uint32_t rx
     }
 
     _user_callback = callback;
-    _irq.callback(&SPI::interrupt_handler_asynch);
+    _irq.callback(&SPI::irq_handler_asynch);
 
     spi_enable_event(&_spi, event, true);
 
@@ -89,7 +89,7 @@ void SPI::set_asynch_usage(DMA_USAGE_Enum usage)
     _usage = usage;
 }
 
-void SPI::interrupt_handler_asynch(void)
+void SPI::irq_handler_asynch(void)
 {
     // TODO_LP - Transaction is complete, check if there are more waiting transfers and notify userland
     // TODO_LP - if transaction complete (tx, rx =0) then queued buffers
@@ -98,11 +98,6 @@ void SPI::interrupt_handler_asynch(void)
     if (_user_callback && event) {
         _user_callback(event);
     }
-}
-
-void SPI::irq_handler(void)
-{
-    spi_irq_handler(&_spi);
 }
 
 } // namespace mbed
