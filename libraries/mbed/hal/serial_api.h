@@ -17,8 +17,14 @@
 #define MBED_SERIAL_API_H
 
 #include "device.h"
+#include "buffer.h"
+#include "dma_api.h"
 
 #if DEVICE_SERIAL
+
+#define SERIAL_EVENT_ERROR                (1 << 1)
+#define SERIAL_EVENT_TRANSFER_COMPLETE    (1 << 2)
+#define SERIAL_EVENT_RECEIVE_COMPLETE     (1 << 3)
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,7 +52,11 @@ typedef enum {
 
 typedef void (*uart_irq_handler)(uint32_t id, SerialIrq event);
 
-typedef struct serial_s serial_t;
+typedef struct {
+    struct serial_s serial;
+    struct buffer_s tx_buff;
+    struct buffer_s rx_buff;
+} serial_t;
 
 void serial_init       (serial_t *obj, PinName tx, PinName rx);
 void serial_free       (serial_t *obj);
@@ -68,6 +78,27 @@ void serial_break_clear(serial_t *obj);
 void serial_pinout_tx(PinName tx);
 
 void serial_set_flow_control(serial_t *obj, FlowControl type, PinName rxflow, PinName txflow);
+
+// Asynch
+void serial_write_transfer_asynch(serial_t *obj, void *txdata, int length, void* cb, DMA_USAGE_Enum hint);
+
+void serial_read_transfer_asynch(serial_t *obj, void *rxdata, int length, void* cb, DMA_USAGE_Enum hint);
+
+void serial_tx_buffer_set(serial_t *obj, void *tx, uint32_t tx_length);
+
+void serial_rx_buffer_set(serial_t *obj, void *rx, uint8_t tx_length);
+
+uint8_t serial_tx_active(serial_t *obj);
+
+uint8_t serial_rx_active(serial_t *obj);
+
+uint32_t serial_tx_irq_handler_asynch(serial_t *obj);
+
+uint32_t serial_rx_irq_handler_asynch(serial_t *obj);
+
+void serial_write_enable_interrupt(serial_t *obj, uint32_t address, uint8_t enable);
+
+void serial_read_enable_interrupt(serial_t *obj, uint32_t address, uint8_t enable);
 
 #ifdef __cplusplus
 }

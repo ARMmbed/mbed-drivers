@@ -57,12 +57,6 @@ void spi_enable_vector_interrupt(spi_t *obj, uint32_t handler, uint8_t enable);
 // Initiate the transfer
 void spi_master_transfer(spi_t *obj, void *rxdata, void *txdata, int length, void* cb, DMA_USAGE_Enum hint);
 
-// write data until hw buffer is full
-int spi_master_write_asynch(spi_t *obj);
-
-// Read available data
-int spi_master_read_asynch(spi_t *obj);
-
 // Asynch irq handler
 uint32_t spi_irq_handler_asynch(spi_t *obj);
 

@@ -27,6 +27,9 @@
 #include "fsl_dspi_hal.h"
 #include "PeripheralPins.h"
 
+static int spi_master_write_asynch(spi_t *obj);
+static int spi_master_read_asynch(spi_t *obj);
+
 void spi_init(spi_t *obj, PinName mosi, PinName miso, PinName sclk, PinName ssel) {
     // determine the SPI to use
     uint32_t spi_mosi = pinmap_peripheral(mosi, PinMap_SPI_MOSI);
@@ -227,7 +230,7 @@ static void spi_buffer_rx_read(spi_t *obj)
 }
 
 
-int spi_master_write_asynch(spi_t *obj)
+static int spi_master_write_asynch(spi_t *obj)
 {
     int ndata = 0;
     while ((obj->tx_buff.pos < obj->tx_buff.length) && (DSPI_HAL_GetStatusFlag(obj->spi.address, kDspiTxFifoFillRequest) == 1)) {
@@ -237,7 +240,7 @@ int spi_master_write_asynch(spi_t *obj)
     return ndata;
 }
 
-int spi_master_read_asynch(spi_t *obj)
+static int spi_master_read_asynch(spi_t *obj)
 {
     int ndata = 0;
     while ((obj->rx_buff.pos < obj->rx_buff.length) && DSPI_HAL_GetStatusFlag(obj->spi.address, kDspiRxFifoDrainRequest)) {
