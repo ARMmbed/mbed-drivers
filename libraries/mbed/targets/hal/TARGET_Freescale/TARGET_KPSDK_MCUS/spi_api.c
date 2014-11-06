@@ -233,10 +233,20 @@ static void spi_buffer_rx_read(spi_t *obj)
 static int spi_master_write_asynch(spi_t *obj)
 {
     int ndata = 0;
-    while ((obj->tx_buff.pos < obj->tx_buff.length) && (DSPI_HAL_GetStatusFlag(obj->spi.address, kDspiTxFifoFillRequest) == 1)) {
-        spi_buffer_tx_write(obj);
-        ndata++;
-    }
+    int loop;
+    do {
+        loop = 0;
+        while ((obj->tx_buff.pos < obj->tx_buff.length) && (DSPI_HAL_GetStatusFlag(obj->spi.address, kDspiTxFifoFillRequest) == 1)) {
+            spi_buffer_tx_write(obj);
+            ndata++;
+        }
+        // all sent but still more to receive? need to align tx buffer
+        if ( (obj->tx_buff.pos == obj->tx_buff.length) && (obj->tx_buff.length < obj->rx_buff.length) ) {
+            obj->tx_buff.buffer = (void *)0;
+            obj->tx_buff.length = obj->rx_buff.length;
+            loop = 1;
+        }
+    } while (loop);
     return ndata;
 }
 
@@ -247,12 +257,6 @@ static int spi_master_read_asynch(spi_t *obj)
         spi_buffer_rx_read(obj);
         ndata++;
     }
-    // all sent but still more to receive? need to align tx buffer
-    if ((obj->rx_buff.pos == obj->rx_buff.length) && (obj->rx_buff.pos < obj->rx_buff.length)) {
-        obj->rx_buff.buffer = (void *)0;
-        obj->rx_buff.length = obj->rx_buff.length;
-    }
-
     return ndata;
 }
 
