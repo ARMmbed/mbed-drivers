@@ -53,15 +53,15 @@ OFFICIAL_MBED_LIBRARY_BUILD = (
     ('K22F',         ('ARM', 'GCC_ARM', 'IAR')),
     ('K20D50M',      ('ARM', 'GCC_ARM' , 'IAR')),
 
-    ('NUCLEO_F030R8', ('ARM', 'uARM')),
-    ('NUCLEO_F072RB', ('ARM', 'uARM')),
-    ('NUCLEO_F091RC', ('ARM', 'uARM')),
+    ('NUCLEO_F030R8', ('ARM', 'uARM', 'IAR')),
+    ('NUCLEO_F072RB', ('ARM', 'uARM', 'IAR')),
+    ('NUCLEO_F091RC', ('ARM', 'uARM', 'IAR')),
     ('NUCLEO_F103RB', ('ARM', 'uARM')),
     ('NUCLEO_F302R8', ('ARM', 'uARM', 'IAR')),
     ('NUCLEO_F334R8', ('ARM', 'uARM', 'IAR', 'GCC_ARM')),
     ('NUCLEO_F401RE', ('ARM', 'uARM', 'IAR', 'GCC_ARM')),
     ('NUCLEO_F411RE', ('ARM', 'uARM', 'IAR', 'GCC_ARM')),
-    ('NUCLEO_L053R8', ('ARM', 'uARM')),
+    ('NUCLEO_L053R8', ('ARM', 'uARM', 'IAR')),
     ('NUCLEO_L152RE', ('ARM', 'uARM', 'IAR')),
 
     ('ARCH_MAX',     ('ARM', 'GCC_ARM')),
@@ -73,9 +73,12 @@ OFFICIAL_MBED_LIBRARY_BUILD = (
     ('ARCH_BLE',     ('ARM', 'GCC_ARM')),
     ('RBLAB_NRF51822', ('ARM', 'GCC_ARM')),
     ('RBLAB_BLENANO', ('ARM', 'GCC_ARM')),
+    ('WALLBOT_BLE',  ('ARM', 'GCC_ARM')),
 
     ('LPC11U68',     ('uARM','GCC_ARM','GCC_CR')),
     ('OC_MBUINO',     ('ARM', 'uARM', 'GCC_ARM')),
+
+#    ('RZ_A1H'   ,     ('ARM',)),
 )
 
 
