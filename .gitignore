@@ -67,3 +67,8 @@ debug.log
 # PyCharm
 *.idea
 
+# yotta
+yotta_modules
+yotta_targets
+upload.tar.gz
+build

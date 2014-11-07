@@ -1,0 +1,26 @@
+{
+  "name": "mbed",
+  "version": "0.0.0",
+  "description": "mbed SDK",
+  "keywords": [
+    "mbed"
+  ],
+  "author": "Bogdan Marinescu <bogdan.marinescu@arm.com>",
+  "repository": {
+    "url": "git@github.com:mbedmicro/mbed_private.git",
+    "type": "git"
+  },
+  "homepage": "https://github.com/mbedmicro/mbed_private",
+  "licenses": [
+    {
+      "url": "https://spdx.org/licenses/Apache-2.0",
+      "type": "Apache-2.0"
+    }
+  ],
+  "extraIncludes": ["mbed"],
+  "dependencies": {
+    "mbed-hal": "ARMmbed/mbed-hal",
+    "cmsis-core": "ARMmbed/cmsis-core"
+  },
+  "targetDependencies": {}
+}
