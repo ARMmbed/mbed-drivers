@@ -42,7 +42,13 @@ struct pwmout_s {
 };
 
 struct serial_s {
-    int index;
+    uint32_t instance;
+    uint32_t address;
+    DMA_USAGE_Enum tx_dma_state;
+    DMA_USAGE_Enum rx_dma_state;
+    uint8_t databits;
+    uint32_t tx_event;
+    uint32_t rx_event;
 };
 
 struct analogin_s {

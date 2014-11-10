@@ -48,22 +48,23 @@ serial_t stdio_uart;
 void serial_init(serial_t *obj, PinName tx, PinName rx) {
     uint32_t uart_tx = pinmap_peripheral(tx, PinMap_UART_TX);
     uint32_t uart_rx = pinmap_peripheral(rx, PinMap_UART_RX);
-    obj->serial.index = pinmap_merge(uart_tx, uart_rx);
-    MBED_ASSERT((int)obj->serial.index != NC);
+    obj->serial.instance = pinmap_merge(uart_tx, uart_rx);
+    MBED_ASSERT((int)obj->serial.instance != NC);
 
-    uint32_t uartSourceClock = CLOCK_SYS_GetUartFreq(obj->serial.index);
+    uint32_t uartSourceClock = CLOCK_SYS_GetUartFreq(obj->serial.instance);
 
-    CLOCK_SYS_EnableUartClock(obj->serial.index);
-    uint32_t uart_addrs[] = UART_BASE_ADDRS;
-    UART_HAL_Init(uart_addrs[obj->serial.index]);
-    UART_HAL_SetBaudRate(uart_addrs[obj->serial.index], uartSourceClock, 9600);
-    UART_HAL_SetParityMode(uart_addrs[obj->serial.index], kUartParityDisabled);
+    CLOCK_SYS_EnableUartClock(obj->serial.instance);
+    uint32_t serial_address[] = UART_BASE_ADDRS;
+    obj->serial.address = serial_address[obj->serial.instance];
+    UART_HAL_Init(obj->serial.address);
+    UART_HAL_SetBaudRate(obj->serial.address, uartSourceClock, 9600);
+    UART_HAL_SetParityMode(obj->serial.address, kUartParityDisabled);
     #if FSL_FEATURE_UART_HAS_STOP_BIT_CONFIG_SUPPORT
-    UART_HAL_SetStopBitCount(uart_addrs[obj->serial.index], kUartOneStopBit);
+    UART_HAL_SetStopBitCount(obj->serial.address, kUartOneStopBit);
     #endif
-    UART_HAL_SetBitCountPerChar(uart_addrs[obj->serial.index], kUart8BitsPerChar);
-    UART_HAL_EnableTransmitter(uart_addrs[obj->serial.index]);
-    UART_HAL_EnableReceiver(uart_addrs[obj->serial.index]);
+    UART_HAL_SetBitCountPerChar(obj->serial.address, kUart8BitsPerChar);
+    UART_HAL_EnableTransmitter(obj->serial.address);
+    UART_HAL_EnableReceiver(obj->serial.address);
 
     pinmap_pinout(tx, PinMap_UART_TX);
     pinmap_pinout(rx, PinMap_UART_RX);
@@ -75,27 +76,25 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
         pin_mode(rx, PullUp);
     }
 
-    if (obj->serial.index == STDIO_UART) {
+    if (obj->serial.instance == STDIO_UART) {
         stdio_uart_inited = 1;
         memcpy(&stdio_uart, obj, sizeof(serial_t));
     }
 }
 
 void serial_free(serial_t *obj) {
-    serial_irq_ids[obj->serial.index] = 0;
+    serial_irq_ids[obj->serial.instance] = 0;
 }
 
 void serial_baud(serial_t *obj, int baudrate) {
-    uint32_t uart_addrs[] = UART_BASE_ADDRS;
-    UART_HAL_SetBaudRate(uart_addrs[obj->serial.index], CLOCK_SYS_GetUartFreq(obj->serial.index), (uint32_t)baudrate);
+    UART_HAL_SetBaudRate(obj->serial.address, CLOCK_SYS_GetUartFreq(obj->serial.instance), (uint32_t)baudrate);
 }
 
 void serial_format(serial_t *obj, int data_bits, SerialParity parity, int stop_bits) {
-    uint32_t uart_addrs[] = UART_BASE_ADDRS;
-    UART_HAL_SetBitCountPerChar(uart_addrs[obj->serial.index], (uart_bit_count_per_char_t)data_bits);
-    UART_HAL_SetParityMode(uart_addrs[obj->serial.index], (uart_parity_mode_t)parity);
+    UART_HAL_SetBitCountPerChar(obj->serial.address, (uart_bit_count_per_char_t)data_bits);
+    UART_HAL_SetParityMode(obj->serial.address, (uart_parity_mode_t)parity);
     #if FSL_FEATURE_UART_HAS_STOP_BIT_CONFIG_SUPPORT
-    UART_HAL_SetStopBitCount(uart_addrs[obj->serial.index], (uart_stop_bit_count_t)stop_bits);
+    UART_HAL_SetStopBitCount(obj->serial.address, (uart_stop_bit_count_t)stop_bits);
     #endif
 }
 
@@ -138,14 +137,14 @@ void uart4_irq() {
 
 void serial_irq_handler(serial_t *obj, uart_irq_handler handler, uint32_t id) {
     irq_handler = handler;
-    serial_irq_ids[obj->serial.index] = id;
+    serial_irq_ids[obj->serial.instance] = id;
 }
 
 void serial_irq_set(serial_t *obj, SerialIrq irq, uint32_t enable) {
     IRQn_Type irq_n = (IRQn_Type)0;
     uint32_t vector = 0;
 
-    switch (obj->serial.index) {
+    switch (obj->serial.instance) {
         case 0: irq_n=UART0_RX_TX_IRQn; vector = (uint32_t)&uart0_irq; break;
         case 1: irq_n=UART1_RX_TX_IRQn; vector = (uint32_t)&uart1_irq; break;
         case 2: irq_n=UART2_RX_TX_IRQn; vector = (uint32_t)&uart2_irq; break;
@@ -154,11 +153,10 @@ void serial_irq_set(serial_t *obj, SerialIrq irq, uint32_t enable) {
         case 4: irq_n=UART4_RX_TX_IRQn; vector = (uint32_t)&uart4_irq; break;
         #endif
     }
-    uint32_t uart_addrs[] = UART_BASE_ADDRS;
     if (enable) {
         switch (irq) {
-            case RxIrq: UART_HAL_SetRxDataRegFullIntCmd(uart_addrs[obj->serial.index], true); break;
-            case TxIrq: UART_HAL_SetTxDataRegEmptyIntCmd(uart_addrs[obj->serial.index], true); break;
+            case RxIrq: UART_HAL_SetRxDataRegFullIntCmd(obj->serial.address, true); break;
+            case TxIrq: UART_HAL_SetTxDataRegEmptyIntCmd(obj->serial.address, true); break;
         }
         NVIC_SetVector(irq_n, vector);
         NVIC_EnableIRQ(irq_n);
@@ -167,12 +165,12 @@ void serial_irq_set(serial_t *obj, SerialIrq irq, uint32_t enable) {
         int all_disabled = 0;
         SerialIrq other_irq = (irq == RxIrq) ? (TxIrq) : (RxIrq);
         switch (irq) {
-            case RxIrq: UART_HAL_SetRxDataRegFullIntCmd(uart_addrs[obj->serial.index], false); break;
-            case TxIrq: UART_HAL_SetTxDataRegEmptyIntCmd(uart_addrs[obj->serial.index], false); break;
+            case RxIrq: UART_HAL_SetRxDataRegFullIntCmd(obj->serial.address, false); break;
+            case TxIrq: UART_HAL_SetTxDataRegEmptyIntCmd(obj->serial.address, false); break;
         }
         switch (other_irq) {
-            case RxIrq: all_disabled = UART_HAL_GetRxDataRegFullIntCmd(uart_addrs[obj->serial.index]) == 0; break;
-            case TxIrq: all_disabled = UART_HAL_GetTxDataRegEmptyIntCmd(uart_addrs[obj->serial.index]) == 0; break;
+            case RxIrq: all_disabled = UART_HAL_GetRxDataRegFullIntCmd(obj->serial.address) == 0; break;
+            case TxIrq: all_disabled = UART_HAL_GetTxDataRegEmptyIntCmd(obj->serial.address) == 0; break;
         }
         if (all_disabled)
             NVIC_DisableIRQ(irq_n);
@@ -182,31 +180,27 @@ void serial_irq_set(serial_t *obj, SerialIrq irq, uint32_t enable) {
 int serial_getc(serial_t *obj) {
     while (!serial_readable(obj));
     uint8_t data;
-    uint32_t uart_addrs[] = UART_BASE_ADDRS;
-    UART_HAL_Getchar(uart_addrs[obj->serial.index], &data);
+    UART_HAL_Getchar(obj->serial.address, &data);
 
     return data;
 }
 
 void serial_putc(serial_t *obj, int c) {
     while (!serial_writable(obj));
-    uint32_t uart_addrs[] = UART_BASE_ADDRS;
-    UART_HAL_Putchar(uart_addrs[obj->serial.index], (uint8_t)c);
+    UART_HAL_Putchar(obj->serial.address, (uint8_t)c);
 }
 
 int serial_readable(serial_t *obj) {
-    uint32_t uart_address[] = UART_BASE_ADDRS;
-    if (UART_HAL_GetStatusFlag(uart_address[obj->serial.index], kUartRxOverrun))
-        UART_HAL_ClearStatusFlag(uart_address[obj->serial.index], kUartRxOverrun);
-    return UART_HAL_IsRxDataRegFull(uart_address[obj->serial.index]);
+    if (UART_HAL_GetStatusFlag(obj->serial.address, kUartRxOverrun))
+        UART_HAL_ClearStatusFlag(obj->serial.address, kUartRxOverrun);
+    return UART_HAL_IsRxDataRegFull(obj->serial.address);
 }
 
 int serial_writable(serial_t *obj) {
-    uint32_t uart_address[] = UART_BASE_ADDRS;
-    if (UART_HAL_GetStatusFlag(uart_address[obj->serial.index], kUartRxOverrun))
-        UART_HAL_ClearStatusFlag(uart_address[obj->serial.index], kUartRxOverrun);
+    if (UART_HAL_GetStatusFlag(obj->serial.address, kUartRxOverrun))
+        UART_HAL_ClearStatusFlag(obj->serial.address, kUartRxOverrun);
 
-    return UART_HAL_IsTxDataRegEmpty(uart_address[obj->serial.index]);
+    return UART_HAL_IsTxDataRegEmpty(obj->serial.address);
 }
 
 void serial_clear(serial_t *obj) {
@@ -217,55 +211,179 @@ void serial_pinout_tx(PinName tx) {
 }
 
 void serial_break_set(serial_t *obj) {
-    uint32_t uart_address[] = UART_BASE_ADDRS;
-    UART_HAL_SetBreakCharCmd(uart_address[obj->serial.index], true);
+    UART_HAL_SetBreakCharCmd(obj->serial.address, true);
 }
 
 void serial_break_clear(serial_t *obj) {
-    uint32_t uart_address[] = UART_BASE_ADDRS;
-    UART_HAL_SetBreakCharCmd(uart_address[obj->serial.index], false);
+    UART_HAL_SetBreakCharCmd(obj->serial.address, false);
 }
 
 // Asynch
-
-void serial_tx_buffer_set(serial_t *obj, void *tx, uint32_t tx_length)
+static uint32_t serial_tx_event_check(serial_t *obj)
 {
+    uint32_t event = obj->serial.tx_event;
+    // TODO implement events
+
+    return event;
+}
+
+static uint32_t serial_rx_event_check(serial_t *obj)
+{
+    uint32_t event = obj->serial.rx_event;
+    // TODO implement events
+
+    return event;
+}
+
+static void serial_buffer_tx_write(serial_t *obj)
+{
+    int data;
+    if (obj->serial.databits < 9) {
+        uint8_t *tx = (uint8_t *)(obj->tx_buff.buffer);
+        data = tx[obj->tx_buff.pos];
+        UART_HAL_Putchar(obj->serial.address, data);
+    } else {
+        // TODO implement
+    }
+    obj->tx_buff.pos++;
+}
+
+static void serial_buffer_rx_read(serial_t *obj)
+{
+    if (obj->serial.databits < 9) {
+        uint8_t data;
+        UART_HAL_Getchar(obj->serial.address, &data);
+        uint8_t *rx = (uint8_t *)(obj->rx_buff.buffer);
+        rx[obj->rx_buff.pos] = data;
+    } else {
+        // TODO implement
+    }
+    obj->rx_buff.pos++;
+}
+
+int serial_write_asynch(serial_t *obj)
+{
+    int ndata = 0;
+    while ((obj->tx_buff.pos < obj->tx_buff.length) && (1)) { // TODO
+        serial_buffer_tx_write(obj);
+        ndata++;
+    }
+    return ndata;
+}
+
+int serial_read_asynch(serial_t *obj)
+{
+    int ndata = 0;
+    while ((obj->rx_buff.pos < obj->rx_buff.length) && (1)) { // TODO
+        serial_buffer_rx_read(obj);
+        ndata++;
+    }
+    return ndata;
+}
+
+void serial_tx_buffer_set(serial_t *obj, void *tx, uint32_t length)
+{
+    obj->tx_buff.buffer = tx;
+    obj->tx_buff.length = length;
+    obj->tx_buff.pos = 0;
 
 }
 
-void serial_rx_buffer_set(serial_t *obj, void *rx, uint8_t tx_length)
+void serial_rx_buffer_set(serial_t *obj, void *rx, uint8_t length)
 {
-
+    obj->rx_buff.buffer = rx;
+    obj->rx_buff.length = length;
+    obj->rx_buff.pos = 0;
 }
 
 uint8_t serial_tx_active(serial_t *obj)
 {
-
+    return 0; // TODO
 }
 
 uint8_t serial_rx_active(serial_t *obj)
 {
+    return 0; // TODO
+}
 
+uint32_t serial_irq_handler_asynch(serial_t *obj)
+{
+    uint32_t uart_address = obj->serial.address;
+    if (UART_HAL_GetRxDataRegFullIntCmd(uart_address) &&
+        UART_HAL_IsRxDataRegFull(uart_address)) {
+        serial_tx_irq_handler_asynch(obj);
+    } else {
+        serial_rx_irq_handler_asynch(obj);
+    }
 }
 
 uint32_t serial_tx_irq_handler_asynch(serial_t *obj)
 {
+    uint32_t result = 0;
+    if (obj->serial.tx_dma_state == DMA_USAGE_ALLOCATED || obj->serial.tx_dma_state == DMA_USAGE_TEMPORARY_ALLOCATED) {
+        // TODO
+    } else {
+        serial_write_asynch(obj);
 
+        uint32_t event = serial_tx_event_check(obj);
+        if (event) {
+            result = event;
+        }
+    }
+    return 0;
 }
 
 uint32_t serial_rx_irq_handler_asynch(serial_t *obj)
 {
+    if (obj->serial.tx_dma_state == DMA_USAGE_ALLOCATED || obj->serial.tx_dma_state == DMA_USAGE_TEMPORARY_ALLOCATED) {
+        // TODO
+    } else {
+        serial_read_asynch(obj);
 
+        uint32_t event = serial_rx_event_check(obj);
+        if (event) {
+            serial_read_enable_interrupt(obj, NULL, false);
+            return event;
+        }
+    }
+    return 0;
 }
 
 void serial_write_enable_interrupt(serial_t *obj, uint32_t address, uint8_t enable)
 {
-
+    // obj->serial.tx_vector = address;
+    serial_irq_set(obj, (SerialIrq)1, enable);
 }
 
 void serial_read_enable_interrupt(serial_t *obj, uint32_t address, uint8_t enable)
 {
+    // obj->serial.rx_vector = address;
+    serial_irq_set(obj, (SerialIrq)0, enable);
+}
 
+void serial_write_transfer_asynch(serial_t *obj, void *txdata, int length, void* cb, DMA_USAGE_Enum hint)
+{
+    if (hint != DMA_USAGE_NEVER && obj->serial.tx_dma_state == DMA_USAGE_ALLOCATED) {
+        // TODO DMA impl
+    } else if (hint == DMA_USAGE_NEVER) {
+        /* use IRQ */
+        serial_write_asynch(obj);
+        serial_write_enable_interrupt(obj, (uint32_t)cb, true);
+    } else {
+        // TODO
+    }
+}
+
+void serial_read_transfer_asynch(serial_t *obj, void *rxdata, int length, void* cb, DMA_USAGE_Enum hint)
+{
+    if (hint != DMA_USAGE_NEVER && obj->serial.rx_dma_state == DMA_USAGE_ALLOCATED) {
+        // TODO DMA impl
+    } else if (hint == DMA_USAGE_NEVER) {
+        /* use IRQ */
+        serial_read_enable_interrupt(obj, (uint32_t)cb, true);
+    } else {
+        // TODO
+    }
 }
 
 
