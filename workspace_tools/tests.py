@@ -901,6 +901,12 @@ TESTS = [
         "dependencies": [MBED_LIBRARIES, TEST_MBED_LIB, CPPUTEST_LIBRARY, TEST_MBED_TESTRUNNER_LIB],
         "automated": False,
     },
+    {
+        "id": "UT_4", "description": "Asynchronous SPI test",
+        "source_dir": join(TEST_DIR, "mbed", "spi_master_asynch"),
+        "dependencies": [MBED_LIBRARIES, TEST_MBED_LIB, CPPUTEST_LIBRARY, TEST_MBED_TESTRUNNER_LIB],
+        "automated": False,
+    },
 
     # Tests used for target information purposes
     {

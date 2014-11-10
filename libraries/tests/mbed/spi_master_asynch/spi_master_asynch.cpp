@@ -1,10 +1,13 @@
-#if DEVICE_SPI
 
-
-#include <CppUTest/TestHarness.h>
+#include <TestHarness.h>
 #include <mbed.h>
 #include <SPI.h>
 #include <spi_api.h>
+
+#if !DEVICE_SPI
+#error spi_master_asynch requires SPI
+#endif
+
 
 #define SHORT_XFR 3
 #define LONG_XFR 16
@@ -18,10 +21,21 @@
 #define TEST_BYTE_RX TEST_BYTE3
 #define TEST_BYTE_TX_BASE TEST_BYTE5
 
-#define TEST_MOSI_PIN p5
-#define TEST_MISO_PIN p6
-#define TEST_SCLK_PIN p7
-#define TEST_CS_PIN   p8
+#if defined(TARGET_K64F)
+#define TEST_MOSI_PIN PTD6
+#define TEST_MISO_PIN PTD7
+#define TEST_SCLK_PIN PTD5
+#define TEST_CS_PIN   PTD4
+#else
+#error Target not supported
+#endif
+
+volatile uint32_t  why;
+volatile bool complete;
+void cbdone(uint32_t event) {
+	complete = true;
+	why = event;
+}
 
 TEST_GROUP(SPI_Master_Asynchronous)
 {
@@ -29,15 +43,14 @@ TEST_GROUP(SPI_Master_Asynchronous)
 	char rx_buf[LONG_XFR];
 	SPI *obj;
 	DigitalOut *cs;
-	volatile bool complete;
-	volatile uint32_t why;
 
 	void setup() {
 		obj = new SPI(TEST_MOSI_PIN, TEST_MISO_PIN, TEST_SCLK_PIN);
 		cs = new DigitalOut(TEST_CS_PIN);
 		complete = false;
+
 		// Set the default value of tx_buf
-		for (i = 0; i < sizeof(tx_buf); i++) {
+		for (uint32_t i = 0; i < sizeof(tx_buf); i++) {
 			tx_buf[i] = i + TEST_BYTE_TX_BASE;
 		}
 		memset(rx_buf,TEST_BYTE_RX,sizeof(rx_buf));
@@ -48,12 +61,6 @@ TEST_GROUP(SPI_Master_Asynchronous)
 		delete cs;
 		cs = NULL;
 	}
-
-	void cbdone(uint32_t event) {
-		complete = true;
-		why = event;
-	}
-
 };
 
 // SPI write tx length: FIFO-1, read length: 0
@@ -80,7 +87,7 @@ TEST(SPI_Master_Asynchronous, short_tx_0_rx)
 TEST(SPI_Master_Asynchronous, short_tx_0_rx_nn)
 {
 	int rc;
-	int i;
+	uint32_t i;
 	// Write a buffer of Short Transfer length.
 	rc = obj->write((void *)tx_buf,SHORT_XFR,(void *)rx_buf,0,-1,cbdone);
 	CHECK(rc == 0);
@@ -101,7 +108,7 @@ TEST(SPI_Master_Asynchronous, short_tx_0_rx_nn)
 TEST(SPI_Master_Asynchronous, 0_tx_short_rx)
 {
 	int rc;
-	int i;
+	uint32_t i;
 	// Read a buffer of Short Transfer length.
 	rc = obj->write(NULL,0,(void *)rx_buf,SHORT_XFR,-1,cbdone);
 	CHECK(rc == 0);
@@ -127,7 +134,7 @@ TEST(SPI_Master_Asynchronous, 0_tx_short_rx)
 TEST(SPI_Master_Asynchronous, 0_tx_nn_short_rx)
 {
 	int rc;
-	int i;
+	uint32_t i;
 	// Read a buffer of Short Transfer length.
 	rc = obj->write((void *)tx_buf,0,(void *)rx_buf,SHORT_XFR,-1,cbdone);
 	CHECK(rc == 0);
@@ -152,7 +159,7 @@ TEST(SPI_Master_Asynchronous, 0_tx_nn_short_rx)
 TEST(SPI_Master_Asynchronous, short_tx_short_rx)
 {
 	int rc;
-	int i;
+	uint32_t i;
 	// Write/Read a buffer of Long Transfer length.
 	rc = obj->write((void *)tx_buf,SHORT_XFR,(void *)rx_buf,SHORT_XFR,-1,cbdone);
 	CHECK(rc == 0);
@@ -176,7 +183,7 @@ TEST(SPI_Master_Asynchronous, short_tx_short_rx)
 TEST(SPI_Master_Asynchronous, long_tx_long_rx)
 {
 	int rc;
-	int i;
+	uint32_t i;
 	// Write/Read a buffer of Long Transfer length.
 	rc = obj->write((void *)tx_buf,LONG_XFR,(void *)rx_buf,LONG_XFR,-1,cbdone);
 	CHECK(rc == 0);
@@ -200,7 +207,7 @@ TEST(SPI_Master_Asynchronous, long_tx_long_rx)
 TEST(SPI_Master_Asynchronous, long_tx_short_rx)
 {
 	int rc;
-	int i;
+	uint32_t i;
 	// Write a buffer of Short Transfer length.
 	rc = obj->write((void *)tx_buf,LONG_XFR,(void *)rx_buf,SHORT_XFR,-1,cbdone);
 	CHECK(rc == 0);
@@ -225,7 +232,7 @@ TEST(SPI_Master_Asynchronous, long_tx_short_rx)
 TEST(SPI_Master_Asynchronous, short_tx_long_rx)
 {
 	int rc;
-	int i;
+	uint32_t i;
 	// Write a buffer of Short Transfer length.
 	rc = obj->write((void *)tx_buf,SHORT_XFR,(void *)rx_buf,LONG_XFR,-1,cbdone);
 	CHECK(rc == 0);
@@ -251,8 +258,3 @@ TEST(SPI_Master_Asynchronous, short_tx_long_rx)
 
 // On DMA-enabled platforms, add an additional test with large transfers and DMA.
 // To validate DMA, disable non-completion IRQs after starting the transfer.
-
-
-
-
-
