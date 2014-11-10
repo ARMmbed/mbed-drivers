@@ -201,7 +201,7 @@ static void spi_buffer_tx_write(spi_t *obj)
 
     if (obj->spi.bits <= 8) {
         if (obj->tx_buff.buffer == 0) {
-            data = 0xFF;
+            data = SPI_FILL_BYTE;
         } else {
             uint8_t *tx = (uint8_t *)(obj->tx_buff.buffer);
             data = tx[obj->tx_buff.pos];
@@ -256,6 +256,12 @@ static int spi_master_read_asynch(spi_t *obj)
     while ((obj->rx_buff.pos < obj->rx_buff.length) && DSPI_HAL_GetStatusFlag(obj->spi.address, kDspiRxFifoDrainRequest)) {
         spi_buffer_rx_read(obj);
         ndata++;
+    }
+    // If the receive buffer is full, just empty the FIFO.
+    if (obj->rx_buff.pos >= obj->rx_buff.length) {
+        while (DSPI_HAL_GetStatusFlag(obj->spi.address, kDspiRxFifoDrainRequest)) {
+            DSPI_HAL_ReadData(obj->spi.address);
+        }
     }
     return ndata;
 }
