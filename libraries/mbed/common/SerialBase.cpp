@@ -20,7 +20,7 @@
 
 namespace mbed {
 
-SerialBase::SerialBase(PinName tx, PinName rx) : _serial(), _baud(9600) {
+SerialBase::SerialBase(PinName tx, PinName rx) : _serial(), _baud(9600), _thunk_irq(this) {
     serial_init(&_serial, tx, rx);
     serial_irq_handler(&_serial, SerialBase::_irq_handler, (uint32_t)this);
 }
@@ -102,6 +102,22 @@ void SerialBase::set_flow_control(Flow type, PinName flow1, PinName flow2) {
     }
 }
 #endif
+
+int SerialBase::write(void *buffer, uint32_t length, void (*callback)(uint32_t)) {
+
+}
+
+void SerialBase::abort_write(void) {
+
+}
+
+int SerialBase::read(void *buffer, uint32_t length, void (*callback)(uint32_t),uint8_t char_mat) {
+
+}
+
+void SerialBase::abort_read(void) {
+
+}
 
 } // namespace mbed
 

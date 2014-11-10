@@ -23,6 +23,7 @@
 #include "Stream.h"
 #include "FunctionPointer.h"
 #include "serial_api.h"
+#include "CThunk.h"
 
 namespace mbed {
 
@@ -119,6 +120,12 @@ public:
 
     static void _irq_handler(uint32_t id, SerialIrq irq_type);
 
+    int write(void *buffer, uint32_t length, void (*callback)(uint32_t));
+    void abort_write();
+
+    int read(void *buffer, uint32_t length, void (*callback)(uint32_t), uint8_t char_match=255);
+    void abort_read();
+
 protected:
     SerialBase(PinName tx, PinName rx);
     virtual ~SerialBase() {
@@ -130,6 +137,10 @@ protected:
     serial_t        _serial;
     FunctionPointer _irq[2];
     int             _baud;
+
+    void interrupt_handler_asynch(void);
+    CThunk<SerialBase> _thunk_irq;
+    void (*_user_callback)(uint32_t event);
 };
 
 } // namespace mbed

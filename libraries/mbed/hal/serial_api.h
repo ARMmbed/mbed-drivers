@@ -22,9 +22,9 @@
 
 #if DEVICE_SERIAL
 
-#define SERIAL_EVENT_ERROR                (1 << 1)
-#define SERIAL_EVENT_TRANSFER_COMPLETE    (1 << 2)
-#define SERIAL_EVENT_RECEIVE_COMPLETE     (1 << 3)
+#define SERIAL_EVENT_ERROR             (1 << 1)
+#define SERIAL_EVENT_TRANSFER_COMPLETE (1 << 2)
+#define SERIAL_EVENT_RECEIVE_COMPLETE  (1 << 3)
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,9 +92,11 @@ uint8_t serial_tx_active(serial_t *obj);
 
 uint8_t serial_rx_active(serial_t *obj);
 
-uint32_t serial_tx_irq_handler_asynch(serial_t *obj);
+uint32_t serial_irq_handler_asynch(serial_t *obj);
 
-uint32_t serial_rx_irq_handler_asynch(serial_t *obj);
+void serial_tx_abort(serial_t *obj);
+
+void serial_rx_abort(serial_t *obj);
 
 void serial_write_enable_interrupt(serial_t *obj, uint32_t address, uint8_t enable);
 
