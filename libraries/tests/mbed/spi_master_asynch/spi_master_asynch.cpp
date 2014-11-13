@@ -35,12 +35,9 @@ volatile uint32_t  why;
 volatile bool complete;
 void cbdone(uint32_t event) {
 	complete = true;
-	//printf("SPI reported code: 0x%lx\n",event);
 	why = event;
 }
 
-char event_log[128];
-char *event_pos = event_log;
 TEST_GROUP(SPI_Master_Asynchronous)
 {
 	uint8_t tx_buf[LONG_XFR];
@@ -59,11 +56,8 @@ TEST_GROUP(SPI_Master_Asynchronous)
 			tx_buf[i] = i + TEST_BYTE_TX_BASE;
 		}
 		memset(rx_buf,TEST_BYTE_RX,sizeof(rx_buf));
-		event_pos = event_log;
 	}
 	void teardown() {
-		*event_pos = 0;
-		//printf("%s\r\n",event_log);
 		delete obj;
 		obj = NULL;
 		delete cs;
@@ -231,7 +225,7 @@ TEST(SPI_Master_Asynchronous, long_tx_long_rx)
 }
 // SPI write tx length: 2xFIFO, ascending, read length: 1xFIFO
 //   Checks: Receive buffer == tx buffer, completion event, read buffer overflow
-IGNORE_TEST(SPI_Master_Asynchronous, long_tx_short_rx)
+TEST(SPI_Master_Asynchronous, long_tx_short_rx)
 {
 	int rc;
 	// Write a buffer of Short Transfer length.
@@ -249,7 +243,7 @@ IGNORE_TEST(SPI_Master_Asynchronous, long_tx_short_rx)
 	cmpnbufc(TEST_BYTE_RX,rx_buf,SHORT_XFR,sizeof(rx_buf),__FILE__,__LINE__);
 }
 
-// SPI write tx length: 1xFIFO, ascending, read length: 2xFIFO
+// SPI write tx length: FIFO-1, ascending, read length: 2xFIFO
 //	 Checks: Receive buffer == tx buffer, then fill, completion event
 TEST(SPI_Master_Asynchronous, short_tx_long_rx)
 {
