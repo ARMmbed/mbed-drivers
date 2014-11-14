@@ -32,10 +32,14 @@ class IAREmbeddedWorkbench(Exporter):
         'KL46Z',
         'K22F',
         'K64F',
+        'NUCLEO_F030R8',
+        'NUCLEO_F072RB',
+        'NUCLEO_F091RC',
         'NUCLEO_F302R8',
         'NUCLEO_F334R8',
         'NUCLEO_F401RE',
         'NUCLEO_F411RE',
+        'NUCLEO_L053R8',
         'NUCLEO_L152RE',
         'STM32F407'
     ]
