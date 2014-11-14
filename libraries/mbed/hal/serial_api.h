@@ -22,9 +22,19 @@
 
 #if DEVICE_SERIAL
 
-#define SERIAL_EVENT_ERROR             (1 << 1)
-#define SERIAL_EVENT_TRANSFER_COMPLETE (1 << 2)
-#define SERIAL_EVENT_RECEIVE_COMPLETE  (1 << 3)
+#define SERIAL_EVENT_TX_SHIFT (2)
+#define SERIAL_EVENT_RX_SHIFT (8)
+
+#define SERIAL_EVENT_TX_MASK  (0x00FC)
+#define SERIAL_EVENT_RX_MASK  (0x3F00)
+
+#define SERIAL_EVENT_ERROR       (1 << 1)
+#define SERIAL_EVENT_TX_COMPLETE (1 << (SERIAL_EVENT_TX_SHIFT + 0))
+
+#define SERIAL_EVENT_RX_COMPLETE      (1 << (SERIAL_EVENT_RX_SHIFT + 0))
+#define SERIAL_EVENT_RX_OVERRUN_ERROR (1 << (SERIAL_EVENT_RX_SHIFT + 1))
+#define SERIAL_EVENT_RX_FRAMING_ERROR (1 << (SERIAL_EVENT_RX_SHIFT + 2))
+#define SERIAL_EVENT_RX_PARITY_ERROR  (1 << (SERIAL_EVENT_RX_SHIFT + 3))
 
 #ifdef __cplusplus
 extern "C" {
@@ -80,26 +90,47 @@ void serial_pinout_tx(PinName tx);
 void serial_set_flow_control(serial_t *obj, FlowControl type, PinName rxflow, PinName txflow);
 
 // Asynch
-void serial_write_transfer_asynch(serial_t *obj, void *txdata, int length, void* cb, DMA_USAGE_Enum hint);
 
-void serial_read_transfer_asynch(serial_t *obj, void *rxdata, int length, void* cb, DMA_USAGE_Enum hint);
+// Start tx transfer
+void serial_start_write_asynch(serial_t *obj, void* cb, DMA_USAGE_Enum hint);
 
+// Start rx transfer
+void serial_start_read_asynch(serial_t *obj, void* cb, DMA_USAGE_Enum hint);
+
+// Enable tx event
+void serial_tx_enable_event(serial_t *obj, uint32_t event, uint8_t enable);
+
+// Enable rx event
+void serial_rx_enable_event(serial_t *obj, uint32_t event, uint8_t enable);
+
+// Set tx buffer
 void serial_tx_buffer_set(serial_t *obj, void *tx, uint32_t tx_length);
 
-void serial_rx_buffer_set(serial_t *obj, void *rx, uint8_t tx_length);
+// Set rx buffer
+void serial_rx_buffer_set(serial_t *obj, void *rx, uint32_t tx_length);
 
+// Return true if tx transfer is ongoing
 uint8_t serial_tx_active(serial_t *obj);
 
+// Return true if rx transfer is ongoing
 uint8_t serial_rx_active(serial_t *obj);
 
-uint32_t serial_irq_handler_asynch(serial_t *obj);
+// tx isr handler
+uint32_t serial_tx_irq_handler_asynch(serial_t *obj);
 
-void serial_tx_abort(serial_t *obj);
+// rx isr handler
+uint32_t serial_rx_irq_handler_asynch(serial_t *obj);
 
-void serial_rx_abort(serial_t *obj);
+// Abort tx transfer
+void serial_tx_abort_asynch(serial_t *obj);
 
+// Abort rx transfer
+void serial_rx_abort_asynch(serial_t *obj);
+
+// Enable interrupt for tx
 void serial_write_enable_interrupt(serial_t *obj, uint32_t address, uint8_t enable);
 
+// Enable interrupt for rx
 void serial_read_enable_interrupt(serial_t *obj, uint32_t address, uint8_t enable);
 
 #ifdef __cplusplus

@@ -47,8 +47,11 @@ struct serial_s {
     DMA_USAGE_Enum tx_dma_state;
     DMA_USAGE_Enum rx_dma_state;
     uint8_t databits;
-    uint32_t tx_event;
-    uint32_t rx_event;
+    uint32_t event;
+    uint32_t vector_cur;
+    uint32_t vector_prev;
+    IRQn_Type irq_number;
+    uint8_t entry_count;
 };
 
 struct analogin_s {

@@ -47,6 +47,8 @@ namespace mbed {
 class Serial : public SerialBase, public Stream {
 
 public:
+    using SerialBase::read;
+    using SerialBase::write;
     /** Create a Serial port, connected to the specified transmit and receive pins
      *
      *  @param tx Transmit pin
