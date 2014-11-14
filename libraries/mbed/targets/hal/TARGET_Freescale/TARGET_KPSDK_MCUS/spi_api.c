@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include <math.h>
+#include <stdio.h>
 #include "mbed_assert.h"
 
 #include "spi_api.h"
@@ -166,12 +167,14 @@ void spi_enable_vector_interrupt(spi_t *obj, uint32_t handler, uint8_t enable)
     }
 }
 
-void spi_master_transfer(spi_t *obj, void *rxdata, void *txdata, int length, void* cb, DMA_USAGE_Enum hint)
+void spi_master_transfer(spi_t *obj, void* cb, DMA_USAGE_Enum hint)
 {
     if (hint != DMA_USAGE_NEVER && obj->spi.dma_state == DMA_USAGE_ALLOCATED) {
         // setup dma done, activate
     } else if (hint == DMA_USAGE_NEVER) {
         obj->spi.dma_state = DMA_USAGE_NEVER;
+        DSPI_HAL_SetFlushFifoCmd(obj->spi.address,true,true);
+        DSPI_HAL_SetFifoCmd(obj->spi.address, true, true);
         // use IRQ
         spi_master_write_asynch(obj);
         spi_enable_vector_interrupt(obj, (uint32_t)cb, true);
@@ -182,11 +185,22 @@ void spi_master_transfer(spi_t *obj, void *rxdata, void *txdata, int length, voi
 
 uint32_t spi_event_check(spi_t *obj)
 {
-    uint32_t event = obj->spi.event;
-    if ((event & SPI_EVENT_COMPLETE) && !(obj->rx_buff.pos == obj->rx_buff.length)) {
-        event &= ~SPI_EVENT_COMPLETE;
-    } else if ((event & SPI_EVENT_RX_OVERFLOW) && !(BR_SPI_RSER_RFDF_RE(obj->spi.address))) {
-        event &= ~SPI_EVENT_RX_OVERFLOW;
+    uint32_t event = 0;
+    uint8_t U = DSPI_HAL_GetStatusFlag(obj->spi.address,kDspiTxFifoUnderflow);
+    uint8_t O = DSPI_HAL_GetStatusFlag(obj->spi.address,kDspiRxFifoOverflow);
+    uint8_t D = DSPI_HAL_GetStatusFlag(obj->spi.address,kDspiRxFifoDrainRequest);
+    uint8_t TXCTR = DSPI_HAL_GetFifoCountOrPtr(obj->spi.address,kDspiRxFifoCounter);
+
+    if ((obj->spi.event & SPI_EVENT_COMPLETE) && TXCTR==0 && !D
+            && obj->rx_buff.pos >= obj->rx_buff.length
+            && obj->tx_buff.pos >= obj->tx_buff.length) {
+        event |= SPI_EVENT_COMPLETE;
+    }
+    if ((obj->spi.event & SPI_EVENT_RX_OVERFLOW) && O) {
+        event |= SPI_EVENT_RX_OVERFLOW;
+    }
+    if ((obj->spi.event & SPI_EVENT_ERROR) && U) {
+        event |= SPI_EVENT_ERROR;
     }
 
     return event;
@@ -200,8 +214,8 @@ static void spi_buffer_tx_write(spi_t *obj)
     command.isChipSelectContinuous = 0;
 
     if (obj->spi.bits <= 8) {
-        if (obj->tx_buff.buffer == 0) {
-            data = 0xFF;
+        if (obj->tx_buff.buffer == 0 || obj->tx_buff.pos >= obj->tx_buff.length) {
+            data = SPI_FILL_BYTE;
         } else {
             uint8_t *tx = (uint8_t *)(obj->tx_buff.buffer);
             data = tx[obj->tx_buff.pos];
@@ -218,7 +232,7 @@ static void spi_buffer_rx_read(spi_t *obj)
 {
     if (obj->spi.bits <= 8) {
         int data = (int)DSPI_HAL_ReadData(obj->spi.address);
-        if (obj->rx_buff.buffer) {
+        if (obj->rx_buff.buffer && obj->rx_buff.pos < obj->rx_buff.length) {
             uint8_t *rx = (uint8_t *)(obj->rx_buff.buffer);
             rx[obj->rx_buff.pos] = data;
         }
@@ -233,27 +247,21 @@ static void spi_buffer_rx_read(spi_t *obj)
 static int spi_master_write_asynch(spi_t *obj)
 {
     int ndata = 0;
-    int loop;
-    do {
-        loop = 0;
-        while ((obj->tx_buff.pos < obj->tx_buff.length) && (DSPI_HAL_GetStatusFlag(obj->spi.address, kDspiTxFifoFillRequest) == 1)) {
-            spi_buffer_tx_write(obj);
-            ndata++;
-        }
-        // all sent but still more to receive? need to align tx buffer
-        if ( (obj->tx_buff.pos == obj->tx_buff.length) && (obj->tx_buff.length < obj->rx_buff.length) ) {
-            obj->tx_buff.buffer = (void *)0;
-            obj->tx_buff.length = obj->rx_buff.length;
-            loop = 1;
-        }
-    } while (loop);
+    while ((   (obj->tx_buff.pos < obj->tx_buff.length)
+            || (obj->tx_buff.pos < obj->rx_buff.length))
+            && DSPI_HAL_GetStatusFlag(obj->spi.address, kDspiTxFifoFillRequest)) {
+        spi_buffer_tx_write(obj);
+        ndata++;
+    }
     return ndata;
 }
 
 static int spi_master_read_asynch(spi_t *obj)
 {
     int ndata = 0;
-    while ((obj->rx_buff.pos < obj->rx_buff.length) && DSPI_HAL_GetStatusFlag(obj->spi.address, kDspiRxFifoDrainRequest)) {
+    while ((   (obj->rx_buff.pos < obj->rx_buff.length)
+            || (obj->rx_buff.pos < obj->tx_buff.length))
+            && DSPI_HAL_GetStatusFlag(obj->spi.address, kDspiRxFifoDrainRequest)) {
         spi_buffer_rx_read(obj);
         ndata++;
     }
@@ -263,6 +271,11 @@ static int spi_master_read_asynch(spi_t *obj)
 void spi_irq_handler(spi_t *obj)
 {
 
+}
+void spi_abort_asynch(spi_t *obj) {
+    spi_enable_vector_interrupt(obj, 0, false);
+    DSPI_HAL_SetFlushFifoCmd(obj->spi.address,true,true);
+    DSPI_HAL_SetFifoCmd(obj->spi.address, false, false);
 }
 
 uint32_t spi_irq_handler_asynch(spi_t *obj)
@@ -279,6 +292,9 @@ uint32_t spi_irq_handler_asynch(spi_t *obj)
         if (event) {
             result = event;
         }
+    }
+    if (result) {
+        spi_abort_asynch(obj);
     }
     return result;
 }
