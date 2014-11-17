@@ -39,8 +39,7 @@ volatile uint32_t SpiRxDisable;
 #define SPI_TX_FIFO_SIZE (4)
 #define SPI_RX_FIFO_SIZE (4)
 
-//#define SPI_ASYNCH_INITIAL_TX (min(SPI_TX_FIFO_SIZE,SPI_RX_FIFO_SIZE))
-#define SPI_ASYNCH_INITIAL_TX (-1)
+#define SPI_ASYNCH_INITIAL_TX (min(SPI_TX_FIFO_SIZE+1,SPI_RX_FIFO_SIZE))
 
 #define max(a,b)\
     ((a)>(b)?(a):(b))
