@@ -153,6 +153,15 @@ void spi_enable_vector_interrupt(spi_t *obj, uint32_t handler, uint8_t enable);
 void spi_master_transfer(spi_t *obj, void* cb, DMA_USAGE_Enum hint);
 
 /**
+ * The asynchronous IRQ handler
+ * Reads the received values out of the RX FIFO, writes values into the TX FIFO and checks for transfer termination
+ * conditions, such as buffer overflows or transfer complete.
+ * @param[in] obj     The SPI object which holds the transfer information
+ * @return Returns event flags if a transfer termination condition was met or 0 otherwise.
+ */
+uint32_t spi_irq_handler_asynch(spi_t *obj);
+
+/**
  * Attempts to determine if the SPI peripheral is already in use.
  * If a temporary DMA channel has been allocated, peripheral is in use.
  * If a permanent DMA channel has been allocated, check if the DMA channel is in use.  If not, proceed as though no DMA
