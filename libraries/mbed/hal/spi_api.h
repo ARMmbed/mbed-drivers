@@ -31,7 +31,7 @@ extern "C" {
 #define SPI_EVENT_RX_OVERFLOW (1 << 3)
 #define SPI_EVENT_ALL         (SPI_EVENT_ERROR | SPI_EVENT_COMPLETE | SPI_EVENT_ALL)
 
-#define SPI_FILL_BYTE         (0xFF)
+#define SPI_FILL_WORD         (0xFFFF)
 
 typedef struct {
     struct spi_s    spi;
