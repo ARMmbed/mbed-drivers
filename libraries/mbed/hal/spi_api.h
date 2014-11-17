@@ -39,40 +39,148 @@ typedef struct {
     struct buffer_s rx_buff;
 } spi_t;
 
+/**
+ * \defgroup GeneralSPI SPI Configuration Functions
+ * @{
+ */
+/**
+ * Initialize the SPI peripheral
+ * Configures the pins used by SPI, sets a default format and frequency, and enables the peripheral
+ * @param[out] obj  The SPI object to initialize
+ * @param[in]  mosi The pin to use for MOSI
+ * @param[in]  miso The pin to use for MISO
+ * @param[in]  sclk The pin to use for SCLK
+ * @param[in]  ssel The pin to use for SSEL
+ */
 void spi_init         (spi_t *obj, PinName mosi, PinName miso, PinName sclk, PinName ssel);
+/**
+ * Release a SPI object
+ * TODO: spi_free is currently unimplemented
+ * This will require reference counting at the C++ level to be safe
+ *
+ * Return the pins owned by the SPI object to their reset state
+ * Disable the SPI peripheral
+ * Disable the SPI clock
+ * @param[in] obj The SPI object to deinitialize
+ */
 void spi_free         (spi_t *obj);
+/**
+ * Configure the SPI format
+ * Set the number of bits per frame, configure clock polarity and phase, shift order and master/slave mode
+ * @param[in,out] obj   The SPI object to configure
+ * @param[in]     bits  The number of bits per frame
+ * @param[in]     mode  The SPI mode (clock polarity, phase, and shift direction)
+ * @param[in]     slave Zero for master mode or non-zero for slave mode
+ */
 void spi_format       (spi_t *obj, int bits, int mode, int slave);
+
+/**
+ * Set the SPI baud rate
+ * Actual frequency may differ from the desired frequency due to available dividers and bus clock
+ * Configures the SPI peripheral's baud rate
+ * @param[in,out] obj The SPI object to configure
+ * @param[in]     hz  The baud rate in Hz
+ */
 void spi_frequency    (spi_t *obj, int hz);
+
+/**@}*/
+/**
+ * \defgroup SynchSPI Synchronous SPI Hardware Abstraction Layer
+ * @{
+ */
+/**
+ * Write a byte out in master mode and receive a value
+ * @param[in] obj   The SPI peripheral to use for sending
+ * @param[in] value The value to send
+ * @return Returns the value received during send
+ */
 int  spi_master_write (spi_t *obj, int value);
+/**
+ * Check if a value is available to read
+ * @param[in] obj The SPI peripheral to check
+ * @return non-zero if a value is available
+ */
 int  spi_slave_receive(spi_t *obj);
+/**
+ * Get a received value out of the SPI receive buffer in slave mode
+ * Blocks until a value is available
+ * @param[in] obj The SPI peripheral to read
+ * @return The value received
+ */
 int  spi_slave_read   (spi_t *obj);
+/**
+ * Write a value to the SPI peripheral in slave mode
+ * Blocks until the SPI peripheral can be written to
+ * @param[in] obj   The SPI peripheral to write
+ * @param[in] value The value to write
+ */
 void spi_slave_write  (spi_t *obj, int value);
+/**
+ * Checks if the specified SPI peripheral is in use
+ * @param[in] obj The SPI peripheral to check
+ * @return Returns non-zero if the peripheral is currently transmitting
+ */
 int  spi_busy         (spi_t *obj);
+/**@}*/
 
-/* asynch */
-
-// Enable events
+/**
+ * \defgroup AsynchSPI Asynchronous SPI Hardware Abstraction Layer
+ * @{
+ */
+/**
+ * Configure SPI events
+ * Enable or disable events for the specified SPI structure
+ * @param[in,out] obj    The SPI structure on which to operate
+ * @param[in]     event  The logical or of the events to modify
+ * @param[in]     enable Set to non-zero to enable events or zero to disable them
+ */
 void spi_enable_event(spi_t *obj, uint32_t event, uint8_t enable);
 
-// Enable SPI interrupts
+/**
+ * Configure the SPI interrupt handler
+ * @param[in] obj     The SPI object (to extract the interrupt vector)
+ * @param[in] handler The handler to install (ignored if enable is 0)
+ * @param[in] enable  Set to non-zero to enable the ISR or zero to disable it
+ */
 void spi_enable_vector_interrupt(spi_t *obj, uint32_t handler, uint8_t enable);
 
-// Initiate the transfer
+/**
+ * Begin the SPI transfer. Buffer pointers and lengths are specified in tx_buff and rx_buff
+ * @param[in] obj     The SPI object which holds the transfer information
+ * @param[in] cb      The function to call when an event occurs
+ * @param[in] hint    A suggestion for how to use DMA with this transfer
+ */
 void spi_master_transfer(spi_t *obj, void* cb, DMA_USAGE_Enum hint);
 
-// Asynch irq handler
-uint32_t spi_irq_handler_asynch(spi_t *obj);
-
-// returns if spi transaction is ongoing
+/**
+ * Attempts to determine if the SPI peripheral is already in use.
+ * If a temporary DMA channel has been allocated, peripheral is in use.
+ * If a permanent DMA channel has been allocated, check if the DMA channel is in use.  If not, proceed as though no DMA
+ * channel were allocated.
+ * If no DMA channel is allocated, check whether tx and rx buffers have been assigned.  For each assigned buffer, check
+ * if the corresponding buffer position is less than the buffer length.  If buffers do not indicate activity, check if
+ * there are any bytes in the FIFOs.
+ * @param[in] obj  The SPI object to check for activity
+ * @return non-zero if the SPI port is active or zero if it is not.
+ */
 uint8_t spi_active(spi_t *obj);
 
-// Initialiaze tx and rx buffers
+/**
+ * Configure the buffers for an asynchronous SPI transaction
+ * @param[out] obj       The SPI Object to configure
+ * @param[in]  tx        The buffer to send
+ * @param[in]  tx_length The number of words to transmit
+ * @param[in]  rx        The buffer to receive
+ * @param[in]  rx_length The number of words to receive
+ */
 void spi_buffer_set(spi_t *obj, void *tx, uint32_t tx_length, void *rx, uint32_t rx_length);
+
+/**@}*/
 
 #ifdef __cplusplus
 }
-#endif
+#endif // __cplusplus
 
-#endif
+#endif // SPI_DEVICE
 
-#endif
+#endif // MBED_SPI_API_H
