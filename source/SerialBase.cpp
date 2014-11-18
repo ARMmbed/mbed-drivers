@@ -103,20 +103,53 @@ void SerialBase::set_flow_control(Flow type, PinName flow1, PinName flow2) {
 }
 #endif
 
-int SerialBase::write(void *buffer, uint32_t length, void (*callback)(uint32_t)) {
-
+int SerialBase::write(void *buffer, uint32_t length, uint32_t event, void (*callback)(uint32_t))
+{
+    if (serial_tx_active(&_serial)) {
+        return -1; // transaction ongoing
+    }
+    _tx_user_callback = callback;
+    serial_tx_buffer_set(&_serial, buffer, length);
+    _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
+    serial_tx_enable_event(&_serial, event, true);
+    serial_start_write_asynch(&_serial, (void *)_thunk_irq.entry(), DMA_USAGE_NEVER);
+    return 0;
 }
 
-void SerialBase::abort_write(void) {
-
+void SerialBase::abort_write(void)
+{
+    serial_tx_abort_asynch(&_serial);
 }
 
-int SerialBase::read(void *buffer, uint32_t length, void (*callback)(uint32_t),uint8_t char_mat) {
-
+void SerialBase::abort_read(void)
+{
+    serial_rx_abort_asynch(&_serial);
 }
 
-void SerialBase::abort_read(void) {
+int SerialBase::read(void *buffer, uint32_t length, uint32_t event, void (*callback)(uint32_t), uint8_t char_mat)
+{
+    if (serial_rx_active(&_serial)) {
+        return -1; // transaction ongoing
+    }
+    _rx_user_callback = callback;
+    serial_rx_buffer_set(&_serial, buffer, length);
+    _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
+    serial_rx_enable_event(&_serial, event, true);
+    serial_start_read_asynch(&_serial, (void *)_thunk_irq.entry(), DMA_USAGE_NEVER);
+    return 0;
+}
 
+void SerialBase::interrupt_handler_asynch(void)
+{
+    uint32_t rx_event = serial_rx_irq_handler_asynch(&_serial);
+    if (_rx_user_callback && rx_event) {
+        _rx_user_callback(rx_event);
+    }
+
+    uint32_t tx_event = serial_tx_irq_handler_asynch(&_serial);
+    if (_tx_user_callback && tx_event) {
+        _tx_user_callback(tx_event);
+    }
 }
 
 } // namespace mbed

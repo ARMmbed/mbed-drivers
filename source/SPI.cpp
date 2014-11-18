@@ -67,19 +67,13 @@ int SPI::write(void *tx_buffer, uint32_t tx_length, void *rx_buffer, uint32_t rx
 
     aquire();
 
-    if (tx_length == 0) {
-        tx_length = rx_length; // transmit default value to receive
-    } else if (rx_length == 0) {
-        rx_length = tx_length; // rx length for transfer complete
-    }
-
     _user_callback = callback;
     _irq.callback(&SPI::irq_handler_asynch);
 
     spi_enable_event(&_spi, event, true);
 
     spi_buffer_set(&_spi, tx_buffer, tx_length, rx_buffer, rx_length);
-    spi_master_transfer(&_spi, tx_buffer, rx_buffer, (tx_length > rx_length ? tx_length : rx_length), (void*)_irq.entry(), _usage);
+    spi_master_transfer(&_spi, (void*)_irq.entry(), _usage);
     
     return 0;
 }

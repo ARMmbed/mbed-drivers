@@ -120,10 +120,10 @@ public:
 
     static void _irq_handler(uint32_t id, SerialIrq irq_type);
 
-    int write(void *buffer, uint32_t length, void (*callback)(uint32_t));
+    int write(void *buffer, uint32_t length, uint32_t event, void (*callback)(uint32_t));
     void abort_write();
 
-    int read(void *buffer, uint32_t length, void (*callback)(uint32_t), uint8_t char_match=255);
+    int read(void *buffer, uint32_t length, uint32_t event, void (*callback)(uint32_t), uint8_t char_match = 255);
     void abort_read();
 
 protected:
@@ -140,7 +140,8 @@ protected:
 
     void interrupt_handler_asynch(void);
     CThunk<SerialBase> _thunk_irq;
-    void (*_user_callback)(uint32_t event);
+    void (*_tx_user_callback)(uint32_t event);
+    void (*_rx_user_callback)(uint32_t event);
 };
 
 } // namespace mbed
