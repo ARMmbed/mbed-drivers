@@ -20,7 +20,6 @@ test/sd_perf_fatfs/*
 test/sd_perf_fhandle/*
 test/sd_perf_stdio/*
 test/semihost/*
-test/serial_interrupt/*
 test/serial_interrupt_2/*
 test/spi_ADXL345/*
 test/spifi1/*
@@ -50,18 +49,11 @@ test/portout_portin/*
 test/pwm/*
 test/pwm_led/*
 test/sleep/*
-test/sleep_timeout/*
 test/spi/*
 test/spi_master/*
 test/spi_slave/*
-test/ticker/*
-test/ticker_2/*
-test/ticker_3/*
-test/timeout/*
 test/vtor_reloc/*
 
 # tests that should definitely work but don't compile!
-test/dev_null/*
 test/dir/*
-test/echo/*
 test/interrupt_chaining/*
