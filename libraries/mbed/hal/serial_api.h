@@ -92,7 +92,7 @@ void serial_set_flow_control(serial_t *obj, FlowControl type, PinName rxflow, Pi
 // Asynch
 
 // Start tx transfer
-void serial_start_write_asynch(serial_t *obj, void* cb, DMA_USAGE_Enum hint);
+int serial_start_write_asynch(serial_t *obj, void* cb, DMA_USAGE_Enum hint);
 
 // Start rx transfer
 void serial_start_read_asynch(serial_t *obj, void* cb, DMA_USAGE_Enum hint);

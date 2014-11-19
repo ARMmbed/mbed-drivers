@@ -29,7 +29,7 @@ extern "C" {
 #define SPI_EVENT_ERROR       (1 << 1)
 #define SPI_EVENT_COMPLETE    (1 << 2)
 #define SPI_EVENT_RX_OVERFLOW (1 << 3)
-#define SPI_EVENT_ALL         (SPI_EVENT_ERROR | SPI_EVENT_COMPLETE | SPI_EVENT_ALL)
+#define SPI_EVENT_ALL         (SPI_EVENT_ERROR | SPI_EVENT_COMPLETE | SPI_EVENT_RX_OVERFLOW)
 
 #define SPI_FILL_WORD         (0xFFFF)
 

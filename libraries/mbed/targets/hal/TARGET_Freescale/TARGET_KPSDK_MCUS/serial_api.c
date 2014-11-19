@@ -69,7 +69,6 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
     #endif
     UART_HAL_SetBitCountPerChar(obj->serial.address, kUart8BitsPerChar);
 
-
     pinmap_pinout(tx, PinMap_UART_TX);
     pinmap_pinout(rx, PinMap_UART_RX);
 
@@ -96,7 +95,7 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
     }
     uint8_t fifo_size = UART_HAL_GetTxFifoSize(obj->serial.address);
     obj->serial.entry_count = (fifo_size == 0 ? 1 : 0x1 << (fifo_size + 1));
-    // TODO move this to own function or at least when transfer starts
+    // Fifo Rx/Tx enabled by default. TX can be enabled/disable only if RE is disabled also
     UART_HAL_SetTxFifoCmd(obj->serial.address, true);
     UART_HAL_SetRxFifoCmd(obj->serial.address, true);
     UART_HAL_FlushTxFifo(obj->serial.address);
@@ -261,7 +260,8 @@ static uint32_t serial_tx_event_check(serial_t *obj)
 {
     uint32_t event = obj->serial.event;
     uint32_t result = 0;
-    if ((event & SERIAL_EVENT_TX_COMPLETE) && (obj->tx_buff.pos == obj->tx_buff.length)) {
+    uint8_t in_fifo = UART_HAL_GetTxDatawordCountInFifo(obj->serial.address);
+    if ((event & SERIAL_EVENT_TX_COMPLETE) && (obj->tx_buff.pos == obj->tx_buff.length) && (in_fifo == 0)) {
         result |= SERIAL_EVENT_TX_COMPLETE;
     }
     return result;
@@ -274,8 +274,9 @@ static uint32_t serial_rx_event_check(serial_t *obj)
     uint8_t overrun = UART_HAL_GetStatusFlag(obj->serial.address, kUartRxOverrun);
     uint8_t framing = UART_HAL_GetStatusFlag(obj->serial.address, kUartFrameErr);
     uint8_t parity = UART_HAL_GetStatusFlag(obj->serial.address, kUartParityErr);
+    uint8_t in_fifo = UART_HAL_GetRxDatawordCountInFifo(obj->serial.address);
 
-    if ((event & SERIAL_EVENT_RX_COMPLETE) && !(obj->rx_buff.pos == obj->rx_buff.length)) {
+    if ((event & SERIAL_EVENT_RX_COMPLETE) && (obj->rx_buff.pos == obj->rx_buff.length) && (in_fifo == 0)) {
         result |= SERIAL_EVENT_RX_COMPLETE;
     }
     if ((event & SERIAL_EVENT_RX_OVERRUN_ERROR) & overrun) {
@@ -320,7 +321,7 @@ int serial_write_asynch(serial_t *obj)
 {
     int ndata = 0;
     uint8_t empty_count = obj->serial.entry_count - UART_HAL_GetTxDatawordCountInFifo(obj->serial.address);
-    while ((obj->tx_buff.pos < obj->tx_buff.length) && (empty_count--)) { // TODO
+    while ((obj->tx_buff.pos < obj->tx_buff.length) && (empty_count--)) {
         serial_buffer_tx_write(obj);
         ndata++;
     }
@@ -354,26 +355,40 @@ void serial_rx_buffer_set(serial_t *obj, void *rx, uint32_t length)
 
 uint8_t serial_tx_active(serial_t *obj)
 {
+    uint8_t result;
     switch(obj->serial.tx_dma_state) {
         case DMA_USAGE_TEMPORARY_ALLOCATED:
-            return 1;
+            result = 1;
         case DMA_USAGE_ALLOCATED:
-            return 0;
+            result = 0;
         default:
-            return UART_HAL_GetIntMode(obj->serial.address, kUartIntTxDataRegEmpty);
+            if (obj->tx_buff.buffer && (obj->tx_buff.pos < obj->tx_buff.length)) {
+                result = 1;
+            } else {
+                result = (UART_HAL_GetIntMode(obj->serial.address, kUartIntTxDataRegEmpty) ||
+                         (UART_HAL_GetTxDatawordCountInFifo(obj->serial.address) != 0));
+            }
     }
+    return result;
 }
 
 uint8_t serial_rx_active(serial_t *obj)
 {
+    uint8_t result;
     switch(obj->serial.rx_dma_state) {
         case DMA_USAGE_TEMPORARY_ALLOCATED:
-            return 1;
+            result = 1;
         case DMA_USAGE_ALLOCATED:
-            return 0;
+            result = 0;
         default:
-            return UART_HAL_GetIntMode(obj->serial.address, kUartIntRxDataRegFull);
+            if (obj->rx_buff.buffer && (obj->rx_buff.pos < obj->rx_buff.length)) {
+                result = 1;
+            } else {
+                result = (UART_HAL_GetIntMode(obj->serial.address, kUartIntRxDataRegFull) ||
+                         (UART_HAL_GetRxDatawordCountInFifo(obj->serial.address) != 0));
+            }
     }
+    return result;
 }
 
 static void serial_tx_irq_asynch(serial_t *obj)
@@ -443,19 +458,27 @@ void serial_read_enable_interrupt(serial_t *obj, uint32_t handler_address, uint8
     serial_irq_set(obj, (SerialIrq)0, enable);
 }
 
-void serial_start_write_asynch(serial_t *obj, void *cb, DMA_USAGE_Enum hint)
+int serial_start_write_asynch(serial_t *obj, void *cb, DMA_USAGE_Enum hint)
 {
     if (hint != DMA_USAGE_NEVER && obj->serial.tx_dma_state == DMA_USAGE_ALLOCATED) {
         // TODO DMA impl
     } else if (hint == DMA_USAGE_NEVER) {
         /* use IRQ */
         obj->serial.tx_dma_state = DMA_USAGE_NEVER;
-        UART_HAL_FlushTxFifo(obj->serial.address);
-        serial_write_asynch(obj);
-        serial_write_enable_interrupt(obj, (uint32_t)cb, true);
+
+        // UART_HAL_DisableTransmitter(obj->serial.address);
+        // UART_HAL_FlushTxFifo(obj->serial.address);
+        // UART_HAL_SetTxFifoCmd(obj->serial.address, true);
+        // UART_HAL_EnableTransmitter(obj->serial.address);
+        int ndata = serial_write_asynch(obj);
+        if (ndata == obj->tx_buff.length) {
+            serial_write_enable_interrupt(obj, (uint32_t)cb, true);
+        }
+        return ndata;
     } else {
         // TODO
     }
+    return 0;
 }
 
 void serial_start_read_asynch(serial_t *obj, void *cb, DMA_USAGE_Enum hint)
@@ -465,7 +488,10 @@ void serial_start_read_asynch(serial_t *obj, void *cb, DMA_USAGE_Enum hint)
     } else if (hint == DMA_USAGE_NEVER) {
         /* use IRQ */
         obj->serial.rx_dma_state = DMA_USAGE_NEVER;
-        UART_HAL_FlushRxFifo(obj->serial.address);
+        // UART_HAL_DisableReceiver(obj->serial.address);
+        // UART_HAL_FlushRxFifo(obj->serial.address);
+        // UART_HAL_SetRxFifoCmd(obj->serial.address, true);
+        // UART_HAL_EnableReceiver(obj->serial.address);
         serial_read_enable_interrupt(obj, (uint32_t)cb, true);
     } else {
         // TODO
@@ -475,13 +501,17 @@ void serial_start_read_asynch(serial_t *obj, void *cb, DMA_USAGE_Enum hint)
 void serial_tx_abort_asynch(serial_t *obj)
 {
     serial_write_enable_interrupt(obj, obj->serial.vector_prev, false);
-    // TODO flush fifo
+    UART_HAL_DisableTransmitter(obj->serial.address);
+    UART_HAL_FlushTxFifo(obj->serial.address);
+    UART_HAL_EnableTransmitter(obj->serial.address);
 }
 
 void serial_rx_abort_asynch(serial_t *obj)
 {
     serial_read_enable_interrupt(obj, obj->serial.vector_prev, false);
-    // TODO flash fifo
+    UART_HAL_DisableReceiver(obj->serial.address);
+    UART_HAL_FlushRxFifo(obj->serial.address);
+    UART_HAL_EnableReceiver(obj->serial.address);
 }
 
 #endif

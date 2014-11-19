@@ -112,8 +112,7 @@ int SerialBase::write(void *buffer, uint32_t length, uint32_t event, void (*call
     serial_tx_buffer_set(&_serial, buffer, length);
     _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
     serial_tx_enable_event(&_serial, event, true);
-    serial_start_write_asynch(&_serial, (void *)_thunk_irq.entry(), DMA_USAGE_NEVER);
-    return 0;
+    return serial_start_write_asynch(&_serial, (void *)_thunk_irq.entry(), DMA_USAGE_NEVER);
 }
 
 void SerialBase::abort_write(void)

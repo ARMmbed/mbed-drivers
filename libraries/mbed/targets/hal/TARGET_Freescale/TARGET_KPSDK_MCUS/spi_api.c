@@ -356,6 +356,7 @@ void spi_abort_asynch(spi_t *obj) {
     spi_enable_vector_interrupt(obj, 0, false);
     DSPI_HAL_SetFlushFifoCmd(obj->spi.address,true,true);
     DSPI_HAL_SetFifoCmd(obj->spi.address, false, false);
+    // TODO who clears flags if any error occurred?
 }
 
 /**
@@ -403,12 +404,10 @@ uint8_t spi_active(spi_t *obj)
                     || (obj->tx_buff.buffer && obj->tx_buff.pos < obj->tx_buff.length) ){
                 return 1;
             } else  {
-                return DSPI_HAL_GetIntMode(obj->spi.address, kDspiRxFifoDrainRequest)
-                        || DSPI_HAL_GetFifoCountOrPtr(obj->spi.address,kDspiRxFifoCounter) != 0;
+                return DSPI_HAL_GetIntMode(obj->spi.address, kDspiRxFifoDrainRequest) ||
+                       (DSPI_HAL_GetFifoCountOrPtr(obj->spi.address,kDspiRxFifoCounter) != 0);
             }
-            break;
     }
-    return 0;
 }
 
 void spi_buffer_set(spi_t *obj, void *tx, uint32_t tx_length, void *rx, uint32_t rx_length)
