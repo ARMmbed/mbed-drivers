@@ -34,6 +34,7 @@ void uart0_irq(void);
 void uart1_irq(void);
 void uart2_irq(void);
 void uart3_irq(void);
+void uart4_irq(void);
 
 /* TODO:
     putchar/getchar 9 and 10 bits support
@@ -83,7 +84,7 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
         case 0: obj->serial.irq_number = UART0_RX_TX_IRQn; obj->serial.vector_cur = (uint32_t)&uart0_irq; break;
         case 1: obj->serial.irq_number = UART1_RX_TX_IRQn; obj->serial.vector_cur = (uint32_t)&uart1_irq; break;
         case 2: obj->serial.irq_number = UART2_RX_TX_IRQn; obj->serial.vector_cur = (uint32_t)&uart2_irq; break;
-#if (NUM_UART > 3)
+#if (UART_NUM > 3)
         case 3: obj->serial.irq_number = UART3_RX_TX_IRQn; obj->serial.vector_cur = (uint32_t)&uart3_irq; break;
         case 4: obj->serial.irq_number = UART4_RX_TX_IRQn; obj->serial.vector_cur = (uint32_t)&uart4_irq; break;
 #endif
@@ -441,7 +442,7 @@ static void serial_interrupt_vector_set(serial_t *obj, uint32_t handler_address)
 {
     // RX and TX share the same vector - only one handler is allowed
     if (obj->serial.vector_cur != handler_address) {
-        obj->serial.vector_prev =  obj->serial.vector_cur;
+        obj->serial.vector_prev = obj->serial.vector_cur;
         obj->serial.vector_cur = handler_address;
     }
 }
@@ -465,15 +466,11 @@ int serial_start_write_asynch(serial_t *obj, void *cb, DMA_USAGE_Enum hint)
     } else if (hint == DMA_USAGE_NEVER) {
         /* use IRQ */
         obj->serial.tx_dma_state = DMA_USAGE_NEVER;
-
-        // UART_HAL_DisableTransmitter(obj->serial.address);
-        // UART_HAL_FlushTxFifo(obj->serial.address);
-        // UART_HAL_SetTxFifoCmd(obj->serial.address, true);
-        // UART_HAL_EnableTransmitter(obj->serial.address);
+        UART_HAL_DisableTransmitter(obj->serial.address);
+        UART_HAL_FlushTxFifo(obj->serial.address);
+        UART_HAL_EnableTransmitter(obj->serial.address);
         int ndata = serial_write_asynch(obj);
-        if (ndata == obj->tx_buff.length) {
-            serial_write_enable_interrupt(obj, (uint32_t)cb, true);
-        }
+        serial_write_enable_interrupt(obj, (uint32_t)cb, true);
         return ndata;
     } else {
         // TODO
@@ -488,10 +485,9 @@ void serial_start_read_asynch(serial_t *obj, void *cb, DMA_USAGE_Enum hint)
     } else if (hint == DMA_USAGE_NEVER) {
         /* use IRQ */
         obj->serial.rx_dma_state = DMA_USAGE_NEVER;
-        // UART_HAL_DisableReceiver(obj->serial.address);
-        // UART_HAL_FlushRxFifo(obj->serial.address);
-        // UART_HAL_SetRxFifoCmd(obj->serial.address, true);
-        // UART_HAL_EnableReceiver(obj->serial.address);
+        UART_HAL_DisableReceiver(obj->serial.address);
+        UART_HAL_FlushRxFifo(obj->serial.address);
+        UART_HAL_EnableReceiver(obj->serial.address);
         serial_read_enable_interrupt(obj, (uint32_t)cb, true);
     } else {
         // TODO

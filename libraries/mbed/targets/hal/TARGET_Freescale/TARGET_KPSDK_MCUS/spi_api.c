@@ -31,11 +31,6 @@
 static uint32_t spi_master_write_asynch(spi_t *obj, uint32_t TxLimit);
 static uint32_t spi_master_read_asynch(spi_t *obj);
 
-#if defined(TEST_SPI)
-volatile uint32_t SpiIrqCount;
-volatile uint32_t SpiRxDisable;
-#endif
-
 #define SPI_TX_FIFO_SIZE (4)
 #define SPI_RX_FIFO_SIZE (4)
 
@@ -346,6 +341,7 @@ void spi_irq_handler(spi_t *obj)
 {
 
 }
+
 /**
  * Abort an SPI transfer
  * This is a helper function for event handling. When any of the events listed occurs, the HAL will abort any ongoing
