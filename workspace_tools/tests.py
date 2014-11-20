@@ -907,6 +907,12 @@ TESTS = [
         "dependencies": [MBED_LIBRARIES, TEST_MBED_LIB, CPPUTEST_LIBRARY, TEST_MBED_TESTRUNNER_LIB],
         "automated": False,
     },
+    {
+        "id": "UT_5", "description": "Asynchronous Serial test - Loopback",
+        "source_dir": join(TEST_DIR, "mbed", "serial_asynch_loopback"),
+        "dependencies": [MBED_LIBRARIES, TEST_MBED_LIB, CPPUTEST_LIBRARY, TEST_MBED_TESTRUNNER_LIB],
+        "automated": False,
+    },
 
     # Tests used for target information purposes
     {
