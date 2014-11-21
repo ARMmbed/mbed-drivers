@@ -49,8 +49,6 @@ test/portout_portin/*
 test/pwm/*
 test/pwm_led/*
 test/sleep/*
-test/spi/*
-test/spi_master/*
 test/spi_slave/*
 test/vtor_reloc/*
 

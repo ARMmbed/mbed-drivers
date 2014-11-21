@@ -13,6 +13,9 @@ DigitalOut cs(PTA13);
 #elif defined(TARGET_FF_ARDUINO)
 SPI spi(D11, D12, D13);   // mosi, miso, sclk
 DigitalOut cs(D10);
+#elif defined(TARGET_LIKE_STK3700)
+SPI spi(PD0, PD1, PD2);
+DigitalOut cs(PD3);
 #else
 SPI spi(p5, p6, p7); // mosi, miso, sclk
 DigitalOut cs(p8);
