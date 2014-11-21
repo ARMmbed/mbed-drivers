@@ -55,3 +55,8 @@ test/vtor_reloc/*
 # tests that should definitely work but don't compile!
 test/dir/*
 test/interrupt_chaining/*
+
+# need fixing:
+test/serial_asynch/*
+test/serial_asynch_loopback/*
+test/spi*/*
