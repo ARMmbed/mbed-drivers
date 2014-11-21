@@ -73,13 +73,6 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
     pinmap_pinout(tx, PinMap_UART_TX);
     pinmap_pinout(rx, PinMap_UART_RX);
 
-    if (tx != NC) {
-        pin_mode(tx, PullUp);
-    }
-    if (rx != NC) {
-        pin_mode(rx, PullUp);
-    }
-
     switch (obj->serial.instance) {
         case 0: obj->serial.irq_number = UART0_RX_TX_IRQn; obj->serial.vector_cur = (uint32_t)&uart0_irq; break;
         case 1: obj->serial.irq_number = UART1_RX_TX_IRQn; obj->serial.vector_cur = (uint32_t)&uart1_irq; break;
@@ -97,13 +90,19 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
     uint8_t fifo_size = UART_HAL_GetTxFifoSize(obj->serial.address);
     obj->serial.entry_count = (fifo_size == 0 ? 1 : 0x1 << (fifo_size + 1));
     // Fifo Rx/Tx enabled by default. TX can be enabled/disable only if RE is disabled also
-    UART_HAL_SetTxFifoCmd(obj->serial.address, true);
-    UART_HAL_SetRxFifoCmd(obj->serial.address, true);
-    UART_HAL_FlushTxFifo(obj->serial.address);
-    UART_HAL_FlushRxFifo(obj->serial.address);
+    if (tx != NC) {
+        pin_mode(tx, PullUp);
+        UART_HAL_SetTxFifoCmd(obj->serial.address, true);
+        UART_HAL_FlushTxFifo(obj->serial.address);
+        UART_HAL_EnableTransmitter(obj->serial.address);
+    }
+    if (rx != NC) {
+        pin_mode(rx, PullUp);
+        UART_HAL_SetRxFifoCmd(obj->serial.address, true);
+        UART_HAL_FlushRxFifo(obj->serial.address);
+        UART_HAL_EnableReceiver(obj->serial.address);
+    }
 
-    UART_HAL_EnableTransmitter(obj->serial.address);
-    UART_HAL_EnableReceiver(obj->serial.address);
 }
 
 void serial_free(serial_t *obj) {
@@ -115,8 +114,15 @@ void serial_baud(serial_t *obj, int baudrate) {
 }
 
 void serial_format(serial_t *obj, int data_bits, SerialParity parity, int stop_bits) {
+    // TODO assert for not supported parity and data bits
     UART_HAL_SetBitCountPerChar(obj->serial.address, (uart_bit_count_per_char_t)data_bits);
-    UART_HAL_SetParityMode(obj->serial.address, (uart_parity_mode_t)parity);
+    uart_parity_mode_t uart_parity;
+    if (parity == ParityOdd) {
+        uart_parity = kUartParityOdd;
+    } else if (parity == ParityEven) {
+        uart_parity = kUartParityEven;
+    }
+    UART_HAL_SetParityMode(obj->serial.address, uart_parity);
     #if FSL_FEATURE_UART_HAS_STOP_BIT_CONFIG_SUPPORT
     UART_HAL_SetStopBitCount(obj->serial.address, (uart_stop_bit_count_t)stop_bits);
     #endif
@@ -268,18 +274,14 @@ static uint32_t serial_tx_event_check(serial_t *obj)
     return result;
 }
 
-static uint32_t serial_rx_event_check(serial_t *obj)
+static uint32_t serial_rx_error_event_check(serial_t *obj)
 {
     uint32_t event = obj->serial.event;
     uint32_t result = 0;
     uint8_t overrun = UART_HAL_GetStatusFlag(obj->serial.address, kUartRxOverrun);
     uint8_t framing = UART_HAL_GetStatusFlag(obj->serial.address, kUartFrameErr);
     uint8_t parity = UART_HAL_GetStatusFlag(obj->serial.address, kUartParityErr);
-    uint8_t in_fifo = UART_HAL_GetRxDatawordCountInFifo(obj->serial.address);
 
-    if ((event & SERIAL_EVENT_RX_COMPLETE) && (obj->rx_buff.pos == obj->rx_buff.length) && (in_fifo == 0)) {
-        result |= SERIAL_EVENT_RX_COMPLETE;
-    }
     if ((event & SERIAL_EVENT_RX_OVERRUN_ERROR) & overrun) {
         result |= SERIAL_EVENT_RX_OVERRUN_ERROR;
     }
@@ -292,15 +294,28 @@ static uint32_t serial_rx_event_check(serial_t *obj)
     return result;
 }
 
+static uint32_t serial_rx_event_check(serial_t *obj)
+{
+    uint32_t event = obj->serial.event;
+    uint32_t result = 0;
+    uint8_t in_fifo = UART_HAL_GetRxDatawordCountInFifo(obj->serial.address);
+
+    if ((event & SERIAL_EVENT_RX_COMPLETE) && (obj->rx_buff.pos == obj->rx_buff.length) && (in_fifo == 0)) {
+        result |= SERIAL_EVENT_RX_COMPLETE;
+    }
+    return result;
+}
+
 static void serial_buffer_tx_write(serial_t *obj)
 {
-    int data;
     if (obj->serial.databits < 9) {
         uint8_t *tx = (uint8_t *)(obj->tx_buff.buffer);
-        data = tx[obj->tx_buff.pos];
+        uint8_t data = tx[obj->tx_buff.pos];
         UART_HAL_Putchar(obj->serial.address, data);
     } else {
-        // TODO implement
+        uint16_t *tx = (uint16_t *)(obj->tx_buff.buffer);
+        uint16_t data = tx[obj->tx_buff.pos];
+        UART_HAL_Putchar9(obj->serial.address, data);
     }
     obj->tx_buff.pos++;
 }
@@ -313,7 +328,10 @@ static void serial_buffer_rx_read(serial_t *obj)
         uint8_t *rx = (uint8_t *)(obj->rx_buff.buffer);
         rx[obj->rx_buff.pos] = data;
     } else {
-        // TODO implement
+        uint16_t data;
+        UART_HAL_Getchar9(obj->serial.address, &data);
+        uint16_t *rx = (uint16_t *)(obj->rx_buff.buffer);
+        rx[obj->rx_buff.pos] = data;
     }
     obj->rx_buff.pos++;
 }
@@ -413,10 +431,10 @@ static void serial_rx_irq_asynch(serial_t *obj)
 uint32_t serial_rx_irq_handler_asynch(serial_t *obj)
 {
     uint32_t event = 0;
-    if (UART_HAL_GetRxDataRegFullIntCmd(obj->serial.address) &&
-        UART_HAL_IsRxDataRegFull(obj->serial.address)) {
+    if (UART_HAL_GetRxDataRegFullIntCmd(obj->serial.address)) {
+        event = serial_rx_error_event_check(obj);
         serial_rx_irq_asynch(obj);
-        event = serial_rx_event_check(obj);
+        event |= serial_rx_event_check(obj);
     }
     if (event) {
         serial_rx_abort_asynch(obj);
