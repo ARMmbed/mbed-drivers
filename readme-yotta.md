@@ -15,8 +15,8 @@ cd mbed_private
 git checkout dev_async_hal_yotta
 
 # use the target we installed earlier
-yotta target target-frdm-k64f-gcc
-yotta link-target target-frdm-k64f-gcc
+yotta target frdm-k64f-gcc
+yotta link-target frdm-k64f-gcc
 
 # build
 yotta build
