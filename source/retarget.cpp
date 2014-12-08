@@ -458,8 +458,15 @@ extern "C" int __end__;
 #undef errno
 extern "C" int errno;
 
-// For ARM7 only
-register unsigned char * stack_ptr __asm ("sp");
+// stack pointer handling
+#ifdef  __ICCARM__
+#  define __current_sp() __get_SP()
+#else
+static inline unsigned int __current_sp(void) {
+    register unsigned sp asm("sp");
+    return sp;
+}
+#endif/*__ICCARM__*/
 
 // Dynamic memory allocation related syscall.
 extern "C" caddr_t _sbrk(int incr) {
@@ -467,11 +474,7 @@ extern "C" caddr_t _sbrk(int incr) {
     unsigned char*        prev_heap = heap;
     unsigned char*        new_heap = heap + incr;
 
-#if defined(TARGET_ARM7)
-    if (new_heap >= stack_ptr) {
-#else
-    if (new_heap >= (unsigned char*)__get_MSP()) {
-#endif
+    if (new_heap >= (unsigned char*)__current_sp()) {
         errno = ENOMEM;
         return (caddr_t)-1;
     }
