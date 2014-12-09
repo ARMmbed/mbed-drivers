@@ -122,7 +122,7 @@ class CThunk
         /* simple test function */
         inline void call(void)
         {
-            ((CThunkEntry)(entry())());
+            (CThunkEntry(entry())());
         }
 
     private:
