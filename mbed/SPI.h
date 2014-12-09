@@ -94,22 +94,72 @@ public:
     */
     virtual int write(int value);
 
-    virtual int write(void *tx_buffer, uint32_t tx_length, void *rx_buffer, uint32_t rx_length, uint32_t event, void (*callback)(uint32_t));
+    /** Start non-blocking SPI transfer using 8bit buffers.
+     *
+     * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
+     *                  the default SPI value is sent
+     * @param tx_length The length of TX buffer
+     * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
+     *                  received data are ignored
+     * @param rx_length The length of RX buffer
+     * @param event     The logical OR of events to modify
+     * @param callback  The event callback function
+     * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
+     */
+    virtual int write(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
 
-    void set_asynch_usage(DMA_USAGE_Enum usage);
-    void irq_handler_asynch(void);
+    /** Start non-blocking SPI transfer using 16bit buffers.
+     *
+     * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
+     *                  the default SPI value is sent
+     * @param tx_length The length of TX buffer
+     * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
+     *                  received data are ignored
+     * @param rx_length The length of RX buffer
+     * @param event     The logical OR of events to modify
+     * @param callback  The event callback function
+     * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
+     */
+    virtual int write(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
+
+    /** Start non-blocking SPI transfer using 32bit buffers.
+     *
+     * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
+     *                  the default SPI value is sent
+     * @param tx_length The length of TX buffer
+     * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
+     *                  received data are ignored
+     * @param rx_length The length of RX buffer
+     * @param event     The logical OR of events to modify
+     * @param callback  The event callback function
+     * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
+     */
+    virtual int write(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
+
+
+    /** Configure DMA usage suggestion for non-blocking transfers
+     *
+     *  @param usage The usage DMA hint for peripheral
+     *  @return Zero if the usage was set, -1 if a transaction is on-going
+    */
+    int set_dma_usage(DMAUsage usage);
 
 public:
     virtual ~SPI() {
     }
 
 protected:
+    /** IRQ handler for asynchronous SPI transfers
+     */
+    void irq_handler_asynch(void);
+
     spi_t _spi;
     CThunk<SPI> _irq;
-    void (*_user_callback)(uint32_t event);
-    DMA_USAGE_Enum _usage;
+    void (*_user_callback)(int event);
+    DMAUsage _usage;
 
     void aquire(void);
+    int start_write(void (*callback)(int), int event);
     static SPI *_owner;
     int _bits;
     int _mode;

@@ -24,6 +24,7 @@
 #include "FunctionPointer.h"
 #include "serial_api.h"
 #include "CThunk.h"
+#include "dma_api.h"
 
 namespace mbed {
 
@@ -120,11 +121,65 @@ public:
 
     static void _irq_handler(uint32_t id, SerialIrq irq_type);
 
-    int write(void *buffer, uint32_t length, uint32_t event, void (*callback)(uint32_t));
+    /** Begin asynchronous write using 8bit buffer. The completition invokes registered TX event callback
+     *
+     *  @param buffer   The buffer where received data will be stored
+     *  @param length   The buffer length
+     *  @param event    The logical OR of TX events
+     *  @param callback The event callback function
+     */
+    int write(uint8_t *buffer, int length, void (*callback)(int), int event = SERIAL_EVENT_TX_COMPLETE);
+
+    /** Begin asynchronous write using 16bit buffer. The completition invokes registered TX event callback
+     *
+     *  @param buffer   The buffer where received data will be stored
+     *  @param length   The buffer length
+     *  @param event    The logical OR of TX events
+     *  @param callback The event callback function
+     */
+    int write(uint16_t *buffer, int length, void (*callback)(int), int event = SERIAL_EVENT_TX_COMPLETE);
+
+    /** Abort the on-going write transfer
+     */
     void abort_write();
 
-    int read(void *buffer, uint32_t length, uint32_t event, void (*callback)(uint32_t), uint8_t char_match = 255);
+    /** Begin asynchronous reading using 8bit buffer. The completition invokes registred RX event callback.
+     *
+     *  @param buffer     The buffer where received data will be stored
+     *  @param length     The buffer length
+     *  @param event      The logical OR of RX events
+     *  @param callback   The event callback function
+     *  @param char_match The matching character
+     */
+    int read(uint8_t *buffer, int length, void (*callback)(int), int event = SERIAL_EVENT_RX_COMPLETE, uint8_t char_match = SERIAL_RESERVED_CHAR_MATCH);
+
+    /** Begin asynchronous reading using 16bit buffer. The completition invokes registred RX event callback.
+     *
+     *  @param buffer     The buffer where received data will be stored
+     *  @param length     The buffer length
+     *  @param event      The logical OR of RX events
+     *  @param callback   The event callback function
+     *  @param char_match The matching character
+     */
+    int read(uint16_t *buffer, int length, void (*callback)(int), int event = SERIAL_EVENT_RX_COMPLETE, uint8_t char_match = SERIAL_RESERVED_CHAR_MATCH);
+
+    /** Abort the on-going read transfer
+     */
     void abort_read();
+
+    /** Configure DMA usage suggestion for non-blocking TX transfers
+     *
+     *  @param usage The usage DMA hint for peripheral
+     *  @return Zero if the usage was set, -1 if a transaction is on-going
+     */
+    int set_dma_usage_tx(DMAUsage usage);
+
+    /** Configure DMA usage suggestion for non-blocking RX transfers
+     *
+     *  @param usage The usage DMA hint for peripheral
+     *  @return Zero if the usage was set, -1 if a transaction is on-going
+     */
+    int set_dma_usage_rx(DMAUsage usage);
 
 protected:
     SerialBase(PinName tx, PinName rx);
@@ -138,10 +193,15 @@ protected:
     FunctionPointer _irq[2];
     int             _baud;
 
+    int start_read(int event, void (*callback)(int), uint8_t char_match);
+    int start_write(int event, void (*callback)(int));
+
     void interrupt_handler_asynch(void);
     CThunk<SerialBase> _thunk_irq;
-    void (*_tx_user_callback)(uint32_t event);
-    void (*_rx_user_callback)(uint32_t event);
+    void (*_tx_user_callback)(int event);
+    void (*_rx_user_callback)(int event);
+    DMAUsage _tx_usage;
+    DMAUsage _rx_usage;
 };
 
 } // namespace mbed
