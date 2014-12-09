@@ -60,35 +60,57 @@ int SPI::write(int value) {
     return spi_master_write(&_spi, value);
 }
 
-int SPI::write(void *tx_buffer, uint32_t tx_length, void *rx_buffer, uint32_t rx_length, uint32_t event, void (*callback)(uint32_t)) {
+int SPI::write(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, void (*callback)(int), int event)
+{
     if (spi_active(&_spi)) {
         return -1; // transaction ongoing
     }
+    spi_buffer_set(&_spi, tx_buffer, tx_length, rx_buffer, rx_length, 8);
+    return start_write(callback, event);
+}
 
+int SPI::write(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_length, void (*callback)(int), int event)
+{
+    if (spi_active(&_spi)) {
+        return -1; // transaction ongoing
+    }
+    spi_buffer_set(&_spi, tx_buffer, tx_length, rx_buffer, rx_length, 16);
+    return start_write(callback, event);
+}
+
+int SPI::write(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_length, void (*callback)(int), int event)
+{
+    if (spi_active(&_spi)) {
+        return -1; // transaction ongoing
+    }
+    spi_buffer_set(&_spi, tx_buffer, tx_length, rx_buffer, rx_length, 32);
+    return start_write(callback, event);
+}
+
+int SPI::start_write(void (*callback)(int), int event)
+{
     aquire();
 
     _user_callback = callback;
     _irq.callback(&SPI::irq_handler_asynch);
-
     spi_enable_event(&_spi, event, true);
 
-    spi_buffer_set(&_spi, tx_buffer, tx_length, rx_buffer, rx_length);
     spi_master_transfer(&_spi, (void*)_irq.entry(), _usage);
-    
     return 0;
 }
 
-void SPI::set_asynch_usage(DMA_USAGE_Enum usage)
+int SPI::set_dma_usage(DMAUsage usage)
 {
+    if (spi_active(&_spi)) {
+        return -1;
+    }
     _usage = usage;
+    return  0;
 }
 
 void SPI::irq_handler_asynch(void)
 {
-    // TODO_LP - Transaction is complete, check if there are more waiting transfers and notify userland
-    // TODO_LP - if transaction complete (tx, rx =0) then queued buffers
-
-    uint32_t event = spi_irq_handler_asynch(&_spi);
+    int event = spi_irq_handler_asynch(&_spi);
     if (_user_callback && event) {
         _user_callback(event);
     }
