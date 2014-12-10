@@ -19,8 +19,8 @@
   ],
   "extraIncludes": ["mbed"],
   "dependencies": {
-    "mbed-hal": "ARMmbed/mbed-hal",
-    "cmsis-core": "ARMmbed/cmsis-core"
+    "mbed-hal": "ARMmbed/mbed-hal#~0.0.3",
+    "cmsis-core": "ARMmbed/cmsis-core#~0.0.1"
   },
   "targetDependencies": {}
 }
