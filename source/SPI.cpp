@@ -60,6 +60,8 @@ int SPI::write(int value) {
     return spi_master_write(&_spi, value);
 }
 
+#if DEVICE_SPI_ASYNCH
+
 int SPI::write(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, void (*callback)(int), int event)
 {
     if (spi_active(&_spi)) {
@@ -115,6 +117,8 @@ void SPI::irq_handler_asynch(void)
         _user_callback(event);
     }
 }
+
+#endif
 
 } // namespace mbed
 

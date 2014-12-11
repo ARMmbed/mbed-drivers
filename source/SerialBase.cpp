@@ -105,6 +105,8 @@ void SerialBase::set_flow_control(Flow type, PinName flow1, PinName flow2) {
 }
 #endif
 
+#if DEVICE_SERIAL_ASYNCH
+
 int SerialBase::write(uint8_t *buffer, int length, void (*callback)(int), int event)
 {
     if (serial_tx_active(&_serial)) {
@@ -204,6 +206,8 @@ void SerialBase::interrupt_handler_asynch(void)
         _tx_user_callback(tx_event);
     }
 }
+
+#endif
 
 } // namespace mbed
 

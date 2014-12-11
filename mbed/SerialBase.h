@@ -121,6 +121,8 @@ public:
 
     static void _irq_handler(uint32_t id, SerialIrq irq_type);
 
+#if DEVICE_SERIAL_ASYNCH
+
     /** Begin asynchronous write using 8bit buffer. The completition invokes registered TX event callback
      *
      *  @param buffer   The buffer where received data will be stored
@@ -182,6 +184,12 @@ public:
     int set_dma_usage_rx(DMAUsage usage);
 
 protected:
+    int start_read(int event, void (*callback)(int), uint8_t char_match);
+    int start_write(int event, void (*callback)(int));
+    void interrupt_handler_asynch(void);
+#endif
+
+protected:
     SerialBase(PinName tx, PinName rx);
     virtual ~SerialBase() {
     }
@@ -193,10 +201,6 @@ protected:
     FunctionPointer _irq[2];
     int             _baud;
 
-    int start_read(int event, void (*callback)(int), uint8_t char_match);
-    int start_write(int event, void (*callback)(int));
-
-    void interrupt_handler_asynch(void);
     CThunk<SerialBase> _thunk_irq;
     void (*_tx_user_callback)(int event);
     void (*_rx_user_callback)(int event);

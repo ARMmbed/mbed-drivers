@@ -108,6 +108,8 @@ public:
      */
     virtual int write(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
 
+#if DEVICE_SPI_ASYNCH
+
     /** Start non-blocking SPI transfer using 16bit buffers.
      *
      * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
@@ -144,22 +146,24 @@ public:
     */
     int set_dma_usage(DMAUsage usage);
 
+protected:
+    /** IRQ handler for asynchronous SPI transfers
+     */
+    void irq_handler_asynch(void);
+    int start_write(void (*callback)(int), int event);
+#endif
+
 public:
     virtual ~SPI() {
     }
 
 protected:
-    /** IRQ handler for asynchronous SPI transfers
-     */
-    void irq_handler_asynch(void);
-
     spi_t _spi;
     CThunk<SPI> _irq;
     void (*_user_callback)(int event);
     DMAUsage _usage;
 
     void aquire(void);
-    int start_write(void (*callback)(int), int event);
     static SPI *_owner;
     int _bits;
     int _mode;
