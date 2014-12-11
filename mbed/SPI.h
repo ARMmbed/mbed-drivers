@@ -94,6 +94,8 @@ public:
     */
     virtual int write(int value);
 
+#if DEVICE_SPI_ASYNCH
+
     /** Start non-blocking SPI transfer using 8bit buffers.
      *
      * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
@@ -107,8 +109,6 @@ public:
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
     virtual int write(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
-
-#if DEVICE_SPI_ASYNCH
 
     /** Start non-blocking SPI transfer using 16bit buffers.
      *
