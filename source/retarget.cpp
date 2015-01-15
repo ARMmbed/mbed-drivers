@@ -390,7 +390,7 @@ extern "C" int mkdir(const char *path, mode_t mode) {
     return fs->mkdir(fp.fileName(), mode);
 }
 
-#if defined(TOOLCHAIN_GCC)
+#if defined(TOOLCHAIN_GCC) || defined(TARGET_LIKE_CLANG)
 /* prevents the exception handling name demangling code getting pulled in */
 #include "mbed_error.h"
 namespace __gnu_cxx {
@@ -427,7 +427,7 @@ extern "C" int $Sub$$main(void) {
     mbed_main();
     return $Super$$main();
 }
-#elif defined(TOOLCHAIN_GCC)
+#elif defined(TOOLCHAIN_GCC)  || defined(TARGET_LIKE_CLANG)
 extern "C" int __real_main(void);
 
 extern "C" int __wrap_main(void) {

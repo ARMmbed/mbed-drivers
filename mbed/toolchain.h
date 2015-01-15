@@ -32,4 +32,13 @@ typedef int FILEHANDLE;
 #   define PACKED   __attribute__((packed))
 #endif
 
+
+#if defined(__clang__) && defined(__cplusplus)
+// clang defines main as a c++ symbol if its in a c++ file, gcc always
+// defines main as a c symbol. We expect main to always be a c symbol, so
+// we provide an extern C declaration to force this:
+extern "C" int main();
+#endif // defined(__clang__) && defined(__cplusplus)
+
+
 #endif
