@@ -51,9 +51,8 @@ private:
     template<typename T>
     static int membercaller(void *object, char *member, void* arg) {
         T* o = static_cast<T*>(object);
-        void (T::*m)(void);
-        memcpy((char*)&m, member, sizeof(m));
-        return (o->*m)(arg);
+        int (T::**m)(void*) = static_cast<int (T::**)(void*)>(member);
+        return (o->**m)(arg);
     }
 
     union {
