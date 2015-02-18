@@ -72,6 +72,7 @@ public:
 
 #ifdef MBED_OPERATORS
     void operator ()(void);
+    operator bool(void) const;
 #endif
 
 private:

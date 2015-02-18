@@ -40,6 +40,10 @@ void FunctionPointer::call(void) {
 void FunctionPointer::operator ()(void) {
     call();
 }
+
+FunctionPointer::operator bool(void) const {
+    return _function || _object;
+}
 #endif
 
 } // namespace mbed
