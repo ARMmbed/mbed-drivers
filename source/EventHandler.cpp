@@ -18,7 +18,7 @@ EventHandler::EventHandler(const EventHandler &__x)
 
 void EventHandler::swap(EventHandler &__x) {
     char tmpMember[16];
-    int (*tmpcaller)(void*, char*, void*) = __x._membercaller;
+    int (*tmpcaller)(void*, void*, void*) = __x._membercaller;
     void *tmpobj = __x._p.object;
     memcpy(tmpMember,__x._member,sizeof(tmpMember));
     memcpy(__x._member,_member,sizeof(_member));
