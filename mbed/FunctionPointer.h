@@ -20,12 +20,11 @@
 
 namespace mbed {
 
-typedef void (*pvoidf_t)(void);
-
 /** A class for storing and calling a pointer to a static or member void function
  */
 class FunctionPointer {
 public:
+    typedef void (*pvoidf_t)(void);
 
     /** Create a FunctionPointer, attaching a static function
      *
@@ -43,11 +42,12 @@ public:
         attach(object, member);
     }
 
+    void attach();
     /** Attach a static function
      *
      *  @param function The void static function to attach (default is none)
      */
-    void attach(void (*function)(void) = 0);
+    void attach(void (*function)(void));
 
     /** Attach a member function
      *
@@ -56,10 +56,9 @@ public:
      */
     template<typename T>
     void attach(T *object, void (T::*member)(void)) {
-        _object = static_cast<void*>(object);
-        memcpy(_member, (char*)&member, sizeof(member));
+        _p.object = static_cast<void*>(object);
+        *reinterpret_cast<void (T::**)(void)>(_member) = member;
         _membercaller = &FunctionPointer::membercaller<T>;
-        _function = 0;
     }
 
     /** Call the attached static or member function
@@ -67,27 +66,29 @@ public:
     void call();
 
     pvoidf_t get_function() const {
-        return (pvoidf_t)_function;
+        return (pvoidf_t)_p.function;
     }
 
 #ifdef MBED_OPERATORS
     void operator ()(void);
     operator bool(void) const;
+    FunctionPointer & operator = (const FunctionPointer &__x);
 #endif
 
 private:
     template<typename T>
-    static void membercaller(void *object, char *member) {
+    static void membercaller(void *object, uintptr_t *member) {
         T* o = static_cast<T*>(object);
-        void (T::*m)(void);
-        memcpy((char*)&m, member, sizeof(m));
-        (o->*m)();
+        void (T::**m)(void) = reinterpret_cast<void (T::**)(void)>(member);
+        (o->**m)();
     }
 
-    void (*_function)(void);             // static function pointer - 0 if none attached
-    void *_object;                       // object this pointer - 0 if none attached
-    char _member[16];                    // raw member function pointer storage - converted back by registered _membercaller
-    void (*_membercaller)(void*, char*); // registered membercaller function to convert back and call _member on _object
+    union {
+        void (*function)(void);               // static function pointer - 0 if none attached
+        void *object;                         // object this pointer - 0 if none attached
+    } _p;
+    uintptr_t _member[4];                     // aligned raw member function pointer storage - converted back by registered _membercaller
+    void (*_membercaller)(void*, uintptr_t*); // registered membercaller function to convert back and call _m.member on _object
 };
 
 } // namespace mbed
