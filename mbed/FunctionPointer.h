@@ -42,7 +42,6 @@ public:
         attach(object, member);
     }
 
-    void attach();
     /** Attach a static function
      *
      *  @param function The void static function to attach (default is none)
