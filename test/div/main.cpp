@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include <utility>      // std::pair
 #include "mbed.h"
 #include "test_env.h"
@@ -32,6 +33,11 @@ const char *result_str(bool result) {
 }
 
 int main() {
+    MBED_HOSTTEST_TIMEOUT(20);
+    MBED_HOSTTEST_SELECT(default_auto);
+    MBED_HOSTTEST_DESCRIPTION(Integer constant division);
+    MBED_HOSTTEST_START("MBED_26");
+
     bool result = true;
 
     {   // 0xFFFFFFFF *  8 =  0x7fffffff8
@@ -50,6 +56,5 @@ int main() {
         printf("64bit: 0x17FFFFFFE8: expected 0x%lX got 0x%lX ... %s\r\n", values.first, test_ret, result_str(test_res));
     }
 
-    notify_completion(result);
-    return 0;
+    MBED_HOSTTEST_RESULT(result);
 }
