@@ -21,8 +21,11 @@ namespace mbed {
 
 SPI::SPI(PinName mosi, PinName miso, PinName sclk, PinName _unused) :
         _spi(),
+#if DEVICE_SPI_ASYNCH
         _irq(this),
+        _user_callback(0),
         _usage(DMA_USAGE_NEVER),
+#endif
         _bits(8),
         _mode(0),
         _hz(1000000) {
@@ -62,43 +65,40 @@ int SPI::write(int value) {
 
 #if DEVICE_SPI_ASYNCH
 
-int SPI::write(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, void (*callback)(int), int event)
+int SPI::transfer(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, void (*callback)(int), int event)
 {
     if (spi_active(&_spi)) {
-        return -1; // transaction ongoing
+        return queue_transfer(tx_buffer, tx_length, rx_buffer, rx_length, 8, callback, event);
     }
-    spi_buffer_set(&_spi, tx_buffer, tx_length, rx_buffer, rx_length, 8);
-    return start_write(callback, event);
+    start_transfer(callback, tx_buffer, tx_length, rx_buffer, rx_length, 8, event);
+    return 0;
 }
 
-int SPI::write(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_length, void (*callback)(int), int event)
+int SPI::transfer(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_length, void (*callback)(int), int event)
 {
     if (spi_active(&_spi)) {
-        return -1; // transaction ongoing
+        return queue_transfer(tx_buffer, tx_length, rx_buffer, rx_length, 16, callback, event);
     }
-    spi_buffer_set(&_spi, tx_buffer, tx_length, rx_buffer, rx_length, 16);
-    return start_write(callback, event);
+    start_transfer(callback, tx_buffer, tx_length, rx_buffer, rx_length, 16, event);
+    return 0;
 }
 
-int SPI::write(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_length, void (*callback)(int), int event)
+int SPI::transfer(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_length, void (*callback)(int), int event)
 {
     if (spi_active(&_spi)) {
-        return -1; // transaction ongoing
+        return queue_transfer(tx_buffer, tx_length, rx_buffer, rx_length, 32, callback, event);
     }
-    spi_buffer_set(&_spi, tx_buffer, tx_length, rx_buffer, rx_length, 32);
-    return start_write(callback, event);
+    start_transfer(callback, tx_buffer, tx_length, rx_buffer, rx_length, 32, event);
+    return 0;
 }
 
-int SPI::start_write(void (*callback)(int), int event)
+void SPI::start_transfer(void (*callback)(int), void *tx, int tx_length, void *rx, int rx_length, unsigned char bit_width, int event)
 {
     aquire();
 
     _user_callback = callback;
     _irq.callback(&SPI::irq_handler_asynch);
-    spi_enable_event(&_spi, event, true);
-
-    spi_master_transfer(&_spi, (void*)_irq.entry(), _usage);
-    return 0;
+    spi_master_transfer(&_spi, tx, tx_length, rx, rx_length, bit_width, _irq.entry(), event , _usage);
 }
 
 int SPI::set_dma_usage(DMAUsage usage)
@@ -110,11 +110,46 @@ int SPI::set_dma_usage(DMAUsage usage)
     return  0;
 }
 
+int SPI::queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, void (*callback)(int), int event)
+{
+    spi_transaction_t t;
+
+    t.tx_buffer = tx_buffer;
+    t.tx_length = tx_length;
+    t.rx_buffer = rx_buffer;
+    t.rx_length = rx_length;
+    t.callback = callback;
+    t.event = event;
+    t.width = bit_width;
+    Transaction<SPI, spi_transaction_t> transaction(this, &t);
+    uint8_t index = spi_get_module(&_spi);
+    if (!_spi_module.push(transaction, index)) {
+        return -1; // the buffer is full
+    } else {
+        return 0;
+    }
+}
+
+void SPI::start_transaction(spi_transaction_t *data)
+{
+    start_transfer(data->callback, data->tx_buffer, data->tx_length, data->rx_buffer, data->rx_length, data->width, data->event);
+}
+
 void SPI::irq_handler_asynch(void)
 {
     int event = spi_irq_handler_asynch(&_spi);
-    if (_user_callback && event) {
-        _user_callback(event);
+    if (_user_callback && (event & SPI_EVENT_ALL)) {
+        _user_callback(event & SPI_EVENT_ALL);
+    }
+
+    if (event & SPI_EVENT_INTERNAL_TRANSFER_COMPLETE) {
+        Transaction<SPI, spi_transaction_t> t;
+        uint8_t index = spi_get_module(&_spi);
+        if (_spi_module.pop(t, index)) {
+            SPI* obj = t.get_object();
+            spi_transaction_t* data = t.get_transaction();
+            obj->start_transaction(data);
+        }
     }
 }
 

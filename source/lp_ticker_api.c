@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 #include <stddef.h>
-#include "us_ticker_api.h"
+#include "lp_ticker_api.h"
 #include "cmsis.h"
 
 static ticker_event_handler event_handler;
 static ticker_event_t *head = NULL;
 
-void us_ticker_set_handler(ticker_event_handler handler) {
-    us_ticker_init();
+void lp_ticker_set_handler(ticker_event_handler handler) {
+    lp_ticker_init();
 
     event_handler = handler;
 }
 
-void us_ticker_irq_handler(void) {
-    us_ticker_clear_interrupt();
+void lp_ticker_irq_handler(void) {
+    lp_ticker_clear_interrupt();
 
     /* Go through all the pending TimerEvents */
     while (1) {
         if (head == NULL) {
             // There are no more TimerEvents left, so disable matches.
-            us_ticker_disable_interrupt();
+            lp_ticker_disable_interrupt();
             return;
         }
 
-        if ((int)(head->timestamp - us_ticker_read()) <= 0) {
+        if ((int)(head->timestamp - lp_ticker_read()) <= 0) {
             // This event was in the past:
             //      point to the following one and execute its handler
             ticker_event_t *p = head;
@@ -50,13 +50,13 @@ void us_ticker_irq_handler(void) {
         } else {
             // This event and the following ones in the list are in the future:
             //      set it as next interrupt and return
-            us_ticker_set_interrupt(head->timestamp);
+            lp_ticker_set_interrupt(head->timestamp);
             return;
         }
     }
 }
 
-void us_ticker_insert_event(ticker_event_t *obj, timestamp_t timestamp, uint32_t id) {
+void lp_ticker_insert_event(ticker_event_t *obj, timestamp_t timestamp, uint32_t id) {
     /* disable interrupts for the duration of the function */
     __disable_irq();
 
@@ -80,7 +80,7 @@ void us_ticker_insert_event(ticker_event_t *obj, timestamp_t timestamp, uint32_t
     /* if prev is NULL we're at the head */
     if (prev == NULL) {
         head = obj;
-        us_ticker_set_interrupt(timestamp);
+        lp_ticker_set_interrupt(timestamp);
     } else {
         prev->next = obj;
     }
@@ -90,7 +90,7 @@ void us_ticker_insert_event(ticker_event_t *obj, timestamp_t timestamp, uint32_t
     __enable_irq();
 }
 
-void us_ticker_remove_event(ticker_event_t *obj) {
+void lp_ticker_remove_event(ticker_event_t *obj) {
     __disable_irq();
 
     // remove this object from the list
@@ -98,9 +98,9 @@ void us_ticker_remove_event(ticker_event_t *obj) {
         // first in the list, so just drop me
         head = obj->next;
         if (head == NULL) {
-            us_ticker_disable_interrupt();
+            lp_ticker_disable_interrupt();
         } else {
-            us_ticker_set_interrupt(head->timestamp);
+            lp_ticker_set_interrupt(head->timestamp);
         }
     } else {
         // find the object before me, then drop me
