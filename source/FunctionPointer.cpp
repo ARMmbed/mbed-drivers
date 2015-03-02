@@ -17,32 +17,39 @@
 
 namespace mbed {
 
-FunctionPointer::FunctionPointer(void (*function)(void)): _function(),
-                                                          _object(),
-                                                          _membercaller() {
+FunctionPointer::FunctionPointer(void (*function)(void))
+{
     attach(function);
 }
 
 void FunctionPointer::attach(void (*function)(void)) {
-    _function = function;
-    _object = 0;
+    _p.function = function;
+    _membercaller = 0;
 }
 
 void FunctionPointer::call(void) {
-    if (_function) {
-        _function();
-    } else if (_object) {
-        _membercaller(_object, _member);
+    if (_membercaller == 0 && _p.function) {
+        _p.function();
+    } else if (_membercaller && _p.object) {
+        _membercaller(_p.object, _member);
     }
 }
 
 #ifdef MBED_OPERATORS
+FunctionPointer & FunctionPointer::operator = (const FunctionPointer &__x)
+{
+    _membercaller = __x._membercaller;
+    _p = __x._p;
+    memcpy(_m.member,__x._m.member,sizeof(_m.member));
+    return *this;
+}
+
 void FunctionPointer::operator ()(void) {
     call();
 }
 
 FunctionPointer::operator bool(void) const {
-    return _function || _object;
+    return (_membercaller? _p.object : _p.function) != 0;
 }
 #endif
 
