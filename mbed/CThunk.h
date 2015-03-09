@@ -24,10 +24,29 @@
 
 #if defined(__CORTEX_M3) || defined(__CORTEX_M4) || defined(__thumb2__)
 #define CTHUNK_VARIABLES volatile uint32_t code[1]
+/**
+* CTHUNK disassembly for Cortex-M3/M4 (thumb2):
+* * ldm.w pc,{r0,r1,r2,pc}
+*
+* This instruction loads the arguments for the static thunking function to r0-r2, and
+* branches to that function by loading its address into PC.
+*
+* This is safe for both regular calling and interrupt calling, since it only touches scratch registers
+* which should be saved by the caller, and are automatically saved as part of the IRQ context switch.
+*/
 #define CTHUNK_ASSIGMENT m_thunk.code[0] = 0x8007E89F
 #define CTHUNK_ADDRESS 1
 
 #elif defined(__CORTEX_M0PLUS) || defined(__CORTEX_M0)
+/*
+* CTHUNK disassembly for Cortex M0 (thumb):
+* * push {r0,r1,r2,r3,r4,lr} save touched registers and return address
+* * movs r4,#4 set up address to load arguments from (immediately following this code block) (1)
+* * add r4,pc set up address to load arguments from (immediately following this code block) (2)
+* * ldm r4!,{r0,r1,r2,r3} load arguments for static thunk function
+* * blx r3 call static thunk function
+* * pop {r0,r1,r2,r3,r4,pc} restore scratch registers and return from function
+*/
 #define CTHUNK_VARIABLES volatile uint32_t code[3]
 #define CTHUNK_ASSIGMENT do {                              \
                              m_thunk.code[0] = 0x2404B51F; \
