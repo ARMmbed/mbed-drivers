@@ -17,6 +17,8 @@
 #include "lp_ticker_api.h"
 #include "cmsis.h"
 
+#if DEVICE_LOWPOWERTIMER
+
 static ticker_event_handler event_handler;
 static ticker_event_t *head = NULL;
 
@@ -116,3 +118,5 @@ void lp_ticker_remove_event(ticker_event_t *obj) {
 
     __enable_irq();
 }
+
+#endif

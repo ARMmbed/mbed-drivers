@@ -143,6 +143,7 @@ void SPI::irq_handler_asynch(void)
     }
 
     if (event & SPI_EVENT_INTERNAL_TRANSFER_COMPLETE) {
+        // SPI peripheral is free, dequeue transaction
         Transaction<SPI, spi_transaction_t> t;
         uint8_t index = spi_get_module(&_spi);
         if (_spi_module.pop(t, index)) {

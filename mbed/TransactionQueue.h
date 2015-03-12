@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef MBED_TRANSACTION_QUEUE_H
-#define MBED_TRANSACTION_QUEUE_H
+#ifndef MBED_TRANSACTIONQUEUE_H
+#define MBED_TRANSACTIONQUEUE_H
 
 namespace mbed {
 
