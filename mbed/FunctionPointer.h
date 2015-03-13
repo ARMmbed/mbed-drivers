@@ -67,12 +67,13 @@ public:
 
     /** Call the attached static or member function
      */
-    void call(){
+    R call(){
         if (_membercaller == 0 && _p.function) {
             return _p.function();
         } else if (_membercaller && _p.object) {
             return _membercaller(_p.object, _member);
         }
+        return (R)0;
     }
 
     R(*get_function())() const {
@@ -80,9 +81,12 @@ public:
     }
 
 #ifdef MBED_OPERATORS
-    void operator ()(void);
-    operator bool(void) const;
-    FunctionPointer0 & operator = (const FunctionPointer0 &__x);
+    R operator ()(void) {
+        return call();
+    }
+    operator bool(void) const {
+        return (_membercaller != NULL ? _p.object : (void*)_p.function) != NULL;
+    }
 #endif
 
 private:
@@ -162,6 +166,7 @@ public:
         return (R(*)())_p.function;
     }
 
+#ifdef MBED_OPERATORS
     R operator ()(A1 a) {
         return call(a);
     }
@@ -169,10 +174,7 @@ public:
     {
         return (_membercaller != NULL ? _p.object : (void*)_p.function) != NULL;
     }
-#ifdef MBED_OPERATORS
-    FunctionPointer1 & operator = (const FunctionPointer1 &__x);
 #endif
-
 private:
     template<typename T>
     static void membercaller(void *object, uintptr_t *member, A1 a) {
