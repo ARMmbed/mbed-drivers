@@ -17,6 +17,7 @@
 #define MBED_FUNCTIONPOINTER_H
 
 #include <string.h>
+#include <stdint.h>
 
 namespace mbed {
 
