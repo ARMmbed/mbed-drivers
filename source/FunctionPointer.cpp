@@ -17,23 +17,7 @@
 
 namespace mbed {
 
-FunctionPointer::FunctionPointer(void (*function)(void))
-{
-    attach(function);
-}
 
-void FunctionPointer::attach(void (*function)(void)) {
-    _p.function = function;
-    _membercaller = 0;
-}
-
-void FunctionPointer::call(void) {
-    if (_membercaller == 0 && _p.function) {
-        _p.function();
-    } else if (_membercaller && _p.object) {
-        _membercaller(_p.object, _member);
-    }
-}
 
 #ifdef MBED_OPERATORS
 FunctionPointer & FunctionPointer::operator = (const FunctionPointer &__x)
