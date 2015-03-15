@@ -22,7 +22,8 @@
   ],
   "dependencies": {
     "mbed-hal": "ARMmbed/mbed-hal#~0.0.3",
-    "cmsis-core": "ARMmbed/cmsis-core#~0.0.1"
+    "cmsis-core": "ARMmbed/cmsis-core#~0.0.1",
+    "yottos": "ARMmbed/yottos#functionpointer"
   },
   "targetDependencies": {}
 }

@@ -62,7 +62,7 @@ int SPI::write(int value) {
 
 #if DEVICE_SPI_ASYNCH
 
-int SPI::write(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, void (*callback)(int), int event)
+int SPI::write(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, const EventHandler& callback, int event)
 {
     if (spi_active(&_spi)) {
         return -1; // transaction ongoing
@@ -71,7 +71,7 @@ int SPI::write(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_len
     return start_write(callback, event);
 }
 
-int SPI::write(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_length, void (*callback)(int), int event)
+int SPI::write(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_length, const EventHandler& callback, int event)
 {
     if (spi_active(&_spi)) {
         return -1; // transaction ongoing
@@ -80,7 +80,7 @@ int SPI::write(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_l
     return start_write(callback, event);
 }
 
-int SPI::write(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_length, void (*callback)(int), int event)
+int SPI::write(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_length, const EventHandler& callback, int event)
 {
     if (spi_active(&_spi)) {
         return -1; // transaction ongoing
@@ -89,7 +89,7 @@ int SPI::write(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_l
     return start_write(callback, event);
 }
 
-int SPI::start_write(void (*callback)(int), int event)
+int SPI::start_write(const EventHandler& callback, int event)
 {
     aquire();
 
@@ -114,7 +114,7 @@ void SPI::irq_handler_asynch(void)
 {
     int event = spi_irq_handler_asynch(&_spi);
     if (_user_callback && event) {
-        _user_callback(event);
+        yottos::Scheduler::instance()->postCallback(_user_callback.arg(event));
     }
 }
 

@@ -23,6 +23,8 @@
 #include "spi_api.h"
 #include "CThunk.h"
 #include "dma_api.h"
+#include "EventHandler.h"
+#include "yottos/yottos.h"
 
 namespace mbed {
 
@@ -108,7 +110,7 @@ public:
      * @param callback  The event callback function
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
-    virtual int write(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
+    virtual int write(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, const EventHandler& callback, int event = SPI_EVENT_COMPLETE);
 
     /** Start non-blocking SPI transfer using 16bit buffers.
      *
@@ -122,7 +124,7 @@ public:
      * @param callback  The event callback function
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
-    virtual int write(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
+    virtual int write(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_length, const EventHandler& callback, int event = SPI_EVENT_COMPLETE);
 
     /** Start non-blocking SPI transfer using 32bit buffers.
      *
@@ -136,7 +138,7 @@ public:
      * @param callback  The event callback function
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
-    virtual int write(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
+    virtual int write(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_length, const EventHandler& callback, int event = SPI_EVENT_COMPLETE);
 
 
     /** Configure DMA usage suggestion for non-blocking transfers
@@ -150,7 +152,8 @@ protected:
     /** IRQ handler for asynchronous SPI transfers
      */
     void irq_handler_asynch(void);
-    int start_write(void (*callback)(int), int event);
+    int start_write(const EventHandler& callback, int event);
+    EventHandler _user_callback;
 #endif
 
 public:
@@ -160,7 +163,6 @@ public:
 protected:
     spi_t _spi;
     CThunk<SPI> _irq;
-    void (*_user_callback)(int event);
     DMAUsage _usage;
 
     void aquire(void);
