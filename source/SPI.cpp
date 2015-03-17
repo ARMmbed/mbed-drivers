@@ -121,7 +121,7 @@ int SPI::queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_
     t.callback = callback;
     t.event = event;
     t.width = bit_width;
-    Transaction<SPI, spi_transaction_t> transaction(this, &t);
+    Transaction<SPI, spi_transaction_t> transaction(this, t);
     uint8_t index = spi_get_module(&_spi);
     if (!_spi_module.push(transaction, index)) {
         return -1; // the buffer is full

@@ -24,8 +24,7 @@ namespace mbed {
 template<typename Class, typename TransactionStruct>
 class Transaction {
 public:
-    Transaction(Class *tpointer, TransactionStruct *transaction) : _obj(tpointer) {
-        memcpy((void *)&_data, (void *)transaction, sizeof(_data));
+    Transaction(Class *tpointer, const TransactionStruct& transaction) : _obj(tpointer), _data(transaction) {
     }
 
     Transaction() : _obj(), _data() {

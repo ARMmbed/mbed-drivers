@@ -23,7 +23,10 @@
 #include "spi_api.h"
 #include "CThunk.h"
 #include "dma_api.h"
+
+#if DEVICE_SPI_ASYNCH
 #include "SpiModule.h"
+#endif
 
 namespace mbed {
 

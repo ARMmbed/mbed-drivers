@@ -21,8 +21,6 @@
 #include "platform.h"
 #include "TransactionQueue.h"
 #include "Transaction.h"
-#include "Modules.h"
-#include <string.h>
 
 namespace mbed {
 
@@ -37,11 +35,11 @@ public:
         return _queue[index].pop(t);
     }
 private:
-    static TransactionQueue<Transaction<Class, Trans_type>, 16> _queue[MODULES_SIZE_SPI];
+    static TransactionQueue<Transaction<Class, Trans_type>, TRANSACTION_QUEUE_SIZE_SPI> _queue[MODULES_SIZE_SPI];
 };
 
 template<typename Class, typename Trans_type>
-TransactionQueue<Transaction<Class, Trans_type>, 16> SPIModule<Class, Trans_type>::_queue[MODULES_SIZE_SPI];
+TransactionQueue<Transaction<Class, Trans_type>, TRANSACTION_QUEUE_SIZE_SPI> SPIModule<Class, Trans_type>::_queue[MODULES_SIZE_SPI];
 
 }
 
