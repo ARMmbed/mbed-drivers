@@ -21,8 +21,8 @@
     "mbed"
   ],
   "dependencies": {
-    "mbed-hal": "ARMmbed/mbed-hal#~0.0.3",
-    "cmsis-core": "ARMmbed/cmsis-core#~0.0.1"
+    "mbed-hal": "ARMmbed/mbed-hal-private#~0.1.0",
+    "cmsis-core": "ARMmbed/cmsis-core-private#~0.1.0"
   },
   "targetDependencies": {}
 }
