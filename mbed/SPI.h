@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,10 @@
 #include "spi_api.h"
 #include "CThunk.h"
 #include "dma_api.h"
+
+#if DEVICE_SPI_ASYNCH
+#include "SpiModule.h"
+#endif
 
 namespace mbed {
 
@@ -49,6 +53,16 @@ namespace mbed {
 class SPI {
 
 public:
+
+    typedef struct {
+        void *tx_buffer;
+        uint32_t tx_length;
+        void *rx_buffer;
+        uint32_t rx_length;
+        void (*callback)(int); // TODO replace by function pointer, also callback in private section
+        uint32_t event;
+        uint8_t width;
+    } spi_transaction_t;
 
     /** Create a SPI master connected to the specified pins
      *
@@ -108,7 +122,7 @@ public:
      * @param callback  The event callback function
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
-    virtual int write(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
+    virtual int transfer(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
 
     /** Start non-blocking SPI transfer using 16bit buffers.
      *
@@ -122,7 +136,7 @@ public:
      * @param callback  The event callback function
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
-    virtual int write(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
+    virtual int transfer(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
 
     /** Start non-blocking SPI transfer using 32bit buffers.
      *
@@ -136,7 +150,7 @@ public:
      * @param callback  The event callback function
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
-    virtual int write(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
+    virtual int transfer(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
 
 
     /** Configure DMA usage suggestion for non-blocking transfers
@@ -146,11 +160,11 @@ public:
     */
     int set_dma_usage(DMAUsage usage);
 
+    void start_transaction(spi_transaction_t *data);
 protected:
-    /** IRQ handler for asynchronous SPI transfers
-     */
     void irq_handler_asynch(void);
-    int start_write(void (*callback)(int), int event);
+    void start_transfer(void (*callback)(int), void *tx, int tx_length, void *rx, int rx_length, unsigned char bit_width, int event);
+    int queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, void (*callback)(int), int event);
 #endif
 
 public:
@@ -159,9 +173,13 @@ public:
 
 protected:
     spi_t _spi;
+
+#if DEVICE_SPI_ASYNCH
     CThunk<SPI> _irq;
     void (*_user_callback)(int event);
     DMAUsage _usage;
+    SPIModule<SPI, spi_transaction_t> _spi_module;
+#endif
 
     void aquire(void);
     static SPI *_owner;

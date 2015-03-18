@@ -112,8 +112,8 @@ int SerialBase::write(uint8_t *buffer, int length, void (*callback)(int), int ev
     if (serial_tx_active(&_serial)) {
         return -1; // transaction ongoing
     }
-    serial_tx_buffer_set(&_serial, buffer, length, 8);
-    return start_write(event, callback);
+    start_write((void *)buffer, length, 8, callback, event);
+    return 0;
 }
 
 int SerialBase::write(uint16_t *buffer, int length, void (*callback)(int), int event)
@@ -121,18 +121,16 @@ int SerialBase::write(uint16_t *buffer, int length, void (*callback)(int), int e
     if (serial_tx_active(&_serial)) {
         return -1; // transaction ongoing
     }
-    serial_tx_buffer_set(&_serial, buffer, length, 16);
-    return start_write(event, callback);
+    start_write((void *)buffer, length, 16, callback, event);
+    return 0;
 }
 
-int SerialBase::start_write(int event, void (*callback)(int))
+void SerialBase::start_write(void *buffer, int buffer_size, char buffer_width, void (*callback)(int), int event)
 {
     _tx_user_callback = callback;
-    
+
     _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
-    serial_tx_enable_event(&_serial, event, true);
-    serial_start_write_asynch(&_serial, (void *)_thunk_irq.entry(), _tx_usage);
-    return 0;
+    serial_tx_asynch(&_serial, buffer, buffer_size, buffer_width, _thunk_irq.entry(), event, _tx_usage);
 }
 
 void SerialBase::abort_write(void)
@@ -163,45 +161,42 @@ int SerialBase::set_dma_usage_rx(DMAUsage usage)
     return 0;
 }
 
-int SerialBase::read(uint8_t *buffer, int length, void (*callback)(int), int event, uint8_t char_match)
+int SerialBase::read(uint8_t *buffer, int length, void (*callback)(int), int event, unsigned char char_match)
 {
     if (serial_rx_active(&_serial)) {
         return -1; // transaction ongoing
     }
-    serial_rx_buffer_set(&_serial, buffer, length, 8);
-    return start_read(event, callback, char_match);
-}
-
-
-int SerialBase::read(uint16_t *buffer, int length, void (*callback)(int), int event, uint8_t char_match)
-{
-    if (serial_rx_active(&_serial)) {
-        return -1; // transaction ongoing
-    }
-    serial_rx_buffer_set(&_serial, buffer, length, 16);
-    return start_read(event, callback, char_match);
-}
-
-
-int SerialBase::start_read(int event, void (*callback)(int), uint8_t char_match)
-{
-    serial_set_char_match(&_serial, char_match);
-    _rx_user_callback = callback;
-    
-    _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
-    serial_rx_enable_event(&_serial, event, true);
-    serial_start_read_asynch(&_serial, (void *)_thunk_irq.entry(), _rx_usage);
+    start_read((void*)buffer, length, 8, callback, event, char_match);
     return 0;
+}
+
+
+int SerialBase::read(uint16_t *buffer, int length, void (*callback)(int), int event, unsigned char char_match)
+{
+    if (serial_rx_active(&_serial)) {
+        return -1; // transaction ongoing
+    }
+    start_read((void*)buffer, length, 16, callback, event, char_match);
+    return 0;
+}
+
+
+void SerialBase::start_read(void *buffer, int buffer_size, char buffer_width, void (*callback)(int), int event, unsigned char char_match)
+{
+    _rx_user_callback = callback;
+    _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
+    serial_rx_asynch(&_serial, buffer, buffer_size, buffer_width, _thunk_irq.entry(), event, char_match, _rx_usage);
 }
 
 void SerialBase::interrupt_handler_asynch(void)
 {
-    int rx_event = serial_rx_irq_handler_asynch(&_serial);
+    int event = serial_irq_handler_asynch(&_serial);
+    int rx_event = event & SERIAL_EVENT_RX_MASK;
     if (_rx_user_callback && rx_event) {
         _rx_user_callback(rx_event);
     }
 
-    int tx_event = serial_tx_irq_handler_asynch(&_serial);
+    int tx_event = event & SERIAL_EVENT_TX_MASK;
     if (_tx_user_callback && tx_event) {
         _tx_user_callback(tx_event);
     }
