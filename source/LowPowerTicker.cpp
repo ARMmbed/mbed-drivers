@@ -1,4 +1,4 @@
-/*
+/* mbed Microcontroller Library
  * Copyright (c) 2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,37 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "mbed.h"
+#include "LowPowerTicker.h"
+#include "LowPowerTimerEvent.h"
 #include "FunctionPointer.h"
-class VTest {
-public:
-    void print() {
-        printf("Class Print\r\n");
-    }
 
-};
+#if DEVICE_LOWPOWERTIMER
 
-void bareprint() {
-    printf("Bare Print\r\n");
+namespace mbed {
+
+void LowPowerTicker::detach() {
+    remove();
+    _function.attach(0);
 }
 
-int main(void)
-{
-    VTest test;
-    printf("Testing mbed FunctionPointer...\r\n");
-
-    FunctionPointer ebp(bareprint);
-    FunctionPointer ecp(&test, &VTest::print);
-
-    size_t ebsize = sizeof(ebp);
-    size_t ecsize = sizeof(ecp);
-    printf("sizeof(bp) = %d\r\n", ebsize);
-    printf("sizeof(cp) = %d\r\n", ecsize);
-    ebp.call();
-    ecp.call();
-
-    printf ("Test Complete\r\n");
-    while(1){__WFI();}
-    return 0;
+void LowPowerTicker::setup(timestamp_t t) {
+    remove();
+    _delay = t;
+    insert(_delay + lp_ticker_read());
 }
+
+void LowPowerTicker::handler() {
+    insert(event.timestamp + _delay);
+    _function.call();
+}
+
+} // namespace mbed
+
+#endif

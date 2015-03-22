@@ -58,7 +58,7 @@ public:
         printf("Starting short transfer test\r\n");
         init_rx_buffer();
         cs = 0;
-        printf("Res is %d\r\n", spi.write(tx_buf, SHORT_XFR, rx_buf, SHORT_XFR, EventHandler(this, &SPITest::short_transfer_complete_cb), SPI_EVENT_COMPLETE));
+        printf("Res is %d\r\n", spi.transfer(tx_buf, SHORT_XFR, rx_buf, SHORT_XFR, EventHandler(this, &SPITest::short_transfer_complete_cb), SPI_EVENT_COMPLETE));
     }
 
     ~SPITest() {
@@ -89,7 +89,7 @@ private:
         printf("Starting long transfer test\r\n");
         init_rx_buffer();
         cs = 0;
-        printf("Res is %d\r\n", spi.write(tx_buf, LONG_XFR, rx_buf, LONG_XFR, EventHandler(this, &SPITest::long_transfer_complete_cb), SPI_EVENT_COMPLETE));
+        printf("Res is %d\r\n", spi.transfer(tx_buf, LONG_XFR, rx_buf, LONG_XFR, EventHandler(this, &SPITest::long_transfer_complete_cb), SPI_EVENT_COMPLETE));
     }
 
     void long_transfer_complete_cb(void *arg) {

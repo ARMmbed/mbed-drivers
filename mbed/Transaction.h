@@ -1,4 +1,4 @@
-/*
+/* mbed Microcontroller Library
  * Copyright (c) 2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,37 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef MBED_TRANSACTION_H
+#define MBED_TRANSACTION_H
 
-#include "mbed.h"
-#include "FunctionPointer.h"
-class VTest {
+#include "platform.h"
+#include <string.h>
+
+namespace mbed {
+
+template<typename Class, typename TransactionStruct>
+class Transaction {
 public:
-    void print() {
-        printf("Class Print\r\n");
+    Transaction(Class *tpointer, const TransactionStruct& transaction) : _obj(tpointer), _data(transaction) {
     }
 
+    Transaction() : _obj(), _data() {
+    }
+
+    ~Transaction() {
+    }
+
+    Class* get_object() {
+        return _obj;
+    }
+
+    TransactionStruct* get_transaction() {
+        return &_data;
+    }
+
+private:
+    Class* _obj;
+    TransactionStruct _data;
 };
 
-void bareprint() {
-    printf("Bare Print\r\n");
 }
 
-int main(void)
-{
-    VTest test;
-    printf("Testing mbed FunctionPointer...\r\n");
-
-    FunctionPointer ebp(bareprint);
-    FunctionPointer ecp(&test, &VTest::print);
-
-    size_t ebsize = sizeof(ebp);
-    size_t ecsize = sizeof(ecp);
-    printf("sizeof(bp) = %d\r\n", ebsize);
-    printf("sizeof(cp) = %d\r\n", ecsize);
-    ebp.call();
-    ecp.call();
-
-    printf ("Test Complete\r\n");
-    while(1){__WFI();}
-    return 0;
-}
+#endif
