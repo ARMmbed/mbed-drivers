@@ -181,8 +181,8 @@ protected:
 
 #if DEVICE_SPI_ASYNCH
     CThunk<SPI> _irq;
-    DMAUsage _usage;
     callback_t _user_callback;
+    DMAUsage _usage;
     SPIModule<SPI, spi_transaction_t> _spi_module;
 #endif
 
