@@ -139,7 +139,7 @@ void SPI::irq_handler_asynch(void)
 {
     int event = spi_irq_handler_asynch(&_spi);
     if (_user_callback && (event & SPI_EVENT_ALL)) {
-        yottos::Scheduler::instance()->postCallback(_user_callback.arg(event));
+        yottos::Scheduler::instance()->postCallback(_user_callback.arg(eventi & SPI_EVENT_ALL));
     }
 
     if (event & SPI_EVENT_INTERNAL_TRANSFER_COMPLETE) {
