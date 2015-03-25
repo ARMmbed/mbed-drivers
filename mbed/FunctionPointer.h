@@ -94,7 +94,7 @@ private:
     static void membercaller(void *object, uintptr_t *member) {
         T* o = static_cast<T*>(object);
         R (T::**m)(void) = reinterpret_cast<R (T::**)(void)>(member);
-        (o->**m)();
+        return (o->**m)();
     }
 
     union {
@@ -180,7 +180,7 @@ private:
     static void membercaller(void *object, uintptr_t *member, A1 a) {
         T* o = static_cast<T*>(object);
         R (T::**m)(A1) = reinterpret_cast<R (T::**)(A1)>(member);
-        (o->**m)(a);
+        return (o->**m)(a);
     }
 
     union {
