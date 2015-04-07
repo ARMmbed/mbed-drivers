@@ -27,6 +27,6 @@
   },
   "targetDependencies": {},
   "scripts": {
-      "testReporter": ["mbedgt", "--read-stdin", "-v", "-V"]
+      "testReporter": ["mbedgt", "--digest", "stdin", "-v", "-V"]
   }
 }
