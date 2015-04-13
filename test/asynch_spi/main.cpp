@@ -54,8 +54,7 @@ public:
         cs = 1;
     }
 
-    void start(void *arg) {
-        arg = arg;
+    void start() {
         printf("Starting short transfer test\r\n");
         init_rx_buffer();
         cs = 0;
