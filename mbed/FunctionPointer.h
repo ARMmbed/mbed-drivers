@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,33 +19,10 @@
 #include <string.h>
 #include <stdint.h>
 #include <stddef.h>
+#include "FunctionPointerBase.h"
+#include "FunctionPointerBind.h"
 
 namespace mbed {
-
-template<typename R>
-class FunctionPointerBase {
-public:
-#ifdef MBED_OPERATORS
-    operator bool(void) const {
-        return _object != NULL;
-    }
-#endif
-
-protected:
-    /**
-     * Calls the member pointed to by
-     * @param arg
-     * @return
-     */
-    R call(void* arg) {
-        return _membercaller(&_object, _member, arg);
-    }
-    void * _object; // object Pointer/function pointer
-    R (*_membercaller)(void *, uintptr_t *, void *);
-    // aligned raw member function pointer storage - converted back by registered _membercaller
-    uintptr_t _member[4];
-};
-
 /** A class for storing and calling a pointer to a static or member void function
  */
 template <typename R>
@@ -97,6 +74,10 @@ public:
         return FunctionPointerBase<R>::call(NULL);
     }
 
+    int bind(FunctionPointerBind<R> &f) {
+        return f.attach(*this, NULL, 0);
+    }
+
     static_fp get_function()const {
         return reinterpret_cast<static_fp>(FunctionPointerBase<R>::_object);
     }
@@ -122,8 +103,6 @@ private:
         return f();
     }
 };
-
-/* If we had variaditic templates, this wouldn't be a problem, but until C++11 is enabled, we are stuck with multiple classes... */
 
 /** A class for storing and calling a pointer to a static or member void function
  */
@@ -172,15 +151,42 @@ public:
     void attach(T *object, R (T::*member)(A1))
     {
         FunctionPointerBase<R>::_object = static_cast<void*>(object);
-        *reinterpret_cast<R (T::**)(void)>(FunctionPointerBase<R>::_member) = member;
+        *reinterpret_cast<R (T::**)(A1)>(FunctionPointerBase<R>::_member) = member;
         FunctionPointerBase<R>::_membercaller = &FunctionPointer1::membercaller<T>;
     }
 
+    /** Pack arguments for FunctionPointerBase
+     *
+     *  @param[out] buffer the output buffer for the packed arguments
+     *  @param[in]  bufsiz the size of the output buffer
+     *  @param[in]  a1 the first argument to pack
+     */
+    int pack_args(void *buffer, size_t bufsiz, const A1 &a1) {
+        if (sizeof(ArgStruct) > bufsiz) {
+            return -1;
+        }
+        // Optimizer should remove this step.
+        ArgStruct Args = {a1};
+        *reinterpret_cast<ArgStruct*>(buffer) = Args;
+        return 0;
+    }
+
+    int bind(FunctionPointerBind<R> &f, const A1 &a1) {
+        ArgStruct Args = {a1};
+        int rc = pack_args(&Args, sizeof(Args), a1);
+        if (rc)
+            return rc;
+        return f.attach(*this, &Args, sizeof(Args));
+    }
+
+
     /** Call the attached static or member function
      */
-    R call(A1 a)
+    R call(A1 a1)
     {
-        ArgStruct Args = {a};
+        ArgStruct Args;
+        // Guaranteed to be the right size, so ignore return.
+        pack_args(&Args, sizeof(Args), a1);
         return FunctionPointerBase<R>::call(&Args);
     }
 
