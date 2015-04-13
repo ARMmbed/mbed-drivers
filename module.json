@@ -2,6 +2,7 @@
   "name": "mbed",
   "version": "3.0.0-alpha2",
   "description": "mbed SDK",
+  "private": true,
   "keywords": [
     "mbed"
   ],
@@ -23,7 +24,10 @@
   "dependencies": {
     "mbed-hal": "ARMmbed/mbed-hal-private#~0.1.0",
     "cmsis-core": "ARMmbed/cmsis-core-private#~0.1.0",
-    "yottos": "ARMmbed/yottos#eventhandler"
+    "yottos": "ARMmbed/yottos#event"
   },
-  "targetDependencies": {}
+  "targetDependencies": {},
+  "scripts": {
+      "testReporter": ["mbedgt", "--digest", "stdin", "-v", "-V"]
+  }
 }

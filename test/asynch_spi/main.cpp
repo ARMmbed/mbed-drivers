@@ -17,6 +17,7 @@
 #include "mbed.h"
 #include <stdio.h>
 #include "yottos/yottos.h"
+#include "Event.h"
 
 #if !DEVICE_SPI
 #error spi_master_asynch requires SPI
@@ -58,7 +59,7 @@ public:
         printf("Starting short transfer test\r\n");
         init_rx_buffer();
         cs = 0;
-        printf("Res is %d\r\n", spi.transfer(tx_buf, SHORT_XFR, rx_buf, SHORT_XFR, EventHandler(this, &SPITest::short_transfer_complete_cb), SPI_EVENT_COMPLETE));
+        printf("Res is %d\r\n", spi.transfer(tx_buf, SHORT_XFR, rx_buf, SHORT_XFR, Event(this, &SPITest::short_transfer_complete_cb), SPI_EVENT_COMPLETE));
     }
 
     ~SPITest() {
@@ -89,7 +90,7 @@ private:
         printf("Starting long transfer test\r\n");
         init_rx_buffer();
         cs = 0;
-        printf("Res is %d\r\n", spi.transfer(tx_buf, LONG_XFR, rx_buf, LONG_XFR, EventHandler(this, &SPITest::long_transfer_complete_cb), SPI_EVENT_COMPLETE));
+        printf("Res is %d\r\n", spi.transfer(tx_buf, LONG_XFR, rx_buf, LONG_XFR, Event(this, &SPITest::long_transfer_complete_cb), SPI_EVENT_COMPLETE));
     }
 
     void long_transfer_complete_cb(void *arg) {
@@ -110,7 +111,7 @@ private:
 
 static DigitalOut led(LED1);
 
-static void toggle_led(void *arg) {
+static void toggle_led() {
     static int state = 0;
 
     led = state = state ^ 1;
@@ -120,7 +121,7 @@ int main() {
     static SPITest test;
 
     yottos::Scheduler* sched = yottos::Scheduler::instance();
-    sched->postCallback(EventHandler(&test, &SPITest::start));
+    sched->postCallback(Event(&test, &SPITest::start));
     sched->postCallback(toggle_led).period(yottos::milliseconds(500));
     return sched->start();
 }

@@ -23,7 +23,7 @@
 #include "spi_api.h"
 #include "CThunk.h"
 #include "dma_api.h"
-#include "EventHandler.h"
+#include "Event.h"
 #include "yottos/yottos.h"
 
 #if DEVICE_SPI_ASYNCH
@@ -53,7 +53,7 @@ namespace mbed {
  * @endcode
  */
 
-typedef EventHandler callback_t;
+typedef Event callback_t;
 
 class SPI {
 
