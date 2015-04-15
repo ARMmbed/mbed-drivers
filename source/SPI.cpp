@@ -29,6 +29,7 @@ SPI::SPI(PinName mosi, PinName miso, PinName sclk, PinName _unused) :
         _bits(8),
         _mode(0),
         _hz(1000000) {
+    (void) _unused;
     spi_init(&_spi, mosi, miso, sclk, NC);
     spi_format(&_spi, _bits, _mode, 0);
     spi_frequency(&_spi, _hz);

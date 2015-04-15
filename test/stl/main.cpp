@@ -61,7 +61,7 @@ struct printFloat {
 };
 
 struct printString {
-    void operator()(char* s) {
+    void operator()(const char* s) {
         printf("%s ", s);
     }
 };
@@ -88,7 +88,7 @@ int main()
     }
 
     {
-        char* floats_str[] = {FLOATS_STR};
+        const char* floats_str[] = {FLOATS_STR};
         float floats_transform[TABLE_SIZE(floats_str)] = {0.0};
         std::transform(floats_str, floats_str + TABLE_SIZE(floats_str), floats_transform, atof);
         bool equal_result = std::equal(floats_transform, floats_transform + TABLE_SIZE(floats_transform), floats);
