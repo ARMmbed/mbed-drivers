@@ -21,7 +21,7 @@ class Test {
 
 private:
     const char* name;
-    const int pattern;
+    const unsigned pattern;
 
 public:
     Test(const char* _name) : name(_name), pattern(PATTERN_CHECK_VALUE)  {
