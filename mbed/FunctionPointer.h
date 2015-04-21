@@ -194,6 +194,7 @@ private:
 
 
 typedef FunctionPointer0<void> FunctionPointer;
+typedef FunctionPointer1<void, int> event_callback_t;
 
 } // namespace mbed
 

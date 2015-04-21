@@ -130,7 +130,7 @@ public:
      *  @param callback The event callback function
      *  @param event    The logical OR of TX events
      */
-    int write(uint8_t *buffer, int length, void (*callback)(int), int event = SERIAL_EVENT_TX_COMPLETE);
+    int write(uint8_t *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_TX_COMPLETE);
 
     /** Begin asynchronous write using 16bit buffer. The completition invokes registered TX event callback
      *
@@ -139,7 +139,7 @@ public:
      *  @param callback The event callback function
      *  @param event    The logical OR of TX events
      */
-    int write(uint16_t *buffer, int length, void (*callback)(int), int event = SERIAL_EVENT_TX_COMPLETE);
+    int write(uint16_t *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_TX_COMPLETE);
 
     /** Abort the on-going write transfer
      */
@@ -153,7 +153,7 @@ public:
      *  @param event      The logical OR of RX events
      *  @param char_match The matching character
      */
-    int read(uint8_t *buffer, int length, void (*callback)(int), int event = SERIAL_EVENT_RX_COMPLETE, unsigned char char_match = SERIAL_RESERVED_CHAR_MATCH);
+    int read(uint8_t *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_RX_COMPLETE, unsigned char char_match = SERIAL_RESERVED_CHAR_MATCH);
 
     /** Begin asynchronous reading using 16bit buffer. The completition invokes registred RX event callback.
      *
@@ -163,7 +163,7 @@ public:
      *  @param event      The logical OR of RX events
      *  @param char_match The matching character
      */
-    int read(uint16_t *buffer, int length, void (*callback)(int), int event = SERIAL_EVENT_RX_COMPLETE, unsigned char char_match = SERIAL_RESERVED_CHAR_MATCH);
+    int read(uint16_t *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_RX_COMPLETE, unsigned char char_match = SERIAL_RESERVED_CHAR_MATCH);
 
     /** Abort the on-going read transfer
      */
@@ -184,8 +184,8 @@ public:
     int set_dma_usage_rx(DMAUsage usage);
 
 protected:
-    void start_read(void *buffer, int buffer_size, char buffer_width, void (*callback)(int), int event, unsigned char char_match);
-    void start_write(void *buffer, int buffer_size, char buffer_width, void (*callback)(int), int event);
+    void start_read(void *buffer, int buffer_size, char buffer_width, const event_callback_t& callback, int event, unsigned char char_match);
+    void start_write(void *buffer, int buffer_size, char buffer_width, const event_callback_t& callback, int event);
     void interrupt_handler_asynch(void);
 #endif
 
@@ -197,15 +197,18 @@ protected:
     int _base_getc();
     int _base_putc(int c);
 
+#if DEVICE_SERIAL_ASYNCH
+    CThunk<SerialBase> _thunk_irq;
+    event_callback_t _tx_callback;
+    event_callback_t _rx_callback;
+    DMAUsage _tx_usage;
+    DMAUsage _rx_usage;
+#endif
+
     serial_t        _serial;
     FunctionPointer _irq[2];
     int             _baud;
 
-    CThunk<SerialBase> _thunk_irq;
-    void (*_tx_user_callback)(int event);
-    void (*_rx_user_callback)(int event);
-    DMAUsage _tx_usage;
-    DMAUsage _rx_usage;
 };
 
 } // namespace mbed

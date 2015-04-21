@@ -26,6 +26,7 @@
 
 #if DEVICE_SPI_ASYNCH
 #include "SpiModule.h"
+#include "FunctionPointer.h"
 #endif
 
 namespace mbed {
@@ -53,16 +54,6 @@ namespace mbed {
 class SPI {
 
 public:
-
-    typedef struct {
-        void *tx_buffer;
-        uint32_t tx_length;
-        void *rx_buffer;
-        uint32_t rx_length;
-        void (*callback)(int); // TODO replace by function pointer, also callback in private section
-        uint32_t event;
-        uint8_t width;
-    } spi_transaction_t;
 
     /** Create a SPI master connected to the specified pins
      *
@@ -118,11 +109,13 @@ public:
      * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
      *                  received data are ignored
      * @param rx_length The length of RX buffer
-     * @param event     The logical OR of events to modify
      * @param callback  The event callback function
+     * @param event     The logical OR of events to modify
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
-    virtual int transfer(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
+    virtual int transfer(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE) {
+        return transfer(tx_buffer, tx_length, rx_buffer, rx_length, 8, callback, event);
+    }
 
     /** Start non-blocking SPI transfer using 16bit buffers.
      *
@@ -132,11 +125,13 @@ public:
      * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
      *                  received data are ignored
      * @param rx_length The length of RX buffer
-     * @param event     The logical OR of events to modify
      * @param callback  The event callback function
+     * @param event     The logical OR of events to modify
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
-    virtual int transfer(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
+    virtual int transfer(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE) {
+        return transfer(tx_buffer, tx_length, rx_buffer, rx_length, 16, callback, event);
+    }
 
     /** Start non-blocking SPI transfer using 32bit buffers.
      *
@@ -150,8 +145,9 @@ public:
      * @param callback  The event callback function
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
-    virtual int transfer(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_length, void (*callback)(int), int event = SPI_EVENT_COMPLETE);
-
+    virtual int transfer(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE)  {
+        return transfer((void *)tx_buffer, tx_length, (void *)rx_buffer, rx_length, 32, callback, event);
+    }
 
     /** Configure DMA usage suggestion for non-blocking transfers
      *
@@ -160,11 +156,15 @@ public:
     */
     int set_dma_usage(DMAUsage usage);
 
-    void start_transaction(spi_transaction_t *data);
-protected:
-    void irq_handler_asynch(void);
-    void start_transfer(void (*callback)(int), void *tx, int tx_length, void *rx, int rx_length, unsigned char bit_width, int event);
-    int queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, void (*callback)(int), int event);
+private:
+    int transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
+    int queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
+    void start_transfer(void *tx, int tx_length, void *rx, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
+#if TRANSACTION_QUEUE_SIZE_SPI
+    void start_transaction(transaction_t *data);
+    SPIModule<SPI> _spi_module;
+#endif
+
 #endif
 
 public:
@@ -172,13 +172,13 @@ public:
     }
 
 protected:
+    void irq_handler_asynch(void);
     spi_t _spi;
 
 #if DEVICE_SPI_ASYNCH
     CThunk<SPI> _irq;
-    void (*_user_callback)(int event);
+    event_callback_t _callback;
     DMAUsage _usage;
-    SPIModule<SPI, spi_transaction_t> _spi_module;
 #endif
 
     void aquire(void);

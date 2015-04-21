@@ -24,22 +24,32 @@
 
 namespace mbed {
 
-template<typename Class, typename Trans_type>
+/** SPI module which contains transaction queue for spi peripheral.
+ */
+template<typename Class>
 class SPIModule {
 public:
-    bool push(Transaction<Class, Trans_type>& t, int index) {
+   /** Push SPI transaction
+     *
+     * @return True if the transaction was added, false otherwise
+     */
+    bool push(Transaction<Class>& t, int index) {
         return _queue[index].push(t);
     }
 
-    bool pop(Transaction<Class, Trans_type>& t, int index) {
+   /** Pop SPI transaction
+     *
+     * @return True if the transaction was popped (the queue was not empty), false otherwise
+     */
+    bool pop(Transaction<Class>& t, int index) {
         return _queue[index].pop(t);
     }
 private:
-    static TransactionQueue<Transaction<Class, Trans_type>, TRANSACTION_QUEUE_SIZE_SPI> _queue[MODULES_SIZE_SPI];
+    static TransactionQueue<Transaction<Class>, TRANSACTION_QUEUE_SIZE_SPI> _queue[MODULES_SIZE_SPI];
 };
 
-template<typename Class, typename Trans_type>
-TransactionQueue<Transaction<Class, Trans_type>, TRANSACTION_QUEUE_SIZE_SPI> SPIModule<Class, Trans_type>::_queue[MODULES_SIZE_SPI];
+template<typename Class>
+TransactionQueue<Transaction<Class>, TRANSACTION_QUEUE_SIZE_SPI> SPIModule<Class>::_queue[MODULES_SIZE_SPI];
 
 }
 
