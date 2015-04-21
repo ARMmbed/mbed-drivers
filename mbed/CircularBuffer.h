@@ -16,17 +16,14 @@
 #ifndef MBED_CIRCULARBUFFER_H
 #define MBED_CIRCULARBUFFER_H
 
-#include <string.h>
-
 namespace mbed {
 
 /** Templated Transaction Queue class.
  */
-template<typename T, uint32_t BufferSize, typename CounterType = uint8_t>
+template<typename T, uint32_t BufferSize, typename CounterType = uint32_t>
 class CircularBuffer {
 public:
     CircularBuffer() : _head(0), _tail(0) {
-        memset((void *)&_pool, 0, BufferSize);
     }
 
     ~CircularBuffer() {
@@ -73,7 +70,7 @@ public:
      * @return True if the queue is full, false if not
      */
     bool full() {
-        return _head == ((_tail - 1 + BufferSize) % BufferSize);
+        return _head == ((_tail + BufferSize - 1) % BufferSize);
     }
 
 private:
