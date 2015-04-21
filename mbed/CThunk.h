@@ -22,6 +22,8 @@
 #ifndef __CTHUNK_H__
 #define __CTHUNK_H__
 
+#define CTHUNK_ADDRESS 1
+
 #if defined(__CORTEX_M3) || defined(__CORTEX_M4) || defined(__thumb2__)
 #define CTHUNK_VARIABLES volatile uint32_t code[1]
 /**
@@ -35,7 +37,6 @@
 * which should be saved by the caller, and are automatically saved as part of the IRQ context switch.
 */
 #define CTHUNK_ASSIGMENT m_thunk.code[0] = 0x8007E89F
-#define CTHUNK_ADDRESS 1
 
 #elif defined(__CORTEX_M0PLUS) || defined(__CORTEX_M0)
 /*
@@ -53,7 +54,6 @@
                              m_thunk.code[1] = 0xCC0F447C; \
                              m_thunk.code[2] = 0xBD1F4798; \
                          } while (0)
-#define CTHUNK_ADDRESS 1
 
 #else
 #error "Target is not currently suported."
@@ -143,13 +143,25 @@ class CThunk
         /* simple test function */
         inline void call(void)
         {
-            ((CThunkEntry)(entry())());
+            (((CThunkEntry)(entry()))());
         }
 
     private:
         T* m_instance;
         volatile CCallback m_callback;
 
+// TODO: this needs proper fix, to refactor toolchain header file and all its use
+// PACKED there is not defined properly for IAR
+#if defined (__ICCARM__)
+        typedef __packed struct
+        {
+            CTHUNK_VARIABLES;
+            volatile uint32_t instance;
+            volatile uint32_t context;
+            volatile uint32_t callback;
+            volatile uint32_t trampoline;
+        }  CThunkTrampoline;
+#else
         typedef struct
         {
             CTHUNK_VARIABLES;
@@ -157,7 +169,8 @@ class CThunk
             volatile uint32_t context;
             volatile uint32_t callback;
             volatile uint32_t trampoline;
-        } __attribute__((packed)) CThunkTrampoline;
+        } __attribute__((__packed__)) CThunkTrampoline;
+#endif
 
         static void trampoline(T* instance, void* context, CCallback* callback)
         {
