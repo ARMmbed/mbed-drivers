@@ -18,7 +18,6 @@
 
 #include "platform.h"
 #include "FunctionPointer.h"
-#include <string.h>
 
 namespace mbed {
 

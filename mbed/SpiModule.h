@@ -19,7 +19,7 @@
 #if DEVICE_SPI
 
 #include "platform.h"
-#include "TransactionQueue.h"
+#include "CircularBuffer.h"
 #include "Transaction.h"
 
 namespace mbed {
@@ -45,11 +45,11 @@ public:
         return _queue[index].pop(t);
     }
 private:
-    static TransactionQueue<Transaction<Class>, TRANSACTION_QUEUE_SIZE_SPI> _queue[MODULES_SIZE_SPI];
+    static CircularBuffer<Transaction<Class>, TRANSACTION_QUEUE_SIZE_SPI> _queue[MODULES_SIZE_SPI];
 };
 
 template<typename Class>
-TransactionQueue<Transaction<Class>, TRANSACTION_QUEUE_SIZE_SPI> SPIModule<Class>::_queue[MODULES_SIZE_SPI];
+CircularBuffer<Transaction<Class>, TRANSACTION_QUEUE_SIZE_SPI> SPIModule<Class>::_queue[MODULES_SIZE_SPI];
 
 }
 
