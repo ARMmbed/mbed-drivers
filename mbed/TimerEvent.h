@@ -25,7 +25,7 @@ namespace mbed {
 class TimerEvent {
 public:
     TimerEvent();
-    TimerEvent(const ticker_data_t *interface);
+    TimerEvent(const ticker_data_t *data);
 
     /** The handler registered with the underlying timer interrupt
      */
@@ -47,7 +47,7 @@ protected:
 
     ticker_event_t event;
 
-    const ticker_data_t *const _interface;
+    const ticker_data_t *const _ticker_data;
 };
 
 } // namespace mbed

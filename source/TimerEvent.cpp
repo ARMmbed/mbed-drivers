@@ -22,12 +22,12 @@
 
 namespace mbed {
 
-TimerEvent::TimerEvent() : event(), _interface(get_us_ticker_data()) {
-    ticker_set_handler(_interface, (&TimerEvent::irq));
+TimerEvent::TimerEvent() : event(), _ticker_data(get_us_ticker_data()) {
+    ticker_set_handler(_ticker_data, (&TimerEvent::irq));
 }
 
-TimerEvent::TimerEvent(const ticker_data_t *interface) : event(), _interface(interface) {
-    ticker_set_handler(_interface, (&TimerEvent::irq));
+TimerEvent::TimerEvent(const ticker_data_t *data) : event(), _ticker_data(data) {
+    ticker_set_handler(_ticker_data, (&TimerEvent::irq));
 }
 
 void TimerEvent::irq(uint32_t id) {
@@ -41,11 +41,11 @@ TimerEvent::~TimerEvent() {
 
 // insert in to linked list
 void TimerEvent::insert(timestamp_t timestamp) {
-    ticker_insert_event(_interface, &event, timestamp, (uint32_t)this);
+    ticker_insert_event(_ticker_data, &event, timestamp, (uint32_t)this);
 }
 
 void TimerEvent::remove() {
-    ticker_remove_event(_interface, &event);
+    ticker_remove_event(_ticker_data, &event);
 }
 
 } // namespace mbed

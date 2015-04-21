@@ -29,7 +29,7 @@ void Ticker::detach() {
 void Ticker::setup(timestamp_t t) {
     remove();
     _delay = t;
-    insert(_delay + ticker_read(_interface));
+    insert(_delay + ticker_read(_ticker_data));
 }
 
 void Ticker::handler() {
