@@ -156,7 +156,7 @@ public:
     */
     int set_dma_usage(DMAUsage usage);
 
-private:
+protected:
     int transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
     int queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
     void start_transfer(void *tx, int tx_length, void *rx, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
