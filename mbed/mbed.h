@@ -50,13 +50,14 @@
 #include "Ethernet.h"
 #include "CAN.h"
 #include "RawSerial.h"
-#include "LowPowerTimeout.h"
-#include "LowPowerTicker.h"
 
 // mbed Internal components
 #include "Timer.h"
 #include "Ticker.h"
 #include "Timeout.h"
+#include "LowPowerTimeout.h"
+#include "LowPowerTicker.h"
+#include "LowPowerTimer.h"
 #include "LocalFileSystem.h"
 #include "InterruptIn.h"
 #include "wait_api.h"
