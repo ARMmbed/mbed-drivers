@@ -17,11 +17,17 @@
 #include "cmsis.h"
 
 #include <stddef.h>
+#include "ticker_api.h"
+#include "us_ticker_api.h"
 
 namespace mbed {
 
-TimerEvent::TimerEvent() : event() {
-    us_ticker_set_handler((&TimerEvent::irq));
+TimerEvent::TimerEvent() : event(), _interface(get_us_ticker_data()) {
+    ticker_set_handler(_interface, (&TimerEvent::irq));
+}
+
+TimerEvent::TimerEvent(const ticker_data_t *interface) : event(), _interface(interface) {
+    ticker_set_handler(_interface, (&TimerEvent::irq));
 }
 
 void TimerEvent::irq(uint32_t id) {
@@ -35,11 +41,11 @@ TimerEvent::~TimerEvent() {
 
 // insert in to linked list
 void TimerEvent::insert(timestamp_t timestamp) {
-    us_ticker_insert_event(&event, timestamp, (uint32_t)this);
+    ticker_insert_event(_interface, &event, timestamp, (uint32_t)this);
 }
 
 void TimerEvent::remove() {
-    us_ticker_remove_event(&event);
+    ticker_remove_event(_interface, &event);
 }
 
 } // namespace mbed

@@ -17,74 +17,24 @@
 #define MBED_LOWPOWERTICKER_H
 
 #include "platform.h"
+#include "Ticker.h"
 
 #if DEVICE_LOWPOWERTIMER
 
-#include "LowPowerTimerEvent.h"
-#include "FunctionPointer.h"
+#include "lp_ticker_api.h"
 
 namespace mbed {
 
-class LowPowerTicker : public LowPowerTimerEvent {
+/** Low Power Ticker
+ */
+class LowPowerTicker : public Ticker {
 
 public:
-
-    /** Attach a function to be called by the Ticker, specifiying the interval in seconds
-     *
-     *  @param fptr pointer to the function to be called
-     *  @param t the time between calls in seconds
-     */
-    void attach(void (*fptr)(void), float t) {
-        attach_us(fptr, t * 1000000.0f);
-    }
-
-    /** Attach a member function to be called by the Ticker, specifiying the interval in seconds
-     *
-     *  @param tptr pointer to the object to call the member function on
-     *  @param mptr pointer to the member function to be called
-     *  @param t the time between calls in seconds
-     */
-    template<typename T>
-    void attach(T* tptr, void (T::*mptr)(void), float t) {
-        attach_us(tptr, mptr, t * 1000000.0f);
-    }
-
-    /** Attach a function to be called by the Ticker, specifiying the interval in micro-seconds
-     *
-     *  @param fptr pointer to the function to be called
-     *  @param t the time between calls in micro-seconds
-     */
-    void attach_us(void (*fptr)(void), timestamp_t t) {
-        _function.attach(fptr);
-        setup(t);
-    }
-
-    /** Attach a member function to be called by the Ticker, specifiying the interval in micro-seconds
-     *
-     *  @param tptr pointer to the object to call the member function on
-     *  @param mptr pointer to the member function to be called
-     *  @param t the time between calls in micro-seconds
-     */
-    template<typename T>
-    void attach_us(T* tptr, void (T::*mptr)(void), timestamp_t t) {
-        _function.attach(tptr, mptr);
-        setup(t);
+    LowPowerTicker() : Ticker(get_lp_ticker_data()) {
     }
 
     virtual ~LowPowerTicker() {
-        detach();
     }
-
-    /** Detach the function
-     */
-    void detach();
-
-protected:
-    void setup(timestamp_t t);
-    virtual void handler(void);
-
-    timestamp_t     _delay;     /**< Time delay (in microseconds) for re-setting the multi-shot callback. */
-    FunctionPointer _function;  /**< Callback. */
 };
 
 } // namespace mbed
