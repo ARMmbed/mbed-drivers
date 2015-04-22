@@ -31,25 +31,32 @@ class SPIModule {
 public:
    /** Push SPI transaction
      *
-     * @return True if the transaction was added, false otherwise
      */
-    bool push(Transaction<Class>& t, int index) {
-        return _queue[index].push(t);
+    void transaction_push(Transaction<Class>& t, int index) {
+        return _buffer[index].push(t);
     }
 
    /** Pop SPI transaction
      *
      * @return True if the transaction was popped (the queue was not empty), false otherwise
      */
-    bool pop(Transaction<Class>& t, int index) {
-        return _queue[index].pop(t);
+    bool transaction_pop(Transaction<Class>& t, int index) {
+        return _buffer[index].pop(t);
+    }
+
+   /** Checks if the transaciton buffer is full
+     *
+     * @return True if it is full, false otherwise
+     */
+    bool transaction_full(int index) {
+        return _buffer[index].full();
     }
 private:
-    static CircularBuffer<Transaction<Class>, TRANSACTION_QUEUE_SIZE_SPI> _queue[MODULES_SIZE_SPI];
+    static CircularBuffer<Transaction<Class>, TRANSACTION_QUEUE_SIZE_SPI> _buffer[MODULES_SIZE_SPI];
 };
 
 template<typename Class>
-CircularBuffer<Transaction<Class>, TRANSACTION_QUEUE_SIZE_SPI> SPIModule<Class>::_queue[MODULES_SIZE_SPI];
+CircularBuffer<Transaction<Class>, TRANSACTION_QUEUE_SIZE_SPI> SPIModule<Class>::_buffer[MODULES_SIZE_SPI];
 
 }
 

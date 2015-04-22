@@ -51,10 +51,13 @@ namespace mbed {
  * }
  * @endcode
  */
-class SPI {
+class SPI
+#if TRANSACTION_QUEUE_SIZE_SPI
+          : private SPIModule<SPI>
+#endif
+{
 
 public:
-
     /** Create a SPI master connected to the specified pins
      *
      * Pin Options:
@@ -162,7 +165,6 @@ protected:
     void start_transfer(void *tx, int tx_length, void *rx, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
 #if TRANSACTION_QUEUE_SIZE_SPI
     void start_transaction(transaction_t *data);
-    SPIModule<SPI> _spi_module;
 #endif
 
 #endif
