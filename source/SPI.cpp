@@ -96,11 +96,10 @@ int SPI::queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_
     t.callback = callback;
     t.width = bit_width;
     Transaction<SPI> transaction(this, t);
-    uint8_t index = spi_get_module(&_spi);
-    if (transaction_full(index)) {
+    if (_spi_module.transaction_full()) {
         return -1; // the buffer is full
     } else {
-        transaction_push(transaction, index);
+        _spi_module.transaction_push(transaction);
         return 0;
     }
 #else
@@ -136,8 +135,7 @@ void SPI::irq_handler_asynch(void)
     if (event & SPI_EVENT_INTERNAL_TRANSFER_COMPLETE) {
         // SPI peripheral is free, dequeue transaction
         Transaction<SPI> t;
-        uint8_t index = spi_get_module(&_spi);
-        if (transaction_pop(t, index)) {
+        if (_spi_module.transaction_pop(t)) {
             SPI* obj = t.get_object();
             transaction_t* data = t.get_transaction();
             obj->start_transaction(data);

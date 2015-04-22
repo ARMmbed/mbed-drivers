@@ -30,7 +30,7 @@ public:
     }
 
     /** Push the transaction to the queue. This overwrites the buffer if it's
-     *  full, therefore use full method not to overwrite
+     *  full
      *
      * @param data Data to be pushed to the queue
      */
@@ -74,7 +74,7 @@ public:
      * @return True if the queue is full, false if not
      */
     bool full() {
-        return  (_head == _tail) && _full;
+        return _full;
     }
 
 private:
