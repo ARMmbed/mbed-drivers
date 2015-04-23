@@ -25,8 +25,9 @@
 #include "dma_api.h"
 
 #if DEVICE_SPI_ASYNCH
-#include "SpiModule.h"
+#include "CircularBuffer.h"
 #include "FunctionPointer.h"
+#include "Transaction.h"
 #endif
 
 namespace mbed {
@@ -161,7 +162,7 @@ protected:
     void start_transfer(void *tx, int tx_length, void *rx, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
 #if TRANSACTION_QUEUE_SIZE_SPI
     void start_transaction(transaction_t *data);
-    SPIModule<SPI> _spi_module;
+    static CircularBuffer<Transaction<SPI>, TRANSACTION_QUEUE_SIZE_SPI> _transaction_buffer;
 #endif
 
 #endif

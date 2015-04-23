@@ -19,6 +19,8 @@
 
 namespace mbed {
 
+CircularBuffer<Transaction<SPI>, TRANSACTION_QUEUE_SIZE_SPI> SPI::_transaction_buffer;
+
 SPI::SPI(PinName mosi, PinName miso, PinName sclk, PinName _unused) :
         _spi(),
 #if DEVICE_SPI_ASYNCH
@@ -96,10 +98,10 @@ int SPI::queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_
     t.callback = callback;
     t.width = bit_width;
     Transaction<SPI> transaction(this, t);
-    if (_spi_module.transaction_full()) {
+    if (_transaction_buffer.full()) {
         return -1; // the buffer is full
     } else {
-        _spi_module.transaction_push(transaction);
+        _transaction_buffer.push(transaction);
         return 0;
     }
 #else
@@ -135,7 +137,7 @@ void SPI::irq_handler_asynch(void)
     if (event & SPI_EVENT_INTERNAL_TRANSFER_COMPLETE) {
         // SPI peripheral is free, dequeue transaction
         Transaction<SPI> t;
-        if (_spi_module.transaction_pop(t)) {
+        if (_transaction_buffer.pop(t)) {
             SPI* obj = t.get_object();
             transaction_t* data = t.get_transaction();
             obj->start_transaction(data);
