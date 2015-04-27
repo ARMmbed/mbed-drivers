@@ -29,10 +29,10 @@ public:
     ~CircularBuffer() {
     }
 
-    /** Push the transaction to the queue. This overwrites the buffer if it's
+    /** Push the transaction to the buffer. This overwrites the buffer if it's
      *  full
      *
-     * @param data Data to be pushed to the queue
+     * @param data Data to be pushed to the buffer
      */
     void push(const T& data) {
         if (full()) {
@@ -46,10 +46,10 @@ public:
         }
     }
 
-    /** Pop the transaction from the queue
+    /** Pop the transaction from the buffer
      *
-     * @param data Data to be pushed to the queue
-     * @return True if the queue is not empty and data contains a transaction, false otherwise
+     * @param data Data to be pushed to the buffer
+     * @return True if the buffer is not empty and data contains a transaction, false otherwise
      */
     bool pop(T& data) {
         if (!empty()) {
@@ -61,20 +61,29 @@ public:
         return false;
     }
 
-    /** Checks if the queue is empty
+    /** Check if the buffer is empty
      *
-     * @return True if the queue is empty, false if not
+     * @return True if the buffer is empty, false if not
      */
     bool empty() {
         return (_head == _tail) && !_full;
     }
 
-    /** Checks if the queue is full
+    /** Check if the buffer is full
      *
-     * @return True if the queue is full, false if not
+     * @return True if the buffer is full, false if not
      */
     bool full() {
         return _full;
+    }
+
+    /** Reset the buffer
+     *
+     */
+    void reset() {
+        _head = 0;
+        _tail = 0;
+        _full = false;
     }
 
 private:
