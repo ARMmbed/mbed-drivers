@@ -23,8 +23,11 @@
 #include "Stream.h"
 #include "FunctionPointer.h"
 #include "serial_api.h"
+
+#if DEVICE_SERIAL_ASYNCH
 #include "CThunk.h"
 #include "dma_api.h"
+#endif
 
 namespace mbed {
 

@@ -19,7 +19,9 @@
 
 namespace mbed {
 
+#if DEVICE_SPI_ASYNCH && TRANSACTION_QUEUE_SIZE_SPI
 CircularBuffer<Transaction<SPI>, TRANSACTION_QUEUE_SIZE_SPI> SPI::_transaction_buffer;
+#endif
 
 SPI::SPI(PinName mosi, PinName miso, PinName sclk, PinName _unused) :
         _spi(),
@@ -76,6 +78,28 @@ int SPI::transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length
     return 0;
 }
 
+void SPI::abort_transfer()
+{
+    spi_abort_asynch(&_spi);
+#if TRANSACTION_QUEUE_SIZE_SPI
+    dequeue_transaction();
+#endif
+}
+
+
+void SPI::clear_transfer_buffer()
+{
+#if TRANSACTION_QUEUE_SIZE_SPI
+    _transaction_buffer.reset();
+#endif
+}
+
+void SPI::abort_all_transfers()
+{
+    clear_transfer_buffer();
+    abort_transfer();
+}
+
 int SPI::set_dma_usage(DMAUsage usage)
 {
     if (spi_active(&_spi)) {
@@ -109,12 +133,12 @@ int SPI::queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_
 #endif
 }
 
-void SPI::start_transfer(void *tx, int tx_length, void *rx, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event)
+void SPI::start_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event)
 {
     aquire();
     _callback = callback;
     _irq.callback(&SPI::irq_handler_asynch);
-    spi_master_transfer(&_spi, tx, tx_length, rx, rx_length, bit_width, _irq.entry(), event , _usage);
+    spi_master_transfer(&_spi, tx_buffer, tx_length, rx_buffer, rx_length, bit_width, _irq.entry(), event , _usage);
 }
 
 #if TRANSACTION_QUEUE_SIZE_SPI
@@ -122,6 +146,16 @@ void SPI::start_transfer(void *tx, int tx_length, void *rx, int rx_length, unsig
 void SPI::start_transaction(transaction_t *data)
 {
     start_transfer(data->tx_buffer, data->tx_length, data->rx_buffer, data->rx_length, data->width, data->callback, data->event);
+}
+
+void SPI::dequeue_transaction()
+{
+    Transaction<SPI> t;
+    if (_transaction_buffer.pop(t)) {
+        SPI* obj = t.get_object();
+        transaction_t* data = t.get_transaction();
+        obj->start_transaction(data);
+    }
 }
 
 #endif
@@ -132,16 +166,10 @@ void SPI::irq_handler_asynch(void)
     if (_callback && (event & SPI_EVENT_ALL)) {
         _callback.call(event & SPI_EVENT_ALL);
     }
-
 #if TRANSACTION_QUEUE_SIZE_SPI
-    if (event & SPI_EVENT_INTERNAL_TRANSFER_COMPLETE) {
-        // SPI peripheral is free, dequeue transaction
-        Transaction<SPI> t;
-        if (_transaction_buffer.pop(t)) {
-            SPI* obj = t.get_object();
-            transaction_t* data = t.get_transaction();
-            obj->start_transaction(data);
-        }
+    if (event & (SPI_EVENT_ALL | SPI_EVENT_INTERNAL_TRANSFER_COMPLETE)) {
+        // SPI peripheral is free (event happend), dequeue transaction
+        dequeue_transaction();
     }
 #endif
 }
