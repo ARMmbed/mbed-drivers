@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "SPI.h"
+#include "minar/minar.h"
 
 #if DEVICE_SPI
 
@@ -139,7 +140,7 @@ void SPI::irq_handler_asynch(void)
 {
     int event = spi_irq_handler_asynch(&_spi);
     if (_user_callback && (event & SPI_EVENT_ALL)) {
-        yottos::Scheduler::instance()->postCallback(_user_callback.arg(event & SPI_EVENT_ALL));
+        minar::Scheduler::instance()->postCallback(_user_callback.arg(event & SPI_EVENT_ALL));
     }
 
     if (event & SPI_EVENT_INTERNAL_TRANSFER_COMPLETE) {

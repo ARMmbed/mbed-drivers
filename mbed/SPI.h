@@ -24,7 +24,6 @@
 #include "CThunk.h"
 #include "dma_api.h"
 #include "Event.h"
-#include "yottos/yottos.h"
 
 #if DEVICE_SPI_ASYNCH
 #include "SpiModule.h"

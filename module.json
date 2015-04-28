@@ -24,7 +24,7 @@
   "dependencies": {
     "mbed-hal": "ARMmbed/mbed-hal-private#~0.1.0",
     "cmsis-core": "ARMmbed/cmsis-core-private#~0.1.0",
-    "yottos": "ARMmbed/yottos#event"
+    "minar": "ARMmbed/minar"
   },
   "targetDependencies": {},
   "scripts": {

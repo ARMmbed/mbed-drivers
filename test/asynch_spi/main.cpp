@@ -16,7 +16,7 @@
  */
 #include "mbed.h"
 #include <stdio.h>
-#include "yottos/yottos.h"
+#include "minar/minar.h"
 #include "Event.h"
 
 #if !DEVICE_SPI
@@ -119,9 +119,9 @@ static void toggle_led() {
 int main() {
     static SPITest test;
 
-    yottos::Scheduler* sched = yottos::Scheduler::instance();
+    minar::Scheduler* sched = minar::Scheduler::instance();
     sched->postCallback(Event(&test, &SPITest::start));
-    sched->postCallback(toggle_led).period(yottos::milliseconds(500));
+    sched->postCallback(toggle_led).period(minar::milliseconds(500));
     return sched->start();
 }
 
