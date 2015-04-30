@@ -21,8 +21,12 @@
 #if DEVICE_I2C
 
 #include "i2c_api.h"
+
+#if DEVICE_I2C_ASYNCH
 #include "CThunk.h"
 #include "dma_api.h"
+#include "FunctionPointer.h"
+#endif
 
 namespace mbed {
 
@@ -145,14 +149,14 @@ public:
      * @param repeated Repeated start, true - do not send stop at end
      * @return Zero if the transfer has started, or -1 if I2C peripheral is busy
      */
-    int transfer(int address, char *tx_buffer, int tx_length, char *rx_buffer, int rx_length, void (*callback)(int), int event = I2C_EVENT_TRANSFER_COMPLETE, bool repeated = false);
+    int transfer(int address, char *tx_buffer, int tx_length, char *rx_buffer, int rx_length, const event_callback_t& callback, int event = I2C_EVENT_TRANSFER_COMPLETE, bool repeated = false);
 
     /** Abort the on-going I2C transfer
      */
     void abort_transfer();
 protected:
     void irq_handler_asynch(void);
-    void (*_user_callback)(int event);
+    event_callback_t _callback;
     CThunk<I2C> _irq;
     DMAUsage _usage;
 #endif

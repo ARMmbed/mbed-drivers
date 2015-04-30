@@ -13,110 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stddef.h>
 #include "lp_ticker_api.h"
-#include "cmsis.h"
 
 #if DEVICE_LOWPOWERTIMER
 
-static ticker_event_handler event_handler;
-static ticker_event_t *head = NULL;
+static ticker_event_queue_t events;
 
-void lp_ticker_set_handler(ticker_event_handler handler) {
-    lp_ticker_init();
+static const ticker_interface_t lp_interface = {
+    .init = lp_ticker_init,
+    .read = lp_ticker_read,
+    .disable_interrupt = lp_ticker_disable_interrupt,
+    .clear_interrupt = lp_ticker_clear_interrupt,
+    .set_interrupt = lp_ticker_set_interrupt,
+};
 
-    event_handler = handler;
+static const ticker_data_t lp_data = {
+    .interface = &lp_interface,
+    .queue = &events,
+};
+
+const ticker_data_t* get_lp_ticker_data(void)
+{
+    return &lp_data;
 }
 
-void lp_ticker_irq_handler(void) {
-    lp_ticker_clear_interrupt();
-
-    /* Go through all the pending TimerEvents */
-    while (1) {
-        if (head == NULL) {
-            // There are no more TimerEvents left, so disable matches.
-            lp_ticker_disable_interrupt();
-            return;
-        }
-
-        if ((int)(head->timestamp - lp_ticker_read()) <= 0) {
-            // This event was in the past:
-            //      point to the following one and execute its handler
-            ticker_event_t *p = head;
-            head = head->next;
-            if (event_handler != NULL) {
-                event_handler(p->id); // NOTE: the handler can set new events
-            }
-            /* Note: We continue back to examining the head because calling the
-             * event handler may have altered the chain of pending events. */
-        } else {
-            // This event and the following ones in the list are in the future:
-            //      set it as next interrupt and return
-            lp_ticker_set_interrupt(head->timestamp);
-            return;
-        }
-    }
-}
-
-void lp_ticker_insert_event(ticker_event_t *obj, timestamp_t timestamp, uint32_t id) {
-    /* disable interrupts for the duration of the function */
-    __disable_irq();
-
-    // initialise our data
-    obj->timestamp = timestamp;
-    obj->id = id;
-
-    /* Go through the list until we either reach the end, or find
-       an element this should come before (which is possibly the
-       head). */
-    ticker_event_t *prev = NULL, *p = head;
-    while (p != NULL) {
-        /* check if we come before p */
-        if ((int)(timestamp - p->timestamp) < 0) {
-            break;
-        }
-        /* go to the next element */
-        prev = p;
-        p = p->next;
-    }
-    /* if prev is NULL we're at the head */
-    if (prev == NULL) {
-        head = obj;
-        lp_ticker_set_interrupt(timestamp);
-    } else {
-        prev->next = obj;
-    }
-    /* if we're at the end p will be NULL, which is correct */
-    obj->next = p;
-
-    __enable_irq();
-}
-
-void lp_ticker_remove_event(ticker_event_t *obj) {
-    __disable_irq();
-
-    // remove this object from the list
-    if (head == obj) {
-        // first in the list, so just drop me
-        head = obj->next;
-        if (head == NULL) {
-            lp_ticker_disable_interrupt();
-        } else {
-            lp_ticker_set_interrupt(head->timestamp);
-        }
-    } else {
-        // find the object before me, then drop me
-        ticker_event_t* p = head;
-        while (p != NULL) {
-            if (p->next == obj) {
-                p->next = obj->next;
-                break;
-            }
-            p = p->next;
-        }
-    }
-
-    __enable_irq();
+void lp_ticker_irq_handler(void)
+{
+    ticker_irq_handler(&lp_data);
 }
 
 #endif
