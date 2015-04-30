@@ -21,9 +21,12 @@
 #if DEVICE_I2C
 
 #include "i2c_api.h"
+
+#if DEVICE_I2C_ASYNCH
 #include "CThunk.h"
 #include "dma_api.h"
 #include "FunctionPointer.h"
+#endif
 
 namespace mbed {
 
