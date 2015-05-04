@@ -1,6 +1,6 @@
 ## Building with yotta
 
-First install [yotta](http://github.com/ARMmbed/yotta), then:
+The mbed OS's SDK is built using yotta. So first, install [yotta](http://github.com/ARMmbed/yotta), then:
 
 ```bash
 # get the mbed-sdk source:
