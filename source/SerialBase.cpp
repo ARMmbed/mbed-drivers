@@ -20,9 +20,12 @@
 
 namespace mbed {
 
-SerialBase::SerialBase(PinName tx, PinName rx) : _serial(), _baud(9600),
+SerialBase::SerialBase(PinName tx, PinName rx) :
+#if DEVICE_SERIAL_ASYNCH
                                                  _thunk_irq(this), _tx_usage(DMA_USAGE_NEVER),
-                                                 _rx_usage(DMA_USAGE_NEVER) {
+                                                 _rx_usage(DMA_USAGE_NEVER),
+#endif
+                                                _serial(), _baud(9600) {
     serial_init(&_serial, tx, rx);
     serial_irq_handler(&_serial, SerialBase::_irq_handler, (uint32_t)this);
 }
@@ -107,7 +110,7 @@ void SerialBase::set_flow_control(Flow type, PinName flow1, PinName flow2) {
 
 #if DEVICE_SERIAL_ASYNCH
 
-int SerialBase::write(uint8_t *buffer, int length, void (*callback)(int), int event)
+int SerialBase::write(uint8_t *buffer, int length, const event_callback_t& callback, int event)
 {
     if (serial_tx_active(&_serial)) {
         return -1; // transaction ongoing
@@ -116,7 +119,7 @@ int SerialBase::write(uint8_t *buffer, int length, void (*callback)(int), int ev
     return 0;
 }
 
-int SerialBase::write(uint16_t *buffer, int length, void (*callback)(int), int event)
+int SerialBase::write(uint16_t *buffer, int length, const event_callback_t& callback, int event)
 {
     if (serial_tx_active(&_serial)) {
         return -1; // transaction ongoing
@@ -125,9 +128,9 @@ int SerialBase::write(uint16_t *buffer, int length, void (*callback)(int), int e
     return 0;
 }
 
-void SerialBase::start_write(void *buffer, int buffer_size, char buffer_width, void (*callback)(int), int event)
+void SerialBase::start_write(void *buffer, int buffer_size, char buffer_width, const event_callback_t& callback, int event)
 {
-    _tx_user_callback = callback;
+    _tx_callback = callback;
 
     _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
     serial_tx_asynch(&_serial, buffer, buffer_size, buffer_width, _thunk_irq.entry(), event, _tx_usage);
@@ -161,7 +164,7 @@ int SerialBase::set_dma_usage_rx(DMAUsage usage)
     return 0;
 }
 
-int SerialBase::read(uint8_t *buffer, int length, void (*callback)(int), int event, unsigned char char_match)
+int SerialBase::read(uint8_t *buffer, int length, const event_callback_t& callback, int event, unsigned char char_match)
 {
     if (serial_rx_active(&_serial)) {
         return -1; // transaction ongoing
@@ -171,7 +174,7 @@ int SerialBase::read(uint8_t *buffer, int length, void (*callback)(int), int eve
 }
 
 
-int SerialBase::read(uint16_t *buffer, int length, void (*callback)(int), int event, unsigned char char_match)
+int SerialBase::read(uint16_t *buffer, int length, const event_callback_t& callback, int event, unsigned char char_match)
 {
     if (serial_rx_active(&_serial)) {
         return -1; // transaction ongoing
@@ -181,9 +184,9 @@ int SerialBase::read(uint16_t *buffer, int length, void (*callback)(int), int ev
 }
 
 
-void SerialBase::start_read(void *buffer, int buffer_size, char buffer_width, void (*callback)(int), int event, unsigned char char_match)
+void SerialBase::start_read(void *buffer, int buffer_size, char buffer_width, const event_callback_t& callback, int event, unsigned char char_match)
 {
-    _rx_user_callback = callback;
+    _rx_callback = callback;
     _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
     serial_rx_asynch(&_serial, buffer, buffer_size, buffer_width, _thunk_irq.entry(), event, char_match, _rx_usage);
 }
@@ -192,13 +195,13 @@ void SerialBase::interrupt_handler_asynch(void)
 {
     int event = serial_irq_handler_asynch(&_serial);
     int rx_event = event & SERIAL_EVENT_RX_MASK;
-    if (_rx_user_callback && rx_event) {
-        _rx_user_callback(rx_event);
+    if (_rx_callback && rx_event) {
+        _rx_callback.call(reinterpret_cast<void*>(rx_event));
     }
 
     int tx_event = event & SERIAL_EVENT_TX_MASK;
-    if (_tx_user_callback && tx_event) {
-        _tx_user_callback(tx_event);
+    if (_tx_callback && tx_event) {
+        _tx_callback.call(reinterpret_cast<void*>(tx_event));
     }
 }
 

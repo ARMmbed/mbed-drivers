@@ -92,14 +92,14 @@ void I2C::stop(void) {
 
 #if DEVICE_I2C_ASYNCH
 
-int I2C::transfer(int address, char *tx_buffer, int tx_length, char *rx_buffer, int rx_length, void (*callback)(int), int event, bool repeated)
+int I2C::transfer(int address, char *tx_buffer, int tx_length, char *rx_buffer, int rx_length, const event_callback_t& callback, int event, bool repeated)
 {
     if (i2c_active(&_i2c)) {
         return -1; // transaction ongoing
     }
     aquire();
 
-    _user_callback = callback;
+    _callback = callback;
     int stop = (repeated) ? 0 : 1;
     _irq.callback(&I2C::irq_handler_asynch);
     i2c_transfer_asynch(&_i2c, (void *)tx_buffer, tx_length, (void *)rx_buffer, rx_length, address, stop, _irq.entry(), event, _usage);
@@ -114,8 +114,8 @@ void I2C::abort_transfer(void)
 void I2C::irq_handler_asynch(void)
 {
     int event = i2c_irq_handler_asynch(&_i2c);
-    if (_user_callback && event) {
-        _user_callback(event);
+    if (_callback && event) {
+        _callback.call(reinterpret_cast<void*>(event));
     }
 
 }

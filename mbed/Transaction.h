@@ -17,14 +17,28 @@
 #define MBED_TRANSACTION_H
 
 #include "platform.h"
-#include <string.h>
+#include "FunctionPointer.h"
 
 namespace mbed {
 
-template<typename Class, typename TransactionStruct>
+/** Transaction structure
+ */
+typedef struct {
+    void *tx_buffer;           /**< Tx buffer */
+    size_t tx_length;          /**< Length of Tx buffer*/
+    void *rx_buffer;           /**< Rx buffer */
+    size_t rx_length;          /**< Length of Rx buffer */
+    uint32_t event;            /**< Event for a transaction */
+    event_callback_t callback; /**< User's callback */
+    uint8_t width;             /**< Buffer's word width (8, 16, 32, 64) */
+} transaction_t;
+
+/** Transaction class defines a transaction.
+ */
+template<typename Class>
 class Transaction {
 public:
-    Transaction(Class *tpointer, const TransactionStruct& transaction) : _obj(tpointer), _data(transaction) {
+    Transaction(Class *tpointer, const transaction_t& transaction) : _obj(tpointer), _data(transaction) {
     }
 
     Transaction() : _obj(), _data() {
@@ -33,17 +47,25 @@ public:
     ~Transaction() {
     }
 
+    /** Get object's instance for the transaction
+     *
+     * @return The object which was stored
+     */
     Class* get_object() {
         return _obj;
     }
 
-    TransactionStruct* get_transaction() {
+    /** Get the transaction
+     *
+     * @return The transaction which was stored
+     */
+    transaction_t* get_transaction() {
         return &_data;
     }
 
 private:
     Class* _obj;
-    TransactionStruct _data;
+    transaction_t _data;
 };
 
 }

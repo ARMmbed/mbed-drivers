@@ -25,10 +25,14 @@
 
 namespace mbed {
 
+/** Low Power Timout
+ */
 class LowPowerTimeout : public LowPowerTicker {
 
 private:
-    virtual void handler(void);
+    virtual void handler(void) {
+        _function.call();
+    }
 };
 
 }

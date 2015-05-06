@@ -155,6 +155,8 @@ private:
     void *_arg;
 };
 
+typedef Event event_callback_t;
+
 } // namespace mbed
 
 #endif
