@@ -1,6 +1,6 @@
 {
   "name": "mbed",
-  "version": "3.0.0-alpha2",
+  "version": "3.0.1",
   "description": "mbed SDK",
   "private": true,
   "keywords": [
@@ -27,6 +27,12 @@
   },
   "targetDependencies": {},
   "scripts": {
-      "testReporter": ["mbedgt", "--digest", "stdin", "-v", "-V"]
+    "testReporter": [
+      "mbedgt",
+      "--digest",
+      "stdin",
+      "-v",
+      "-V"
+    ]
   }
 }
