@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <assert.h>
 #include "FunctionPointerBase.h"
 
 #ifndef EVENT_STORAGE_SIZE
@@ -30,22 +31,21 @@ namespace mbed{
 
 template<typename R>
 class FunctionPointerBind {
+	friend class FunctionPointerBase<R>;
 public:
     // Call the Event
     void call() {
         _fp.call(reinterpret_cast<void *>(_storage));
     }
 
+    void bind_manual(void * args, size_t argsize) {
+    	assert(argsize <= sizeof(_storage));
+    	memcpy(_storage, args, argsize);
+    }
+
     // attach a function and its arguments
-    int attach(FunctionPointerBase<R> &fp, const void *Args, const size_t ArgsSize) {
-        if ( ArgsSize > sizeof(_storage)) {
-            return -1;
-        }
-        if ((Args != NULL) && (ArgsSize > 0)) {
-            memcpy(_storage, Args, ArgsSize);
-        }
+    void attach(FunctionPointerBase<R> &fp) {
         _fp = fp;
-        return 0;
     }
 
 private:

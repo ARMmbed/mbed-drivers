@@ -19,6 +19,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <new>
 #include "FunctionPointerBase.h"
 #include "FunctionPointerBind.h"
 
@@ -109,9 +110,13 @@ private:
 template <typename R, typename A1>
 class FunctionPointer1 : public FunctionPointerBase<R> {
 protected:
-    typedef struct {
-        A1 a;
+    typedef struct arg_struct{
+        A1 a1;
+        arg_struct(const A1 &b1) {
+        	a1 = b1;
+        }
     } ArgStruct;
+
 public:
     typedef R(*static_fp)(A1);
     /** Create a FunctionPointer, attaching a static function
@@ -139,7 +144,6 @@ public:
     void attach(static_fp function) {
         FunctionPointerBase<R>::_object = reinterpret_cast<void*>(function);
         FunctionPointerBase<R>::_membercaller = &FunctionPointer1::staticcaller;
-
     }
 
     /** Attach a member function
@@ -162,21 +166,20 @@ public:
      *  @param[in]  a1 the first argument to pack
      */
     int pack_args(void *buffer, size_t bufsiz, const A1 &a1) {
-        if (sizeof(ArgStruct) > bufsiz) {
-            return -1;
-        }
-        // Optimizer should remove this step.
-        ArgStruct Args = {a1};
-        *reinterpret_cast<ArgStruct*>(buffer) = Args;
+    	//TODO: needs static assert
+    	assert(bufsiz >= sizeof(ArgStruct));
+        ArgStruct *Args = new(buffer) ArgStruct(a1);
         return 0;
     }
 
-    int bind(FunctionPointerBind<R> &f, const A1 &a1) {
-        ArgStruct Args = {a1};
-        int rc = pack_args(&Args, sizeof(Args), a1);
-        if (rc)
-            return rc;
-        return f.attach(*this, &Args, sizeof(Args));
+    FunctionPointerBind<R> & bind(FunctionPointerBind<R> &f, const A1 &a1) {
+#if __cplusplus < 201103L
+#define static_assert assert
+#endif
+    	static_assert(sizeof(f.storage) >= sizeof(ArgStruct), "Not enough function pointer storage");
+        pack_args(f._storage, sizeof(ArgStruct), a1);
+        f.attach(*this);
+        return f;
     }
 
 
