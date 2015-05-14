@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "test_env.h"
 
 int main()
 {
-    notify_start();
+    MBED_HOSTTEST_TIMEOUT(5);
+    MBED_HOSTTEST_SELECT(hello_auto);
+    MBED_HOSTTEST_DESCRIPTION(Hello World);
+    MBED_HOSTTEST_START("MBED_10");
+
     printf("Hello World\r\n");
+
     while(1);
 }
