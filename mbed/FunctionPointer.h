@@ -113,8 +113,9 @@ protected:
     typedef struct arg_struct{
         A1 a1;
         arg_struct(const A1 &b1) {
-        	a1 = b1;
+            a1 = b1;
         }
+        arg_struct() {}
     } ArgStruct;
 
 public:
@@ -166,18 +167,22 @@ public:
      *  @param[in]  a1 the first argument to pack
      */
     int pack_args(void *buffer, size_t bufsiz, const A1 &a1) {
-    	//TODO: needs static assert
-    	assert(bufsiz >= sizeof(ArgStruct));
-        ArgStruct *Args = new(buffer) ArgStruct(a1);
+        //TODO: needs static assert
+        assert(bufsiz >= sizeof(ArgStruct));
+        if (bufsiz < sizeof(ArgStruct)) {
+            return 1;
+        }
+        new(buffer) ArgStruct(a1);
         return 0;
     }
 
     FunctionPointerBind<R> & bind(FunctionPointerBind<R> &f, const A1 &a1) {
-#if __cplusplus < 201103L
-#define static_assert assert
-#endif
-    	static_assert(sizeof(f.storage) >= sizeof(ArgStruct), "Not enough function pointer storage");
+// #if __cplusplus < 201103L
+// #define static_assert assert
+// #endif
+//         static_assert(sizeof(f.storage) >= sizeof(ArgStruct), "Not enough function pointer storage");
         pack_args(f._storage, sizeof(ArgStruct), a1);
+        f._argdestructor = destructorcaller;
         f.attach(*this);
         return f;
     }
@@ -209,13 +214,17 @@ private:
         ArgStruct *Args = static_cast<ArgStruct *>(arg);
         T* o = static_cast<T*>(object);
         R (T::**m)(A1) = reinterpret_cast<R (T::**)(A1)>(member);
-        return (o->**m)(Args->a);
+        return (o->**m)(Args->a1);
     }
     static R staticcaller(void *object, uintptr_t *member, void *arg) {
         ArgStruct *Args = static_cast<ArgStruct *>(arg);
         (void) member;
         static_fp f = reinterpret_cast<static_fp>(object);
-        return f(Args->a);
+        return f(Args->a1);
+    }
+    static void destructorcaller(void *arg) {
+        ArgStruct *Args = static_cast<ArgStruct *>(arg);
+        Args->~ArgStruct();
     }
 };
 

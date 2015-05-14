@@ -31,25 +31,33 @@ namespace mbed{
 
 template<typename R>
 class FunctionPointerBind {
-	friend class FunctionPointerBase<R>;
+    friend class FunctionPointerBase<R>;
 public:
     // Call the Event
     void call() {
         _fp.call(reinterpret_cast<void *>(_storage));
     }
 
-    void bind_manual(void * args, size_t argsize) {
-    	assert(argsize <= sizeof(_storage));
-    	memcpy(_storage, args, argsize);
+    void bind_manual(void * args, size_t argsize, void (*argdestructor)(void *)) {
+        assert(argsize <= sizeof(_storage));
+        memcpy(_storage, args, argsize);
+        _argdestructor = argdestructor;
     }
 
     // attach a function and its arguments
     void attach(FunctionPointerBase<R> &fp) {
         _fp = fp;
     }
+    FunctionPointerBind(): _argdestructor(NULL) {}
+    ~FunctionPointerBind() {
+        if(_argdestructor) {
+            _argdestructor(_storage);
+        }
+    }
 
 private:
     FunctionPointerBase<R> _fp;
+    void (*_argdestructor)(void *);
     uint32_t _storage[(EVENT_STORAGE_SIZE+sizeof(uint32_t)-1)/sizeof(uint32_t)];
 };
 typedef FunctionPointerBind<void> Event;

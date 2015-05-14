@@ -24,11 +24,9 @@ namespace mbed {
 template<typename R>
 class FunctionPointerBase {
 public:
-#ifdef MBED_OPERATORS
     operator bool(void) const {
         return _object != NULL;
     }
-#endif
 
     /**
      * Calls the member pointed to by object::member or (function)object
