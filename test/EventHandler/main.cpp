@@ -58,32 +58,17 @@ int main(void)
     fp2(message1);
     fp3(message1);
 
-    Event e1, e2, e3;
-    if (fp1.bind(e1,message2)) {
-        printf("failed to bind fp1\r\n");
-    } else {
-        e1.call();
-    }
-
-    if (fp2.bind(e2,message2)) {
-        printf("failed to bind fp2\r\n");
-    } else {
-        e2.call();
-    }
-
-    if (fp3.bind(e3,message2)) {
-        printf("failed to bind fp3\r\n");
-    } else {
-        e3.call();
-    }
+    Event e1(fp1.bind(message2));
+    Event e2(fp2.bind(message2));
+    Event e3(fp3.bind(message2));
+    e1.call();
+    e2.call();
+    e3.call();
 
     Event events[3];
     FunctionPointer1<void, const char*> fps[3] = {fp1,fp2,fp3};
     for(int i = 0; i < 3; i++) {
-        Event e;
-        if (fps[i].bind(e,message3)) {
-            printf("failed to bind fp%i\r\n",i);
-        }
+        Event e(fps[i].bind(message3));
         events[i] = e;
     }
     for(int i = 0; i<3; i++) {

@@ -19,6 +19,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <stdarg.h>
 #include <new>
 #include "FunctionPointerBase.h"
 #include "FunctionPointerBind.h"
@@ -75,19 +76,19 @@ public:
         return FunctionPointerBase<R>::call(NULL);
     }
 
-    int bind(FunctionPointerBind<R> &f) {
-        return f.attach(*this, NULL, 0);
+    FunctionPointerBind<R> & bind() {
+        FunctionPointerBind<R> fp;
+        fp.bind((void *) NULL, this);
+        return fp;
     }
 
     static_fp get_function()const {
         return reinterpret_cast<static_fp>(FunctionPointerBase<R>::_object);
     }
 
-#ifdef MBED_OPERATORS
     R operator ()(void) {
         return call();
     }
-#endif
 
 private:
     template<typename T>
@@ -115,7 +116,6 @@ protected:
         arg_struct(const A1 &b1) {
             a1 = b1;
         }
-        arg_struct() {}
     } ArgStruct;
 
 public:
@@ -158,33 +158,13 @@ public:
         FunctionPointerBase<R>::_object = static_cast<void*>(object);
         *reinterpret_cast<R (T::**)(A1)>(FunctionPointerBase<R>::_member) = member;
         FunctionPointerBase<R>::_membercaller = &FunctionPointer1::membercaller<T>;
+        FunctionPointerBase<R>::_ops = &_fp1_ops;
     }
 
-    /** Pack arguments for FunctionPointerBase
-     *
-     *  @param[out] buffer the output buffer for the packed arguments
-     *  @param[in]  bufsiz the size of the output buffer
-     *  @param[in]  a1 the first argument to pack
-     */
-    int pack_args(void *buffer, size_t bufsiz, const A1 &a1) {
-        //TODO: needs static assert
-        assert(bufsiz >= sizeof(ArgStruct));
-        if (bufsiz < sizeof(ArgStruct)) {
-            return 1;
-        }
-        new(buffer) ArgStruct(a1);
-        return 0;
-    }
-
-    FunctionPointerBind<R> & bind(FunctionPointerBind<R> &f, const A1 &a1) {
-// #if __cplusplus < 201103L
-// #define static_assert assert
-// #endif
-//         static_assert(sizeof(f.storage) >= sizeof(ArgStruct), "Not enough function pointer storage");
-        pack_args(f._storage, sizeof(ArgStruct), a1);
-        f._argdestructor = destructorcaller;
-        f.attach(*this);
-        return f;
+    FunctionPointerBind<R> bind(const A1 &a1) {
+        FunctionPointerBind<R> fp;
+        fp.bind((ArgStruct *) NULL, this, a1);
+        return fp;
     }
 
 
@@ -192,9 +172,7 @@ public:
      */
     R call(A1 a1)
     {
-        ArgStruct Args;
-        // Guaranteed to be the right size, so ignore return.
-        pack_args(&Args, sizeof(Args), a1);
+        ArgStruct Args(a1);
         return FunctionPointerBase<R>::call(&Args);
     }
 
@@ -203,11 +181,10 @@ public:
         return reinterpret_cast<static_fp>(FunctionPointerBase<R>::_object);
     }
 
-#ifdef MBED_OPERATORS
     R operator ()(A1 a) {
         return call(a);
     }
-#endif
+
 private:
     template<typename T>
     static R membercaller(void *object, uintptr_t *member, void *arg) {
@@ -226,6 +203,27 @@ private:
         ArgStruct *Args = static_cast<ArgStruct *>(arg);
         Args->~ArgStruct();
     }
+    static void constructor(void * dest, va_list args) {
+        new(dest) ArgStruct(va_arg(args,A1));
+    }
+    static void copy_constructor(void *dest , void* src) {
+        ArgStruct *src_args = static_cast<ArgStruct *>(src);
+        new(dest) ArgStruct(src_args->a1);
+    }
+    static void destructor(void *args) {
+        ArgStruct *argstruct = static_cast<ArgStruct *>(args);
+        argstruct->~arg_struct();
+    }
+
+protected:
+    static struct FunctionPointerBase<R>::ArgOps _fp1_ops;
+};
+
+template <typename R, typename A1>
+struct FunctionPointerBase<R>::ArgOps FunctionPointer1<R,A1>::_fp1_ops = {
+    .constructor = FunctionPointer1<R,A1>::constructor,
+    .copy_args = FunctionPointer1<R,A1>::copy_constructor,
+    .destructor = FunctionPointer1<R,A1>::destructor
 };
 
 typedef FunctionPointer0<void> FunctionPointer;

@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <stdarg.h>
 #include <assert.h>
 #include "FunctionPointerBase.h"
 
@@ -30,34 +31,42 @@
 namespace mbed{
 
 template<typename R>
-class FunctionPointerBind {
-    friend class FunctionPointerBase<R>;
+class FunctionPointerBind : FunctionPointerBase<R> {
 public:
     // Call the Event
-    void call() {
-        _fp.call(reinterpret_cast<void *>(_storage));
+    inline R call() {
+        return FunctionPointerBase<R>::call(reinterpret_cast<void *>(_storage));
     }
+    FunctionPointerBind() {
 
-    void bind_manual(void * args, size_t argsize, void (*argdestructor)(void *)) {
-        assert(argsize <= sizeof(_storage));
-        memcpy(_storage, args, argsize);
-        _argdestructor = argdestructor;
     }
-
-    // attach a function and its arguments
-    void attach(FunctionPointerBase<R> &fp) {
-        _fp = fp;
+    FunctionPointerBind(const FunctionPointerBind<R> & fp) :
+        FunctionPointerBase<R>::FunctionPointerBase(fp)
+    {
+        this->_ops->copy_args(this->_storage, (void *)fp._storage);
     }
-    FunctionPointerBind(): _argdestructor(NULL) {}
     ~FunctionPointerBind() {
-        if(_argdestructor) {
-            _argdestructor(_storage);
+        this->_ops->destructor(this->_storage);
+    }
+
+    template<typename S>
+    FunctionPointerBind<R> & bind(S * argStruct, FunctionPointerBase<R>* fp, ...) {
+        assert(sizeof(S) <= sizeof(_storage) );
+        this->copy(fp);
+        assert(this->_ops != NULL);
+        assert(this->_ops->constructor != NULL);
+        if (argStruct) {
+            memcpy(_storage, argStruct, sizeof(S));
+        } else {
+            va_list args;
+            va_start(args, fp);
+            this->_ops->constructor(_storage, args);
+            va_end(args);
         }
+        return *this;
     }
 
 private:
-    FunctionPointerBase<R> _fp;
-    void (*_argdestructor)(void *);
     uint32_t _storage[(EVENT_STORAGE_SIZE+sizeof(uint32_t)-1)/sizeof(uint32_t)];
 };
 typedef FunctionPointerBind<void> Event;

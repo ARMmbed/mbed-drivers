@@ -19,6 +19,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <stdarg.h>
 namespace mbed {
 
 template<typename R>
@@ -28,20 +29,49 @@ public:
         return _object != NULL;
     }
 
+    struct ArgOps {
+        void (*constructor)(void *, va_list);
+        void (*copy_args)(void *, void *);
+        void (*destructor)(void *);
+    };
+
     /**
      * Calls the member pointed to by object::member or (function)object
      * @param arg
      * @return
      */
-    R call(void* arg) {
+    inline R call(void* arg) {
         return _membercaller(_object, _member, arg);
     }
+protected:
+    FunctionPointerBase():_ops(&_nullops), _object(NULL), _membercaller(NULL) {}
 
 protected:
+    struct ArgOps * _ops;
     void * _object; // object Pointer/function pointer
     R (*_membercaller)(void *, uintptr_t *, void *);
     // aligned raw member function pointer storage - converted back by registered _membercaller
     uintptr_t _member[4];
+
+    void copy(FunctionPointerBase<R> * fp) {
+        _ops = fp->_ops;
+        _object = fp->_object;
+        memcpy (_member, fp->_member, sizeof(_member));
+        _membercaller = fp->_membercaller;
+    }
+private:
+    static struct ArgOps _nullops;
+    static void _null_constructor(void * dest, va_list args) {(void) dest;(void) args;}
+    static void _null_copy_args(void *dest , void* src) {(void) dest; (void) src;}
+    static void _null_destructor(void *args) {(void) args;}
+
 };
+template<typename R>
+struct FunctionPointerBase<R>::ArgOps FunctionPointerBase<R>::_nullops = {
+    .constructor = FunctionPointerBase<R>::_null_constructor,
+    .copy_args = FunctionPointerBase<R>::_null_copy_args,
+    .destructor = FunctionPointerBase<R>::_null_destructor
+};
+
 }
 #endif
