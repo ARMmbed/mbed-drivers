@@ -89,10 +89,6 @@ public:
     R operator ()(void) {
         return call();
     }
-    operator bool(void) const {
-        return (_membercaller != NULL ? _p.object : (void*)_p.function) != NULL;
-    }
-#endif
 
 private:
     template<typename T>

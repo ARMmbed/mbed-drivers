@@ -26,7 +26,7 @@ template<typename R>
 class FunctionPointerBase {
 public:
     operator bool(void) const {
-        return _object != NULL;
+        return (_membercaller != NULL) && (_object != NULL);
     }
 
     struct ArgOps {
