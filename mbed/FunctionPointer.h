@@ -89,6 +89,10 @@ public:
     R operator ()(void) {
         return call();
     }
+    operator bool(void) const {
+        return (_membercaller != NULL ? _p.object : (void*)_p.function) != NULL;
+    }
+#endif
 
 private:
     template<typename T>
@@ -105,6 +109,8 @@ private:
         return f();
     }
 };
+
+/* If we had variaditic templates, this wouldn't be a problem, but until C++11 is enabled, we are stuck with multiple classes... */
 
 /** A class for storing and calling a pointer to a static or member void function
  */
