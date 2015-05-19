@@ -221,9 +221,9 @@ protected:
 
 template <typename R, typename A1>
 struct FunctionPointerBase<R>::ArgOps FunctionPointer1<R,A1>::_fp1_ops = {
-    .constructor = FunctionPointer1<R,A1>::constructor,
-    .copy_args = FunctionPointer1<R,A1>::copy_constructor,
-    .destructor = FunctionPointer1<R,A1>::destructor
+    FunctionPointer1<R,A1>::constructor,
+    FunctionPointer1<R,A1>::copy_constructor,
+    FunctionPointer1<R,A1>::destructor
 };
 
 typedef FunctionPointer0<void> FunctionPointer;

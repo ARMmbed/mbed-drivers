@@ -68,9 +68,9 @@ private:
 };
 template<typename R>
 struct FunctionPointerBase<R>::ArgOps FunctionPointerBase<R>::_nullops = {
-    .constructor = FunctionPointerBase<R>::_null_constructor,
-    .copy_args = FunctionPointerBase<R>::_null_copy_args,
-    .destructor = FunctionPointerBase<R>::_null_destructor
+    FunctionPointerBase<R>::_null_constructor,
+    FunctionPointerBase<R>::_null_copy_args,
+    FunctionPointerBase<R>::_null_destructor
 };
 
 }
