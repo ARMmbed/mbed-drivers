@@ -28,6 +28,11 @@
 #define EVENT_STORAGE_SIZE 32
 #endif
 
+#define MBED_STATIC_ASSERT(MBED_STATIC_ASSERT_FAILED,MSG)\
+    switch(0){\
+        case 0:case (MBED_STATIC_ASSERT_FAILED): \
+        break;}
+
 namespace mbed{
 
 template<typename R>
@@ -35,7 +40,7 @@ class FunctionPointerBind : FunctionPointerBase<R> {
 public:
     // Call the Event
     inline R call() {
-        return FunctionPointerBase<R>::call(reinterpret_cast<void *>(_storage));
+        return FunctionPointerBase<R>::call(static_cast<void *>(_storage));
     }
     FunctionPointerBind() {
 
@@ -51,12 +56,12 @@ public:
 
     template<typename S>
     FunctionPointerBind<R> & bind(S * argStruct, FunctionPointerBase<R>* fp, ...) {
-        assert(sizeof(S) <= sizeof(_storage) );
+        MBED_STATIC_ASSERT(sizeof(S) <= sizeof(_storage), ERROR: Arguments too large for FunctionPointerBind internal storage)
         this->copy(fp);
         assert(this->_ops != NULL);
         assert(this->_ops->constructor != NULL);
         if (argStruct) {
-            memcpy(_storage, argStruct, sizeof(S));
+            this->_ops->copy_args(this->_storage, (void *)argStruct);
         } else {
             va_list args;
             va_start(args, fp);

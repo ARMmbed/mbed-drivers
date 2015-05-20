@@ -15,8 +15,6 @@
  */
 
 #include "mbed.h"
-#include "Event.h"
-#include "FunctionPointer.h"
 
 class VBase {
 public:

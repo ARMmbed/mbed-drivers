@@ -201,10 +201,6 @@ private:
         static_fp f = reinterpret_cast<static_fp>(object);
         return f(Args->a1);
     }
-    static void destructorcaller(void *arg) {
-        ArgStruct *Args = static_cast<ArgStruct *>(arg);
-        Args->~ArgStruct();
-    }
     static void constructor(void * dest, va_list args) {
         new(dest) ArgStruct(va_arg(args,A1));
     }
