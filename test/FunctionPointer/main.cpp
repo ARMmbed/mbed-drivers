@@ -15,21 +15,34 @@
  */
 
 #include "mbed.h"
+#include "test_env.h"
 #include "FunctionPointer.h"
+
+namespace {
+volatile int ebp_flag = 0;
+volatile int ecp_flag = 0;
+}
+
 class VTest {
 public:
     void print() {
+        ecp_flag = 1;
         printf("Class Print\r\n");
     }
 
 };
 
 void bareprint() {
+    ebp_flag = 1;
     printf("Bare Print\r\n");
 }
 
-int main(void)
-{
+int main(void) {
+    MBED_HOSTTEST_TIMEOUT(10);
+    MBED_HOSTTEST_SELECT(default_auto);
+    MBED_HOSTTEST_DESCRIPTION(FunctionPointer test);
+    MBED_HOSTTEST_START("FPOINTER_1");
+
     VTest test;
     printf("Testing mbed FunctionPointer...\r\n");
 
@@ -40,10 +53,20 @@ int main(void)
     size_t ecsize = sizeof(ecp);
     printf("sizeof(bp) = %d\r\n", ebsize);
     printf("sizeof(cp) = %d\r\n", ecsize);
-    ebp.call();
-    ecp.call();
 
-    printf ("Test Complete\r\n");
-    while(1){__WFI();}
+    bool result = false;
+    // Test checks
+    {
+        ebp.call();
+        result &= ebp_flag;
+        printf("ebp_flag = %d\r\n", ebp_flag);
+
+        ecp.call();
+        result &= ecp_flag;
+        printf("ecp_flag = %d\r\n", ecp_flag);
+    }
+
+    printf("Test Complete\r\n");
+    MBED_HOSTTEST_RESULT(true);
     return 0;
 }
