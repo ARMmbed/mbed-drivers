@@ -76,7 +76,8 @@ public:
         return (R)0;
     }
 
-    R(*get_function())() const {
+    typedef R (*static_fp)();
+    static_fp get_function() const {
         return (R(*)())_p.function;
     }
 
@@ -162,7 +163,8 @@ public:
         return (R)0;
     }
 
-    R(*get_function())() const {
+    typedef R (*static_fp)();
+    static_fp get_function() const {
         return (R(*)())_p.function;
     }
 
