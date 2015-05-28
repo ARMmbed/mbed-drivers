@@ -22,20 +22,20 @@ namespace mbed {
 SPISlave::SPISlave(PinName mosi, PinName miso, PinName sclk, PinName ssel) :
     _spi(),
     _bits(8),
-    _order(0),
     _mode(0),
+    _order(SPI_MSB),
     _hz(1000000)
  {
     spi_init(&_spi, mosi, miso, sclk, ssel);
-    spi_format(&_spi, _bits, _order, _mode, 1);
+    spi_format(&_spi, _bits, _mode, _order, 1);
     spi_frequency(&_spi, _hz);
 }
 
-void SPISlave::format(int bits, int order, int mode) {
+void SPISlave::format(int bits, int mode, spi_bitorder_t order) {
     _bits = bits;
-    _order = order;
     _mode = mode;
-    spi_format(&_spi, _bits, _order, _mode, 1);
+    _order = order;
+    spi_format(&_spi, _bits, _mode, _order, 1);
 }
 
 void SPISlave::frequency(int hz) {
