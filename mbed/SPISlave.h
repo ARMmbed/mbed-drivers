@@ -70,8 +70,8 @@ public:
     /** Configure the data transmission format
      *
      *  @param bits  Number of bits per SPI frame (4 - 16)
-     *  @param order Bit order. Zero for MSB (standard) or non-zero for LSB.
      *  @param mode  Clock polarity and phase mode (0 - 3)
+     *  @param order Bit order. SPI_MSB (standard) or SPI_LSB.
      *
      * @code
      * mode | POL PHA
@@ -82,7 +82,7 @@ public:
      *   3  |  1   1
      * @endcode
      */
-    void format(int bits, int order = 0, int mode = 0);
+    void format(int bits, int mode = 0, spi_bitorder_t order = SPI_MSB);
 
     /** Set the spi bus clock frequency
      *
@@ -116,8 +116,8 @@ protected:
     spi_t _spi;
 
     int _bits;
-    int _order;
     int _mode;
+    spi_bitorder_t _order;
     int _hz;
 };
 
