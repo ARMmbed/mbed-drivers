@@ -47,7 +47,7 @@ protected:
     FunctionPointerBase():_ops(&_nullops), _object(NULL), _membercaller(NULL) {}
 
 protected:
-    struct ArgOps * _ops;
+    const struct ArgOps * _ops;
     void * _object; // object Pointer/function pointer
     R (*_membercaller)(void *, uintptr_t *, void *);
     // aligned raw member function pointer storage - converted back by registered _membercaller
@@ -60,14 +60,14 @@ protected:
         _membercaller = fp->_membercaller;
     }
 private:
-    static struct ArgOps _nullops;
+    static const struct ArgOps _nullops;
     static void _null_constructor(void * dest, va_list args) {(void) dest;(void) args;}
     static void _null_copy_args(void *dest , void* src) {(void) dest; (void) src;}
     static void _null_destructor(void *args) {(void) args;}
 
 };
 template<typename R>
-struct FunctionPointerBase<R>::ArgOps FunctionPointerBase<R>::_nullops = {
+const struct FunctionPointerBase<R>::ArgOps FunctionPointerBase<R>::_nullops = {
     FunctionPointerBase<R>::_null_constructor,
     FunctionPointerBase<R>::_null_copy_args,
     FunctionPointerBase<R>::_null_destructor

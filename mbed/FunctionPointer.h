@@ -31,6 +31,8 @@ template <typename R>
 class FunctionPointer0 : protected FunctionPointerBase<R>{
 public:
     typedef R(*static_fp)(void);
+    typedef struct arg_struct{
+    } ArgStruct;
     /** Create a FunctionPointer, attaching a static function
      *
      *  @param function The void static function to attach (default is none)
@@ -76,9 +78,9 @@ public:
         return FunctionPointerBase<R>::call(NULL);
     }
 
-    FunctionPointerBind<R> & bind() {
+    FunctionPointerBind<R> bind() {
         FunctionPointerBind<R> fp;
-        fp.bind((void *) NULL, this);
+        fp.bind((ArgStruct *) NULL, this);
         return fp;
     }
 
@@ -147,6 +149,7 @@ public:
     void attach(static_fp function) {
         FunctionPointerBase<R>::_object = reinterpret_cast<void*>(function);
         FunctionPointerBase<R>::_membercaller = &FunctionPointer1::staticcaller;
+        FunctionPointerBase<R>::_ops = &_fp1_ops;
     }
 
     /** Attach a member function
@@ -214,11 +217,11 @@ private:
     }
 
 protected:
-    static struct FunctionPointerBase<R>::ArgOps _fp1_ops;
+    static const struct FunctionPointerBase<R>::ArgOps _fp1_ops;
 };
 
 template <typename R, typename A1>
-struct FunctionPointerBase<R>::ArgOps FunctionPointer1<R,A1>::_fp1_ops = {
+const struct FunctionPointerBase<R>::ArgOps FunctionPointer1<R,A1>::_fp1_ops = {
     FunctionPointer1<R,A1>::constructor,
     FunctionPointer1<R,A1>::copy_constructor,
     FunctionPointer1<R,A1>::destructor

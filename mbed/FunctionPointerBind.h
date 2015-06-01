@@ -74,7 +74,6 @@ public:
 private:
     uint32_t _storage[(EVENT_STORAGE_SIZE+sizeof(uint32_t)-1)/sizeof(uint32_t)];
 };
-typedef FunctionPointerBind<void> Event;
 }
 
 #endif // MBED_FUNCTIONPOINTERBIND_H__

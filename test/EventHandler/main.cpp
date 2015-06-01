@@ -15,6 +15,7 @@
  */
 
 #include "mbed.h"
+#include "mbed/Event.h"
 
 class VBase {
 public:
@@ -40,6 +41,10 @@ void bareprint(const char * msg) {
     }
 }
 
+void noargsprint() {
+    printf("No args; no message\r\n");
+}
+
 int main(void)
 {
     VDerived test;
@@ -51,25 +56,31 @@ int main(void)
     FunctionPointer1<void,const char*> fp1((VBase*)&test, &VBase::vprint0);
     FunctionPointer1<void,const char*> fp2((VBase*)&test, &VBase::vprint1);
     FunctionPointer1<void,const char*> fp3(bareprint);
+    FunctionPointer0<void> fp4(noargsprint);
+
 
     fp1(message1);
     fp2(message1);
     fp3(message1);
+    fp4();
 
     Event e1(fp1.bind(message2));
     Event e2(fp2.bind(message2));
     Event e3(fp3.bind(message2));
+    Event e4(fp4.bind());
     e1.call();
     e2.call();
     e3.call();
+    e4.call();
 
-    Event events[3];
+    Event events[4];
     FunctionPointer1<void, const char*> fps[3] = {fp1,fp2,fp3};
     for(int i = 0; i < 3; i++) {
         Event e(fps[i].bind(message3));
         events[i] = e;
     }
-    for(int i = 0; i<3; i++) {
+    events[3] = e4;
+    for(int i = 0; i<4; i++) {
         events[i].call();
     }
 
