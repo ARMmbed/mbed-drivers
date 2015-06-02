@@ -45,6 +45,9 @@ public:
     }
 protected:
     FunctionPointerBase():_object(NULL), _membercaller(NULL) {}
+    FunctionPointerBase(const FunctionPointerBase<R> & fp) {
+        copy(&fp);
+    }
     static const struct ArgOps _nullops;
 
 protected:
@@ -53,7 +56,7 @@ protected:
     // aligned raw member function pointer storage - converted back by registered _membercaller
     uintptr_t _member[4];
 
-    void copy(FunctionPointerBase<R> * fp) {
+    void copy(const FunctionPointerBase<R> * fp) {
         _object = fp->_object;
         memcpy (_member, fp->_member, sizeof(_member));
         _membercaller = fp->_membercaller;
