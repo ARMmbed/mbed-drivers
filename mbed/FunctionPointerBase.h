@@ -44,23 +44,21 @@ public:
         return _membercaller(_object, _member, arg);
     }
 protected:
-    FunctionPointerBase():_ops(&_nullops), _object(NULL), _membercaller(NULL) {}
+    FunctionPointerBase():_object(NULL), _membercaller(NULL) {}
+    static const struct ArgOps _nullops;
 
 protected:
-    const struct ArgOps * _ops;
     void * _object; // object Pointer/function pointer
     R (*_membercaller)(void *, uintptr_t *, void *);
     // aligned raw member function pointer storage - converted back by registered _membercaller
     uintptr_t _member[4];
 
     void copy(FunctionPointerBase<R> * fp) {
-        _ops = fp->_ops;
         _object = fp->_object;
         memcpy (_member, fp->_member, sizeof(_member));
         _membercaller = fp->_membercaller;
     }
 private:
-    static const struct ArgOps _nullops;
     static void _null_constructor(void * dest, va_list args) {(void) dest;(void) args;}
     static void _null_copy_args(void *dest , void* src) {(void) dest; (void) src;}
     static void _null_destructor(void *args) {(void) args;}

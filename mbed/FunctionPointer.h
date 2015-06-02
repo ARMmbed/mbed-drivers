@@ -80,7 +80,7 @@ public:
 
     FunctionPointerBind<R> bind() {
         FunctionPointerBind<R> fp;
-        fp.bind((ArgStruct *) NULL, this);
+        fp.bind(&FunctionPointerBase<R>::_nullops, (ArgStruct *) NULL, this);
         return fp;
     }
 
@@ -149,7 +149,6 @@ public:
     void attach(static_fp function) {
         FunctionPointerBase<R>::_object = reinterpret_cast<void*>(function);
         FunctionPointerBase<R>::_membercaller = &FunctionPointer1::staticcaller;
-        FunctionPointerBase<R>::_ops = &_fp1_ops;
     }
 
     /** Attach a member function
@@ -163,12 +162,11 @@ public:
         FunctionPointerBase<R>::_object = static_cast<void*>(object);
         *reinterpret_cast<R (T::**)(A1)>(FunctionPointerBase<R>::_member) = member;
         FunctionPointerBase<R>::_membercaller = &FunctionPointer1::membercaller<T>;
-        FunctionPointerBase<R>::_ops = &_fp1_ops;
     }
 
     FunctionPointerBind<R> bind(const A1 &a1) {
         FunctionPointerBind<R> fp;
-        fp.bind((ArgStruct *) NULL, this, &a1);
+        fp.bind(&_fp1_ops, (ArgStruct *) NULL, this, &a1);
         return fp;
     }
 

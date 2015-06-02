@@ -42,12 +42,15 @@ public:
     inline R call() {
         return FunctionPointerBase<R>::call(static_cast<void *>(_storage));
     }
-    FunctionPointerBind() {
+    FunctionPointerBind():
+        _ops(&FunctionPointerBase<R>::_nullops)
+    {
 
     }
     FunctionPointerBind(const FunctionPointerBind<R> & fp) :
         FunctionPointerBase<R>::FunctionPointerBase(fp)
     {
+        _ops = fp._ops;
         this->_ops->copy_args(this->_storage, (void *)fp._storage);
     }
     ~FunctionPointerBind() {
@@ -55,8 +58,9 @@ public:
     }
 
     template<typename S>
-    FunctionPointerBind<R> & bind(S * argStruct, FunctionPointerBase<R>* fp, ...) {
+    FunctionPointerBind<R> & bind(const struct FunctionPointerBase<R>::ArgOps * ops , S * argStruct, FunctionPointerBase<R>* fp, ...) {
         MBED_STATIC_ASSERT(sizeof(S) <= sizeof(_storage), ERROR: Arguments too large for FunctionPointerBind internal storage)
+        _ops = ops;
         this->copy(fp);
         assert(this->_ops != NULL);
         assert(this->_ops->constructor != NULL);
@@ -71,7 +75,8 @@ public:
         return *this;
     }
 
-private:
+protected:
+    const struct FunctionPointerBase<R>::ArgOps * _ops;
     uint32_t _storage[(EVENT_STORAGE_SIZE+sizeof(uint32_t)-1)/sizeof(uint32_t)];
 };
 }
