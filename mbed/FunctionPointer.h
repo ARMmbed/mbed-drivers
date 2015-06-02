@@ -117,8 +117,8 @@ class FunctionPointer1 : public FunctionPointerBase<R> {
 protected:
     typedef struct arg_struct{
         A1 a1;
-        arg_struct(const A1 &b1) {
-            a1 = b1;
+        arg_struct(const A1 *b1) {
+            a1 = *b1;
         }
     } ArgStruct;
 
@@ -168,7 +168,7 @@ public:
 
     FunctionPointerBind<R> bind(const A1 &a1) {
         FunctionPointerBind<R> fp;
-        fp.bind((ArgStruct *) NULL, this, a1);
+        fp.bind((ArgStruct *) NULL, this, &a1);
         return fp;
     }
 
@@ -177,7 +177,7 @@ public:
      */
     R call(A1 a1)
     {
-        ArgStruct Args(a1);
+        ArgStruct Args(&a1);
         return FunctionPointerBase<R>::call(&Args);
     }
 
@@ -205,11 +205,11 @@ private:
         return f(Args->a1);
     }
     static void constructor(void * dest, va_list args) {
-        new(dest) ArgStruct(va_arg(args,A1));
+        new(dest) ArgStruct(va_arg(args,A1*));
     }
     static void copy_constructor(void *dest , void* src) {
         ArgStruct *src_args = static_cast<ArgStruct *>(src);
-        new(dest) ArgStruct(src_args->a1);
+        new(dest) ArgStruct(&(src_args->a1));
     }
     static void destructor(void *args) {
         ArgStruct *argstruct = static_cast<ArgStruct *>(args);
