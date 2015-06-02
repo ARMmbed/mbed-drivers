@@ -114,7 +114,8 @@ public:
      * @param event     The logical OR of SPI events to modify. Look at spi hal header file for SPI events.
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
-    int transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE) {
+    template<typename Type>
+    int transfer(Type *tx_buffer, int tx_length, Type *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE) {
         if (spi_active(&_spi)) {
             return queue_transfer(tx_buffer, tx_length, rx_buffer, rx_length, callback, event);
         }
@@ -147,6 +148,7 @@ public:
      *  @param value value to be set
     */
     void set_tx_fill_word(int value);
+
 protected:
     /** SPI IRQ handler
      *
