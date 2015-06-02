@@ -45,7 +45,8 @@ public:
     FunctionPointerBind():
         _ops(&FunctionPointerBase<R>::_nullops)
     {}
-    FunctionPointerBind(const FunctionPointerBind<R> & fp)
+    FunctionPointerBind(const FunctionPointerBind<R> & fp):
+        _ops(&FunctionPointerBase<R>::_nullops)
     {
         *this = fp;
     }
