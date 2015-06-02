@@ -50,19 +50,25 @@ public:
         *this = fp;
     }
     ~FunctionPointerBind() {
-        this->_ops->destructor(this->_storage);
+        _ops->destructor(_storage);
     }
 
     FunctionPointerBind<R> & operator=(const FunctionPointerBind<R>& rhs) {
+        if (_ops != &FunctionPointerBase<R>::_nullops) {
+            _ops->destructor(_storage);
+        }
         FunctionPointerBase<R>::copy(&rhs);
         _ops = rhs._ops;
-        this->_ops->copy_args(this->_storage, (void *)rhs._storage);
+        _ops->copy_args(_storage, (void *)rhs._storage);
         return *this;
     }
 
     template<typename S>
     FunctionPointerBind<R> & bind(const struct FunctionPointerBase<R>::ArgOps * ops , S * argStruct, FunctionPointerBase<R> *fp, ...) {
         MBED_STATIC_ASSERT(sizeof(S) <= sizeof(_storage), ERROR: Arguments too large for FunctionPointerBind internal storage)
+        if (_ops != &FunctionPointerBase<R>::_nullops) {
+            _ops->destructor(_storage);
+        }
         _ops = ops;
         FunctionPointerBase<R>::copy(fp);
         assert(this->_ops != NULL);
