@@ -75,6 +75,7 @@ ssize_t Stream::read(void* buffer, size_t length) {
 }
 
 off_t Stream::lseek(off_t offset, int whence) {
+    (void) offset, (void) whence;
     return 0;
 }
 

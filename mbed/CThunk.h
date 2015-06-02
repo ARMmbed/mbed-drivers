@@ -5,7 +5,7 @@
  * - supports an optional context parameter for the called function
  * - ideally suited for class object receiving interrupts (NVIC_SetVector)
  *
- * Copyright (c) 2014 ARM Limited
+ * Copyright (c) 2014-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,23 +19,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
 #ifndef __CTHUNK_H__
 #define __CTHUNK_H__
 
+#define CTHUNK_ADDRESS 1
+
 #if defined(__CORTEX_M3) || defined(__CORTEX_M4) || defined(__thumb2__)
 #define CTHUNK_VARIABLES volatile uint32_t code[1]
+/**
+* CTHUNK disassembly for Cortex-M3/M4 (thumb2):
+* * ldm.w pc,{r0,r1,r2,pc}
+*
+* This instruction loads the arguments for the static thunking function to r0-r2, and
+* branches to that function by loading its address into PC.
+*
+* This is safe for both regular calling and interrupt calling, since it only touches scratch registers
+* which should be saved by the caller, and are automatically saved as part of the IRQ context switch.
+*/
 #define CTHUNK_ASSIGMENT m_thunk.code[0] = 0x8007E89F
-#  define CTHUNK_ADDRESS 1
-#elif defined(__CORTEX_M0PLUS)
-#define CTHUNK_VARIABLES volatile uint32_t code[2]
-#define CTHUNK_ASSIGMENT do {                               \
-                             m_thunk.code[0] = 0x447c2402; \
-                             m_thunk.code[1] = 0x469Fcc0f;  \
+
+#elif defined(__CORTEX_M0PLUS) || defined(__CORTEX_M0)
+/*
+* CTHUNK disassembly for Cortex M0 (thumb):
+* * push {r0,r1,r2,r3,r4,lr} save touched registers and return address
+* * movs r4,#4 set up address to load arguments from (immediately following this code block) (1)
+* * add r4,pc set up address to load arguments from (immediately following this code block) (2)
+* * ldm r4!,{r0,r1,r2,r3} load arguments for static thunk function
+* * blx r3 call static thunk function
+* * pop {r0,r1,r2,r3,r4,pc} restore scratch registers and return from function
+*/
+#define CTHUNK_VARIABLES volatile uint32_t code[3]
+#define CTHUNK_ASSIGMENT do {                              \
+                             m_thunk.code[0] = 0x2404B51F; \
+                             m_thunk.code[1] = 0xCC0F447C; \
+                             m_thunk.code[2] = 0xBD1F4798; \
                          } while (0)
-#  define CTHUNK_ADDRESS 1
+
 #else
-#  error "TODO: add support for non-cortex-m3 trampoline, too"
+#error "Target is not currently suported."
 #endif
 
 /* IRQ/Exception compatible thunk entry function */
@@ -122,13 +143,25 @@ class CThunk
         /* simple test function */
         inline void call(void)
         {
-            (CThunkEntry(entry())());
+            (((CThunkEntry)(entry()))());
         }
 
     private:
         T* m_instance;
         volatile CCallback m_callback;
 
+// TODO: this needs proper fix, to refactor toolchain header file and all its use
+// PACKED there is not defined properly for IAR
+#if defined (__ICCARM__)
+        typedef __packed struct
+        {
+            CTHUNK_VARIABLES;
+            volatile uint32_t instance;
+            volatile uint32_t context;
+            volatile uint32_t callback;
+            volatile uint32_t trampoline;
+        }  CThunkTrampoline;
+#else
         typedef struct
         {
             CTHUNK_VARIABLES;
@@ -136,7 +169,8 @@ class CThunk
             volatile uint32_t context;
             volatile uint32_t callback;
             volatile uint32_t trampoline;
-        } __attribute__((packed)) CThunkTrampoline;
+        } __attribute__((__packed__)) CThunkTrampoline;
+#endif
 
         static void trampoline(T* instance, void* context, CCallback* callback)
         {

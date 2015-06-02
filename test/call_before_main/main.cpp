@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "test_env.h"
 
 namespace {
@@ -25,6 +26,12 @@ extern "C" void mbed_main() {
 }
 
 int main() {
+    MBED_HOSTTEST_TIMEOUT(20);
+    MBED_HOSTTEST_SELECT(default_auto);
+    MBED_HOSTTEST_DESCRIPTION(Call function mbed_main before main);
+    MBED_HOSTTEST_START("MBED_A21");
+
     printf("MBED: main() starts now!\r\n");
-    notify_completion(mbed_main_called);
+
+    MBED_HOSTTEST_RESULT(mbed_main_called);
 }

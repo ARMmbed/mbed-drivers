@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "test_env.h"
 
 #define PATTERN_CHECK_VALUE  0xF0F0ADAD
@@ -21,7 +22,7 @@ class Test {
 
 private:
     const char* name;
-    const int pattern;
+    const unsigned pattern;
 
 public:
     Test(const char* _name) : name(_name), pattern(PATTERN_CHECK_VALUE)  {
@@ -69,6 +70,11 @@ Heap::hello
 Heap::destroy
 *******************/
 int main (void) {
+    MBED_HOSTTEST_TIMEOUT(10);
+    MBED_HOSTTEST_SELECT(default_auto);
+    MBED_HOSTTEST_DESCRIPTION(C++);
+    MBED_HOSTTEST_START("MBED_12");
+
     bool result = true;
     for (;;)
     {
@@ -92,6 +98,5 @@ int main (void) {
         break;
     }
 
-    notify_completion(result);
-    return 0;
+    MBED_HOSTTEST_RESULT(result);
 }

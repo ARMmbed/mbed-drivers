@@ -196,6 +196,7 @@ extern "C" size_t    __write (int        fh, const unsigned char *buffer, size_t
 #else
 extern "C" int PREFIX(_write)(FILEHANDLE fh, const unsigned char *buffer, unsigned int length, int mode) {
 #endif
+    (void) mode;
     int n; // n is the number of bytes written
     if (fh < 3) {
 #if DEVICE_SERIAL
@@ -223,6 +224,7 @@ extern "C" size_t    __read (int        fh, unsigned char *buffer, size_t       
 #else
 extern "C" int PREFIX(_read)(FILEHANDLE fh, unsigned char *buffer, unsigned int length, int mode) {
 #endif
+    (void) mode;
     int n; // n is the number of bytes read
     if (fh < 3) {
         // only read a character at a time from stdin
@@ -335,6 +337,7 @@ extern "C" int rename(const char *oldname, const char *newname) {
 }
 
 extern "C" char *tmpnam(char *s) {
+    (void) s;
     return NULL;
 }
 

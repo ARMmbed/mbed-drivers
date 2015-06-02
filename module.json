@@ -1,7 +1,8 @@
 {
   "name": "mbed",
-  "version": "3.0.0-alpha1",
+  "version": "3.0.2",
   "description": "mbed SDK",
+  "private": true,
   "keywords": [
     "mbed"
   ],
@@ -21,8 +22,17 @@
     "mbed"
   ],
   "dependencies": {
-    "mbed-hal": "ARMmbed/mbed-hal#~0.0.3",
-    "cmsis-core": "ARMmbed/cmsis-core#~0.0.1"
+    "mbed-hal": "~0.1.0",
+    "cmsis-core": "~0.1.0"
   },
-  "targetDependencies": {}
+  "targetDependencies": {},
+  "scripts": {
+    "testReporter": [
+      "mbedgt",
+      "--digest",
+      "stdin",
+      "-v",
+      "-V"
+    ]
+  }
 }
