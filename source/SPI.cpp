@@ -103,6 +103,11 @@ int SPI::set_dma_usage(DMAUsage usage)
     return  0;
 }
 
+void SPI::set_tx_fill_word(int value)
+{
+    spi_set_tx_fill_word(&_spi, value);
+}
+
 int SPI::queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event)
 {
 #if TRANSACTION_QUEUE_SIZE_SPI
