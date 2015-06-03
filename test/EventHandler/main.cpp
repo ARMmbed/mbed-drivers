@@ -38,7 +38,7 @@ static void call_fp0(const char* name, FunctionPointer0<R>& fptr) {
     fptr();
     Event e(fptr.bind());
     printf("[Event call]  ");
-    e.call();
+    e();
 }
 
 static void call_event(const char* name, Event& e) {
