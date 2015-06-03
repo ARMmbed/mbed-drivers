@@ -25,7 +25,7 @@
 #include "FunctionPointerBase.h"
 
 #ifndef EVENT_STORAGE_SIZE
-#define EVENT_STORAGE_SIZE 32
+#define EVENT_STORAGE_SIZE 12
 #endif
 
 #define MBED_STATIC_ASSERT(MBED_STATIC_ASSERT_FAILED,MSG)\
@@ -85,6 +85,10 @@ public:
             va_end(args);
         }
         return *this;
+    }
+
+    R operator()() {
+        return call();
     }
 
 protected:
