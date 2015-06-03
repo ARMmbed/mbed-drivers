@@ -43,9 +43,11 @@ public:
         return FunctionPointerBase<R>::call(static_cast<void *>(_storage));
     }
     FunctionPointerBind():
+        FunctionPointerBase<R>(),
         _ops(&FunctionPointerBase<R>::_nullops)
     {}
     FunctionPointerBind(const FunctionPointerBind<R> & fp):
+        FunctionPointerBase<R>(),
         _ops(&FunctionPointerBase<R>::_nullops)
     {
         *this = fp;

@@ -37,7 +37,9 @@ public:
      *
      *  @param function The void static function to attach (default is none)
      */
-    FunctionPointer0(static_fp function = 0) {
+    FunctionPointer0(static_fp function = 0):
+        FunctionPointerBase<R>()
+    {
         attach(function);
     }
 
@@ -47,7 +49,9 @@ public:
      *  @param function The address of the void member function to attach
      */
     template<typename T>
-    FunctionPointer0(T *object, R (T::*member)(void)) {
+    FunctionPointer0(T *object, R (T::*member)(void)):
+        FunctionPointerBase<R>()
+    {
         attach(object, member);
     }
 
