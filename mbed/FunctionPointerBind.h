@@ -87,6 +87,10 @@ public:
         return *this;
     }
 
+    R operator()() {
+        return call();
+    }
+
 protected:
     const struct FunctionPointerBase<R>::ArgOps * _ops;
     uint32_t _storage[(EVENT_STORAGE_SIZE+sizeof(uint32_t)-1)/sizeof(uint32_t)];
