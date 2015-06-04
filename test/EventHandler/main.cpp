@@ -15,7 +15,7 @@
  */
 
 #include "mbed.h"
-#include "Event.h"
+#include "mbed/Event.h"
 #include <stdio.h>
 
 /******************************************************************************
