@@ -55,6 +55,8 @@ protected:
     FunctionPointerBase(const FunctionPointerBase<R> & fp) {
         copy(&fp);
     }
+    virtual ~FunctionPointerBase() {
+    }
 
     /**
      * Calls the member pointed to by object::member or (function)object
