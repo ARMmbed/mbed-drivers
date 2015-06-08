@@ -28,7 +28,7 @@ namespace mbed {
 /** A class for storing and calling a pointer to a static or member void function
  */
 template <typename R>
-class FunctionPointer0 : protected FunctionPointerBase<R>{
+class FunctionPointer0 : public FunctionPointerBase<R>{
 public:
     typedef R(*static_fp)(void);
     typedef struct arg_struct{
