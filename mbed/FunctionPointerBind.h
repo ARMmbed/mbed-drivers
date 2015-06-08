@@ -75,7 +75,7 @@ public:
      * Clears the current binding, making this instance unbound
      */
     virtual void clear() {
-        if (_ops != FunctionPointerBase<R>::_nullops) {
+        if (_ops != &FunctionPointerBase<R>::_nullops) {
             _ops->destructor(_storage);
         }
         _ops = &FunctionPointerBase<R>::_nullops;
