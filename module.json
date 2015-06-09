@@ -22,8 +22,8 @@
     "mbed"
   ],
   "dependencies": {
-    "mbed-hal": "~0.1.0",
-    "cmsis-core": "~0.1.0"
+    "mbed-hal": "~0.2.0",
+    "cmsis-core": "~0.2.0"
   },
   "targetDependencies": {},
   "scripts": {
