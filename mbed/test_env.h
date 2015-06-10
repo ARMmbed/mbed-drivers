@@ -21,7 +21,7 @@
 #include "mbed.h"
 
 #define NL "\n"
-#define RCNL "\r\n"
+#define CRNL "\r\n"
 
 // Const strings used in test_end
 extern const char* TEST_ENV_START;
