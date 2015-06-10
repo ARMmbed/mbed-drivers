@@ -67,10 +67,6 @@ public:
         return *this;
     }
 
-    R operator ()() {
-        return call();
-    }
-
     /**
      * Clears the current binding, making this instance unbound
      */
