@@ -159,10 +159,10 @@ protected:
      *
      * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
      *                  the default SPI value is sent
-     * @param tx_length The length of TX buffer
+     * @param tx_length The length of TX buffer in bytes
      * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
      *                  received data are ignored
-     * @param rx_length The length of RX buffer
+     * @param rx_length The length of RX buffer in bytes
      * @param bit_width The buffers element width
      * @param callback  The event callback function
      * @param event     The logical OR of events to modify
@@ -174,10 +174,10 @@ protected:
      *
      * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
      *                  the default SPI value is sent
-     * @param tx_length The length of TX buffer
+     * @param tx_length The length of TX buffer in bytes
      * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
      *                  received data are ignored
-     * @param rx_length The length of RX buffer
+     * @param rx_length The length of RX buffer in bytes
      * @param bit_width The buffers element width
      * @param callback  The event callback function
      * @param event     The logical OR of events to modify
