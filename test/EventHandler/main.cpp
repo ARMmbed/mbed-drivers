@@ -27,21 +27,21 @@ static void call_fp1(const char* name, FunctionPointer1<R, Arg>& fptr, const Arg
     printf(">>>>>>>> Testing '%s' <<<<<<<<\r\n", name);
     printf("[Direct call] ");
     fptr(arg);
-    Event e(fptr.bind(arg));
     printf("[Event call]  ");
-    e.call();
+    Event(fptr, arg)();
 }
+
 template<typename R>
 static void call_fp0(const char* name, FunctionPointer0<R>& fptr) {
     printf(">>>>>>>> Testing '%s' <<<<<<<<\r\n", name);
     printf("[Direct call] ");
     fptr();
-    Event e(fptr.bind());
     printf("[Event call]  ");
-    e();
+    Event(fptr).call();
 }
 
-static void call_event(const char* name, Event& e) {
+// Test calling event by value
+static void call_event(const char* name, Event e) {
     printf("[Call event '%s'] ", name);
     e.call();
 }
@@ -187,7 +187,7 @@ class ABase {
 public:
     ABase(int arg): _arg(arg) {}
     virtual void print_virtual_arg(MyArg a) {
-        printf("ABase::print_virtual_arg: %s, _arg=%d\r\n", a._id, _arg);
+        printf("ABase::print_virtual_arg: [%s, %d, %d], _arg=%d\r\n", a._id, a._arg1, a._arg2, _arg);
     }
 protected:
     int _arg;
@@ -197,7 +197,7 @@ class ADerived : public ABase {
 public:
     ADerived(int arg1, int arg2): ABase(arg1), _arg2(arg2) {}
     virtual void print_virtual_arg(MyArg a) {
-        printf("ADerived::print_virtual_arg: %s, _arg=%d, _arg2=%d\r\n", a._id, _arg, _arg2);
+        printf("ADerived::print_virtual_arg: [%s, %d, %d], _arg=%d, _arg2=%d\r\n", a._id, a._arg1, a._arg2, _arg, _arg2);
     }
 private:
     int _arg2;
@@ -211,7 +211,7 @@ static void test_funcs_nontca() {
     {
         // Test binding argument that gets out of scope at the end of this block
         MyArg arg("test", 10, 20);
-        call_fp1("ptr to standalong func taking non-trivial arg", fp1, arg);
+        call_fp1("ptr to standalone func taking non-trivial arg", fp1, arg);
         e1 = e2 = e3 = fp1.bind(arg);
     }
     e1.call(); // This should work, since it has a copy of 'arg' above
@@ -221,7 +221,8 @@ static void test_funcs_nontca() {
     FunctionPointer1<void, MyArg> fp2(&d, &ADerived::print_virtual_arg);
     FunctionPointer1<void, MyArg> fp3(pDerived, &ABase::print_virtual_arg);
     call_fp1("ptr to virtual method taking non-tc argument", fp2, MyArg("notest", 5, 8));
-    call_fp1("ptr to virtual method taking non-tc argument (via base class pointer)", fp2, MyArg("notest", 5, 8));
+    call_fp1("ptr to virtual method taking non-tc argument (via base class pointer)", fp2, MyArg("notest", 3, 4));
+    call_event("direct event (non-tca)", Event(pDerived, &ABase::print_virtual_arg, MyArg("evttest", 5, 30)));
 }
 
 /******************************************************************************
