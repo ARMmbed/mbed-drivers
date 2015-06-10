@@ -29,11 +29,34 @@ public:
         return (_membercaller != NULL) && (_object != NULL);
     }
 
+    /**
+     * Clears the current function pointer assignment
+     * After clear(), this instance will point to nothing (NULL)
+     */
+    virtual void clear() {
+        _membercaller = NULL;
+        _object = NULL;
+    }
+
+protected:
     struct ArgOps {
         void (*constructor)(void *, va_list);
         void (*copy_args)(void *, void *);
         void (*destructor)(void *);
     };
+    void * _object; // object Pointer/function pointer
+    R (*_membercaller)(void *, uintptr_t *, void *);
+    // aligned raw member function pointer storage - converted back by registered _membercaller
+    uintptr_t _member[4];
+    static const struct ArgOps _nullops;
+
+protected:
+    FunctionPointerBase():_object(NULL), _membercaller(NULL) {}
+    FunctionPointerBase(const FunctionPointerBase<R> & fp) {
+        copy(&fp);
+    }
+    virtual ~FunctionPointerBase() {
+    }
 
     /**
      * Calls the member pointed to by object::member or (function)object
@@ -43,18 +66,6 @@ public:
     inline R call(void* arg) {
         return _membercaller(_object, _member, arg);
     }
-protected:
-    FunctionPointerBase():_object(NULL), _membercaller(NULL) {}
-    FunctionPointerBase(const FunctionPointerBase<R> & fp) {
-        copy(&fp);
-    }
-    static const struct ArgOps _nullops;
-
-protected:
-    void * _object; // object Pointer/function pointer
-    R (*_membercaller)(void *, uintptr_t *, void *);
-    // aligned raw member function pointer storage - converted back by registered _membercaller
-    uintptr_t _member[4];
 
     void copy(const FunctionPointerBase<R> * fp) {
         _object = fp->_object;

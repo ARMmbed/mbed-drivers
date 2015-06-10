@@ -36,7 +36,7 @@
 namespace mbed{
 
 template<typename R>
-class FunctionPointerBind : FunctionPointerBase<R> {
+class FunctionPointerBind : public FunctionPointerBase<R> {
 public:
     // Call the Event
     inline R call() {
@@ -46,12 +46,13 @@ public:
         FunctionPointerBase<R>(),
         _ops(&FunctionPointerBase<R>::_nullops)
     {}
+
     FunctionPointerBind(const FunctionPointerBind<R> & fp):
         FunctionPointerBase<R>(),
-        _ops(&FunctionPointerBase<R>::_nullops)
-    {
+        _ops(&FunctionPointerBase<R>::_nullops) {
         *this = fp;
     }
+
     ~FunctionPointerBind() {
         _ops->destructor(_storage);
     }
@@ -64,6 +65,21 @@ public:
         _ops = rhs._ops;
         _ops->copy_args(_storage, (void *)rhs._storage);
         return *this;
+    }
+
+    R operator ()() {
+        return call();
+    }
+
+    /**
+     * Clears the current binding, making this instance unbound
+     */
+    virtual void clear() {
+        if (_ops != &FunctionPointerBase<R>::_nullops) {
+            _ops->destructor(_storage);
+        }
+        _ops = &FunctionPointerBase<R>::_nullops;
+        FunctionPointerBase<R>::clear();
     }
 
     template<typename S>
