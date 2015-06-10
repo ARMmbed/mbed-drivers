@@ -38,31 +38,31 @@ static void led_blink(PinName led, float delay)
 
 void notify_start()
 {
-    printf("+--------------------------------------------------------------------------+" RCNL);
-    printf("+ This test case is meant to be executed in an automated test environment. +" RCNL);
-    printf("+ It will fail if used without the test suite instrumentation.             +" RCNL);
-    printf("+--------------------------------------------------------------------------+" RCNL);
-    printf("{{%s}}" RCNL, TEST_ENV_START);
+    printf("+--------------------------------------------------------------------------+" CRNL);
+    printf("+ This test case is meant to be executed in an automated test environment. +" CRNL);
+    printf("+ It will fail if used without the test suite instrumentation.             +" CRNL);
+    printf("+--------------------------------------------------------------------------+" CRNL);
+    printf("{{%s}}" CRNL, TEST_ENV_START);
 }
 
 void notify_performance_coefficient(const char* measurement_name, const int value)
 {
-    printf("{{%s;%s;%d}}" RCNL, TEST_ENV_MEASURE, measurement_name, value);
+    printf("{{%s;%s;%d}}" CRNL, TEST_ENV_MEASURE, measurement_name, value);
 }
 
 void notify_performance_coefficient(const char* measurement_name, const unsigned int value)
 {
-    printf("{{%s;%s;%u}}" RCNL, TEST_ENV_MEASURE, measurement_name, value);
+    printf("{{%s;%s;%u}}" CRNL, TEST_ENV_MEASURE, measurement_name, value);
 }
 
 void notify_performance_coefficient(const char* measurement_name, const double value)
 {
-    printf("{{%s;%s;%f}}" RCNL, TEST_ENV_MEASURE, measurement_name, value);
+    printf("{{%s;%s;%f}}" CRNL, TEST_ENV_MEASURE, measurement_name, value);
 }
 
 void notify_completion(int success)
 {
-    printf("{{%s}}" RCNL "{{%s}}" RCNL, success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE, TEST_ENV_END);
+    printf("{{%s}}" CRNL "{{%s}}" CRNL, success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE, TEST_ENV_END);
     led_blink(LED1, success ? 1.0 : 0.1);
 }
 
@@ -70,7 +70,7 @@ int notify_completion_str(int success, char* buffer)
 {
     int result = 0;
     if (buffer) {
-        sprintf(buffer, "{{%s}}" RCNL "{{%s}}" RCNL, success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE, TEST_ENV_END);
+        sprintf(buffer, "{{%s}}" CRNL "{{%s}}" CRNL, success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE, TEST_ENV_END);
         result = 1;
     }
     return result;
@@ -79,23 +79,23 @@ int notify_completion_str(int success, char* buffer)
 // Host test auto-detection API
 void notify_host_test_name(const char *host_test) {
     if (host_test) {
-        printf("{{host_test_name;%s}}" RCNL, host_test);
+        printf("{{host_test_name;%s}}" CRNL, host_test);
     }
 }
 
 void notify_timeout(int timeout) {
-    printf("{{timeout;%d}}" RCNL, timeout);
+    printf("{{timeout;%d}}" CRNL, timeout);
 }
 
 void notify_test_id(const char *test_id) {
     if (test_id) {
-        printf("{{test_id;%s}}" RCNL, test_id);
+        printf("{{test_id;%s}}" CRNL, test_id);
     }
 }
 
 void notify_test_description(const char *description) {
     if (description) {
-        printf("{{description;%s}}" RCNL, description);
+        printf("{{description;%s}}" CRNL, description);
     }
 }
 
