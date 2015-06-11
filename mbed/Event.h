@@ -155,9 +155,7 @@ public:
  *  @param  pfn pointer to the function to bind
  *  @return the Event instance
  */
-Event bind(void (*pfn)()) {
-    return Event(pfn);
-}
+Event bind(void (*pfn)());
 
 /** Binds a method without arguments into an Event
  *  @param  object the method's instance
