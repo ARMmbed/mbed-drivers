@@ -79,6 +79,9 @@ namespace mbed {
  * I have an integer argument: 2
  * I have a string argument: test, my data is: 10
  * @endcode
+ *
+ * The bind function can also be used (outside of the Event class) to bind a function
+ * and its arguments (where applicable) into an Event.
  */
 
 class Event: public FunctionPointerBind<void> {
@@ -140,13 +143,71 @@ public:
     }
 
     /** Creates an event by binding an existent FunctionPointer1 instance
-     *  @param fp the FunctionPointer0 instance
+     *  @param fp the FunctionPointer1 instance
      *  @param arg argument to bind
      */
     template <typename A1>
     Event(FunctionPointer1<void, A1>& fp, A1 arg): FunctionPointerBind<void>(fp.bind(arg)) {
     }
 };
+
+/** Binds a function without arguments into an Event
+ *  @param  pfn pointer to the function to bind
+ *  @return the Event instance
+ */
+Event bind(void (*pfn)()) {
+    return Event(pfn);
+}
+
+/** Binds a method without arguments into an Event
+ *  @param  object the method's instance
+ *  @param  member pointer to the method to bind
+ *  @return the Event instance
+ */
+template <typename T>
+Event bind(T *object, void (T::*member)()) {
+    return Event(object, member);
+}
+
+/** Binds a FunctionPointer0 into an Event
+ *  @param  fp the FunctionPointer0 instance
+ *  @return the Event instance
+ */
+template <typename T>
+Event bind(FunctionPointer0<void>& fp) {
+    return Event(fp);
+}
+
+/** Binds a function with an agrument and a specific argument into an Event
+ *  @param  pfn pointer to the function to bind
+ *  @param  arg argument to bind
+ *  @return the Event instance
+ */
+template<typename A1>
+Event bind(void (*pfn)(A1), A1 arg) {
+    return Event(pfn, arg);
+}
+
+/** Binds a method with an argument and a specific argument into an Event
+ *  @param  object the method's instance
+ *  @param  membter pointer to the method to bind
+ *  @param  arg argument to bind
+ *  @return the Event instanve
+ */
+template <typename T, typename A1>
+Event bind(T *object, void (T::*member)(A1), A1 arg) {
+    return Event(object, member, arg);
+}
+
+/** Binds a FunctionPointer1 and a specific argument into an Event
+ *  @param  fp the FunctionPointer1 instance
+ *  @parm   arg argument to bind
+ *  @return the Event instanve
+ */
+template <typename A1>
+Event bind(FunctionPointer1<void, A1>& fp, A1 arg) {
+    return Event(fp, arg);
+}
 
 } // namespace mbed
 

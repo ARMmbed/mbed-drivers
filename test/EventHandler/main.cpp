@@ -28,7 +28,8 @@ static void call_fp1(const char* name, FunctionPointer1<R, Arg>& fptr, const Arg
     printf("[Direct call] ");
     fptr(arg);
     printf("[Event call]  ");
-    Event(fptr, arg)();
+    Event e = bind(fptr, arg);
+    e();
 }
 
 template<typename R>
@@ -240,11 +241,9 @@ static void test_array_of_events() {
 
     FunctionPointer1<void, const char*> fp1((VBase*)&derived, &VBase::print_virtual_str);
     FunctionPointer0<void> fp2(sa_func_3);
-    FunctionPointer1<void, int> fp3(sa_func_2);
-    FunctionPointer0<void> fp4(&derived, &VDerived::print_virtual_noargs);
-    FunctionPointer1<void, MyArg> fp5(sa_ntc);
-    Event events[] = {fp1.bind(testmsg1), fp1.bind(testmsg2), fp2.bind(), fp3.bind(testint),
-                      fp4.bind(), fp5.bind(arg)};
+    FunctionPointer1<void, MyArg> fp3(sa_ntc);
+    Event events[] = {fp1.bind(testmsg1), fp1.bind(testmsg2), fp2.bind(), bind(sa_func_2, testint),
+                      bind(&derived, &VDerived::print_virtual_noargs), fp3.bind(arg)};
 
     for (unsigned i = 0; i < sizeof(events)/sizeof(events[0]); i ++) {
         events[i].call();
