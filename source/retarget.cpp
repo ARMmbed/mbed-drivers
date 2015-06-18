@@ -19,6 +19,7 @@
 #include "FilePath.h"
 #include "serial_api.h"
 #include "toolchain.h"
+#include "cmsis.h"
 #include <errno.h>
 
 #if defined(__ARMCC_VERSION)
@@ -450,39 +451,21 @@ extern "C" void __iar_argc_argv() {
 }
 #endif
 
-// Provide implementation of _sbrk (low-level dynamic memory allocation
-// routine) for GCC_ARM which compares new heap pointer with MSP instead of
-// SP.  This make it compatible with RTX RTOS thread stacks.
-#if defined(TOOLCHAIN_GCC_ARM)
-// Linker defined symbol used by _sbrk to indicate where heap should start.
-extern "C" int __end__;
-
-// Turn off the errno macro and use actual global variable instead.
-#undef errno
-extern "C" int errno;
-
-// stack pointer handling
-#ifdef  __ICCARM__
-#  define __current_sp() __get_SP()
-#else
-static inline unsigned int __current_sp(void) {
-    register unsigned sp asm("sp");
-    return sp;
-}
-#endif/*__ICCARM__*/
-
-// Dynamic memory allocation related syscall.
-extern "C" caddr_t _sbrk(int incr) {
-    static unsigned char* heap = (unsigned char*)&__end__;
-    unsigned char*        prev_heap = heap;
-    unsigned char*        new_heap = heap + incr;
-
-    if (new_heap >= (unsigned char*)__current_sp()) {
-        errno = ENOMEM;
-        return (caddr_t)-1;
+extern "C" void _exit(int status)
+{
+    (void) status;
+    while(1) {
+        __BKPT(0);
     }
-
-    heap = new_heap;
-    return (caddr_t) prev_heap;
 }
-#endif
+extern "C" int _kill(pid_t pid, int sig)
+{
+    (void) pid;
+    (void) sig;
+    errno = EINVAL;
+    return -1;
+}
+extern "C" pid_t _getpid(void)
+{
+    return 0;
+}
