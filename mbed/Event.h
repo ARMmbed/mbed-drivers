@@ -98,7 +98,7 @@ public:
     }
 
     void call(void *arg) {
-        MBED_ASSERT(has_arg);
+        MBED_ASSERT(_has_arg);
         _call(arg);
     }
 
