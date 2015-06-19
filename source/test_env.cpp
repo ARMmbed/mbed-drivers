@@ -45,17 +45,17 @@ void notify_start()
     printf("{{%s}}" CRNL, TEST_ENV_START);
 }
 
-void notify_performance_coefficient(const char* measurement_name, const int value)
+void notify_performance_coefficient_int(const char* measurement_name, const int value)
 {
     printf("{{%s;%s;%d}}" CRNL, TEST_ENV_MEASURE, measurement_name, value);
 }
 
-void notify_performance_coefficient(const char* measurement_name, const unsigned int value)
+void notify_performance_coefficient_uint(const char* measurement_name, const unsigned int value)
 {
     printf("{{%s;%s;%u}}" CRNL, TEST_ENV_MEASURE, measurement_name, value);
 }
 
-void notify_performance_coefficient(const char* measurement_name, const double value)
+void notify_performance_coefficient_double(const char* measurement_name, const double value)
 {
     printf("{{%s;%s;%f}}" CRNL, TEST_ENV_MEASURE, measurement_name, value);
 }
