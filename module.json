@@ -1,6 +1,6 @@
 {
-  "name": "mbed",
-  "version": "3.0.3",
+  "name": "mbed-core",
+  "version": "0.0.1",
   "description": "mbed SDK",
   "private": true,
   "keywords": [
