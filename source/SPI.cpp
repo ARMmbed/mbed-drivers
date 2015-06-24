@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "SPI.h"
+#include "minar/minar.h"
 
 #if DEVICE_SPI
 
@@ -164,7 +165,7 @@ void SPI::irq_handler_asynch(void)
 {
     int event = spi_irq_handler_asynch(&_spi);
     if (_callback && (event & SPI_EVENT_ALL)) {
-        _callback.call(event & SPI_EVENT_ALL);
+        minar::Scheduler::postCallback(_callback.bind(event & SPI_EVENT_ALL));
     }
 #if TRANSACTION_QUEUE_SIZE_SPI
     if (event & (SPI_EVENT_ALL | SPI_EVENT_INTERNAL_TRANSFER_COMPLETE)) {
