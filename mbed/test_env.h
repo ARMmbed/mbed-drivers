@@ -30,7 +30,7 @@ extern const char* TEST_ENV_FAILURE;
 extern const char* TEST_ENV_MEASURE;
 extern const char* TEST_ENV_END;
 
-#ifndef __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -51,7 +51,7 @@ void notify_test_description(const char *description);
 // Test functionality useful during testing
 unsigned int testenv_randseed();
 
-#ifndef __cplusplus
+#ifdef __cplusplus
 }
 #endif
 
