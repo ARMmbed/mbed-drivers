@@ -1,14 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "mbed/test_env.h"
-
-
-uint32_t SBRK_START;
-uint32_t test_region[1024U];
-uint32_t KRBS_START;
-
-extern "C" void * sbrk(const size_t size);
-extern "C" void * krbs(const size_t size);
+#include "mbed/sbrk.h"
 
 extern volatile void * sbrk_ptr;
 extern volatile uintptr_t sbrk_diff;
@@ -25,11 +18,11 @@ int main()
 
     do {
         uintptr_t ptr;
-        ptr = (uintptr_t) sbrk(TEST_SMALL);
+        ptr = (uintptr_t) _sbrk(TEST_SMALL);
         if (ptr != (uintptr_t) &SBRK_START) {
             break;
         }
-        ptr = (uintptr_t) sbrk(TEST_SMALL);
+        ptr = (uintptr_t) _sbrk(TEST_SMALL);
         if (ptr != (uintptr_t) &SBRK_START + TEST_SMALL) {
             break;
         }
@@ -37,13 +30,13 @@ int main()
         if (ptr != (uintptr_t) &KRBS_START - TEST_SMALL) {
             break;
         }
-        if (sbrk_diff != sizeof(test_region) - 3*TEST_SMALL) {
+        if (sbrk_diff != (ptrdiff_t)&__heap_size - 3*TEST_SMALL) {
             break;
         }
 
         tests_pass = true;
         // Test small increments
-        for (uint i = 0; tests_pass && i < TEST_SMALL; i++) {
+        for (unsigned int i = 0; tests_pass && i < TEST_SMALL; i++) {
             ptr = (uintptr_t) krbs(i);
             if (ptr & (TEST_SMALL - 1)) {
                 tests_pass = false;
@@ -52,8 +45,8 @@ int main()
         if (!tests_pass) {
             break;
         }
-        for (uint i = 0; tests_pass && i < TEST_SMALL; i++) {
-            ptr = (uintptr_t) sbrk(i);
+        for (unsigned int i = 0; tests_pass && i < TEST_SMALL; i++) {
+            ptr = (uintptr_t) _sbrk(i);
             if ((uintptr_t) sbrk_ptr & (TEST_SMALL - 1)) {
                 tests_pass = false;
             }
@@ -64,12 +57,12 @@ int main()
         tests_pass = false;
 
         // Allocate a big block
-        ptr = (uintptr_t) sbrk(sizeof(test_region));
+        ptr = (uintptr_t) _sbrk((ptrdiff_t)&__heap_size);
         if (ptr != (uintptr_t) -1) {
             break;
         }
-        ptr = (uintptr_t) krbs(sizeof(test_region));
-        if (ptr != (uintptr_t) NULL) {
+        ptr = (uintptr_t) krbs((ptrdiff_t)&__heap_size);
+        if (ptr != (uintptr_t) -1) {
             break;
         }
 

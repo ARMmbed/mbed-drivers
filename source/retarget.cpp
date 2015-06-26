@@ -46,6 +46,13 @@
 #   define PREFIX(x)    x
 #endif
 
+#ifndef pid_t
+ typedef int pid_t;
+#endif
+#ifndef caddr_t
+ typedef char * caddr_t;
+#endif
+
 using namespace mbed;
 
 #if defined(__MICROLIB) && (__ARMCC_VERSION>5030000)
@@ -469,6 +476,8 @@ extern "C" pid_t _getpid(void)
 {
     return 0;
 }
+
+
 
 #include "sbrk.h"
 

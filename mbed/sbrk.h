@@ -17,7 +17,36 @@
 #ifndef __MBED_ALLOC_H
 #define __MBED_ALLOC_H
 
-#include <unistd.h>
+#if defined(__ARMCC_VERSION)
+#   include <rt_sys.h>
+#   define PREFIX(x)    _sys##x
+#   define OPEN_MAX     _SYS_OPEN
+#   ifdef __MICROLIB
+#       pragma import(__use_full_stdio)
+#   endif
+
+#elif defined(__ICCARM__)
+#   include <yfuns.h>
+#   define PREFIX(x)        _##x
+#   define OPEN_MAX         16
+
+#   define STDIN_FILENO     0
+#   define STDOUT_FILENO    1
+#   define STDERR_FILENO    2
+
+#else
+#   include <sys/stat.h>
+#   include <sys/unistd.h>
+#   include <sys/syslimits.h>
+#   define PREFIX(x)    x
+#endif
+
+#ifndef pid_t
+ typedef int pid_t;
+#endif
+#ifndef caddr_t
+ typedef char * caddr_t;
+#endif
 
 #ifndef SBRK_ALIGN
 #define SBRK_ALIGN 4U
@@ -46,8 +75,20 @@ extern uint32_t __heap_size;
 // Extract linker heap size parameter
 #define HEAP_SIZE ((ptrdiff_t) &__heap_size)
 #endif
-extern uint32_t KRBS_START;
-extern uint32_t SBRK_START;
+
+#ifdef __ARMCC_VERSION
+	#define SBRK_START (Image$$ARM_LIB_HEAP$$Base)
+	#define KRBS_START (Image$$ARM_LIB_HEAP$$Limit)
+	#define __heap_size (Image$$ARM_LIB_HEAP$$ZI$$Length)
+	extern unsigned int SBRK_START;
+	extern unsigned int KRBS_START;
+	extern unsigned int __heap_size;
+	#pragma import(__use_two_region_memory)
+#else
+
+	extern uint32_t KRBS_START;
+	extern uint32_t SBRK_START;
+#endif
 
 #ifdef __cplusplus
 extern "C" {
