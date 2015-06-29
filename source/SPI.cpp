@@ -38,6 +38,7 @@ SPI::SPI(PinName mosi, PinName miso, PinName sclk, PinName _unused) :
     spi_init(&_spi, mosi, miso, sclk, NC);
     spi_format(&_spi, _bits, _mode, _order, 0);
     spi_frequency(&_spi, _hz);
+    set_tx_fill_word(SPI_FILL_WORD);
 }
 
 void SPI::format(int bits, int mode, spi_bitorder_t order) {
@@ -112,7 +113,7 @@ int SPI::set_dma_usage(DMAUsage usage)
     return  0;
 }
 
-void SPI::set_tx_fill_word(int value)
+void SPI::set_tx_fill_word(uint32_t value)
 {
     spi_set_tx_fill_word(&_spi, value);
 }

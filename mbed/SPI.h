@@ -140,7 +140,7 @@ public:
      *
      *  @param value value to be set
     */
-    void set_tx_fill_word(int value);
+    void set_tx_fill_word(uint32_t value);
 
 protected:
     /** SPI IRQ handler
