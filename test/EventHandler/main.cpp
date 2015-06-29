@@ -24,16 +24,37 @@
 
 template<typename R, typename Arg>
 static void call_fp1(const char* name, FunctionPointer1<R, Arg>& fptr, const Arg& arg) {
-    printf(">>>>>>>> Testing '%s' <<<<<<<<\r\n", name);
+    printf(">>>>>>>> Testing '%s' (one arg) <<<<<<<<\r\n", name);
     printf("[Direct call] ");
     fptr(arg);
     Event e(fptr.bind(arg));
     printf("[Event call]  ");
     e.call();
 }
+
+template<typename R, typename Arg1, typename Arg2>
+static void call_fp2(const char* name, FunctionPointer2<R, Arg1, Arg2>& fptr, const Arg1& arg1, const Arg2& arg2) {
+    printf(">>>>>>>> Testing '%s' (2 args)<<<<<<<<\r\n", name);
+    printf("[Direct call] ");
+    fptr(arg1, arg2);
+    Event e(fptr.bind(arg1, arg2));
+    printf("[Event call]  ");
+    e.call();
+}
+
+template<typename R, typename Arg1, typename Arg2, typename Arg3>
+static void call_fp3(const char* name, FunctionPointer3<R, Arg1, Arg2, Arg3>& fptr, const Arg1& arg1, const Arg2& arg2, const Arg3& arg3) {
+    printf(">>>>>>>> Testing '%s' (3 args) <<<<<<<<\r\n", name);
+    printf("[Direct call] ");
+    fptr(arg1, arg2, arg3);
+    Event e(fptr.bind(arg1, arg2, arg3));
+    printf("[Event call]  ");
+    e.call();
+}
+
 template<typename R>
 static void call_fp0(const char* name, FunctionPointer0<R>& fptr) {
-    printf(">>>>>>>> Testing '%s' <<<<<<<<\r\n", name);
+    printf(">>>>>>>> Testing '%s' (no args) <<<<<<<<\r\n", name);
     printf("[Direct call] ");
     fptr();
     Event e(fptr.bind());
@@ -62,20 +83,27 @@ static void sa_func_3() {
     printf("Calling sa_func_3 (no arguments)\r\n");
 }
 
+static void sa_func_4(int arg1, const char* arg2, double arg3) {
+    printf("Calling sa_func_4 with arg1=%d, arg=%s, arg3=%f\r\n", arg1, arg2, arg3);
+}
+
 static void test_standalone_funcs() {
     printf("\r\n********** Starting test_standalone_funcs **********\r\n");
     const char *testmsg1 = "Test message 1";
     const char *testmsg2 = "Test message 2";
     const int testint1 = 13;
+    const double testdouble = 100.0;
 
     // First call function pointers directly
     FunctionPointer1<void, const char*> fp1(sa_func_1);
     FunctionPointer1<void, int> fp2(sa_func_2);
     FunctionPointer0<void> fp3(sa_func_3);
+    FunctionPointer3<void, int, const char*, double> fp4(sa_func_4);
     call_fp1("ptr to standalone func(char*)", fp1, testmsg1);
     call_fp1("ptr to standalone func(char*)", fp1, testmsg2);
     call_fp1("ptr to standalone func(int)", fp2, testint1);
     call_fp0("ptr to standalone func(void)", fp3);
+    call_fp3("ptr to standalong func(int, const char*, double)", fp4, testint1, testmsg1, testdouble);
 }
 
 /******************************************************************************
@@ -94,8 +122,8 @@ public:
     virtual void print_virtual_noargs() {
         printf("VBase::print_virtual_noargs, _arg=%d\r\n", _arg);
     }
-    void print_non_virtual(const char* msg) {
-        printf("VBase::print_non_virtual, _msg=%s, _arg=%d\r\n", msg, _arg);
+    void print_non_virtual(const char* msg, int farg) {
+        printf("VBase::print_non_virtual, msg=%s, farg=%d, _arg=%d\r\n", msg, farg, _arg);
     }
 protected:
     int _arg;
@@ -123,6 +151,7 @@ static void test_class_funcs_tca() {
     VDerived derived(20, 100);
     const char *testmsg1 = "Test message 1";
     const char *testmsg2 = "Test message 2";
+    const int testint1 = 17;
 
     printf("---- Part 1: test virtual functions\r\n");
     FunctionPointer1<void, const char*> p1_fp1(&base, &VBase::print_virtual_str);
@@ -139,12 +168,12 @@ static void test_class_funcs_tca() {
     call_fp1("ptr to base::print_baseonly", p2_fp1, testmsg1);
     call_fp1("ptr to base::print_baseonly using VDerived instance", p2_fp2, testmsg1);
     printf("---- Part 3: call non-virtual function from base and derived\r\n");
-    FunctionPointer1<void, const char*> p3_fp1(&base, &VBase::print_non_virtual);
+    FunctionPointer2<void, const char*, int> p3_fp1(&base, &VBase::print_non_virtual);
     FunctionPointer1<void, const char*> p3_fp2(&derived, &VDerived::print_non_virtual);
-    FunctionPointer1<void, const char*> p3_fp3((VBase*)&derived, &VBase::print_non_virtual);
-    call_fp1("ptr to base::print_non_virtual", p3_fp1, testmsg1);
+    FunctionPointer2<void, const char*, int> p3_fp3((VBase*)&derived, &VBase::print_non_virtual);
+    call_fp2("ptr to base::print_non_virtual", p3_fp1, testmsg1, testint1);
     call_fp1("ptr to derived::print_non_virtual", p3_fp2, testmsg2);
-    call_fp1("ptr to base::print_non_virtual via Derived* pointer", p3_fp3, testmsg2);
+    call_fp2("ptr to base::print_non_virtual via Derived* pointer", p3_fp3, testmsg2, testint1);
 }
 
 /******************************************************************************
