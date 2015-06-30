@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "I2C.h"
+#include "minar/minar.h"
 
 #if DEVICE_I2C
 
@@ -115,7 +116,7 @@ void I2C::irq_handler_asynch(void)
 {
     int event = i2c_irq_handler_asynch(&_i2c);
     if (_callback && event) {
-        _callback.call(event);
+        minar::Scheduler::postCallback(_callback.bind(event));
     }
 
 }

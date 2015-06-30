@@ -15,6 +15,7 @@
  */
 #include "SerialBase.h"
 #include "wait_api.h"
+#include "minar/minar.h"
 
 #if DEVICE_SERIAL
 
@@ -196,12 +197,12 @@ void SerialBase::interrupt_handler_asynch(void)
     int event = serial_irq_handler_asynch(&_serial);
     int rx_event = event & SERIAL_EVENT_RX_MASK;
     if (_rx_callback && rx_event) {
-        _rx_callback.call(rx_event);
+        minar::Scheduler::postCallback(_rx_callback.bind(rx_event));
     }
 
     int tx_event = event & SERIAL_EVENT_TX_MASK;
     if (_tx_callback && tx_event) {
-        _tx_callback.call(tx_event);
+        minar::Scheduler::postCallback(_tx_callback.bind(tx_event));
     }
 }
 
