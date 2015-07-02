@@ -18,11 +18,11 @@ int main()
 
     do {
         uintptr_t ptr;
-        ptr = (uintptr_t) _sbrk(TEST_SMALL);
+        ptr = (uintptr_t) sbrk(TEST_SMALL);
         if (ptr != (uintptr_t) &SBRK_START) {
             break;
         }
-        ptr = (uintptr_t) _sbrk(TEST_SMALL);
+        ptr = (uintptr_t) sbrk(TEST_SMALL);
         if (ptr != (uintptr_t) &SBRK_START + TEST_SMALL) {
             break;
         }
@@ -46,7 +46,7 @@ int main()
             break;
         }
         for (unsigned int i = 0; tests_pass && i < TEST_SMALL; i++) {
-            ptr = (uintptr_t) _sbrk(i);
+            ptr = (uintptr_t) sbrk(i);
             if ((uintptr_t) sbrk_ptr & (TEST_SMALL - 1)) {
                 tests_pass = false;
             }
@@ -57,7 +57,7 @@ int main()
         tests_pass = false;
 
         // Allocate a big block
-        ptr = (uintptr_t) _sbrk((ptrdiff_t)&__heap_size);
+        ptr = (uintptr_t) sbrk((ptrdiff_t)&__heap_size);
         if (ptr != (uintptr_t) -1) {
             break;
         }

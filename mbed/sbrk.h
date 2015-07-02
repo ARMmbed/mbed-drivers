@@ -93,7 +93,7 @@ extern uint32_t __heap_size;
 #ifdef __cplusplus
 extern "C" {
 #endif
-caddr_t _sbrk(const ptrdiff_t size);
+caddr_t sbrk(const ptrdiff_t size);
 void * krbs(const ptrdiff_t size);
 void * krbs_ex(const ptrdiff_t size, ptrdiff_t *actual);
 #ifdef __cplusplus

@@ -485,7 +485,7 @@ volatile void * krbs_ptr = &KRBS_START;
 volatile void * sbrk_ptr = &SBRK_START;
 volatile ptrdiff_t sbrk_diff = HEAP_SIZE;
 
-caddr_t _sbrk(const ptrdiff_t size)
+caddr_t sbrk(const ptrdiff_t size)
 {
     uintptr_t sbrk_tmp = (uintptr_t)NULL;
     size_t size_internal = size;
