@@ -501,6 +501,7 @@ void * sbrk(ptrdiff_t size)
     while(1) {
         uintptr_t ptr_diff = __LDREXW((uint32_t *)&sbrk_diff);
         if (size_internal > ptr_diff) {
+            __CLREX();
             return (caddr_t)-1;
         }
         ptr_diff -= size_internal;
@@ -546,6 +547,7 @@ void * krbs_ex(const ptrdiff_t size, ptrdiff_t *actual)
     while(1) {
         uintptr_t ptr_diff = __LDREXW((uint32_t *)&sbrk_diff);
         if (size_internal > ptr_diff && actual == NULL) {
+            __CLREX();
             return (caddr_t)-1;
         }
         ptr_diff -= size_internal;
