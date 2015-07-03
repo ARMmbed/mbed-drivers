@@ -3,7 +3,7 @@
 #include "mbed/test_env.h"
 #include "mbed/sbrk.h"
 
-extern volatile void * sbrk_ptr;
+extern void * volatile sbrk_ptr;
 extern volatile uintptr_t sbrk_diff;
 
 #define TEST_SMALL sizeof(uint32_t)
@@ -17,20 +17,21 @@ int main()
     bool tests_pass = false;
 
     do {
+        uintptr_t init_sbrk_ptr = (uintptr_t)sbrk_ptr;
         uintptr_t ptr;
         ptr = (uintptr_t) sbrk(TEST_SMALL);
-        if (ptr != (uintptr_t) &SBRK_START) {
+        if (ptr != (uintptr_t) init_sbrk_ptr) {
             break;
         }
         ptr = (uintptr_t) sbrk(TEST_SMALL);
-        if (ptr != (uintptr_t) &SBRK_START + TEST_SMALL) {
+        if (ptr != init_sbrk_ptr + TEST_SMALL) {
             break;
         }
         ptr = (uintptr_t) krbs(TEST_SMALL);
         if (ptr != (uintptr_t) &KRBS_START - TEST_SMALL) {
             break;
         }
-        if (sbrk_diff != (ptrdiff_t)&__heap_size - 3*TEST_SMALL) {
+        if (sbrk_diff != (ptrdiff_t)&__heap_size - 3*TEST_SMALL - (init_sbrk_ptr - (uintptr_t)&SBRK_START)) {
             break;
         }
 

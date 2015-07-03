@@ -481,8 +481,8 @@ extern "C" pid_t _getpid(void)
 
 #include "sbrk.h"
 
-volatile void * krbs_ptr = &KRBS_START;
-volatile void * sbrk_ptr = &SBRK_START;
+void * volatile krbs_ptr = &KRBS_START;
+void * volatile sbrk_ptr = &SBRK_START;
 volatile ptrdiff_t sbrk_diff = HEAP_SIZE;
 
 void * sbrk(ptrdiff_t size)
