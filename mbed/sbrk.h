@@ -68,32 +68,31 @@
 #define KRBS_INC_MIN (KRBS_ALIGN)
 #endif
 
-#ifndef HEAP_SIZE
+#ifndef MBED_HEAP_SIZE
 extern uint32_t __heap_size;
 // Extract linker heap size parameter
-#define HEAP_SIZE ((ptrdiff_t) &__heap_size)
+#define MBED_HEAP_SIZE ((ptrdiff_t) &__heap_size)
 #endif
 
 #ifdef __ARMCC_VERSION
-	#define SBRK_START (Image$$ARM_LIB_HEAP$$Base)
-	#define KRBS_START (Image$$ARM_LIB_HEAP$$Limit)
+	#define __mbed_sbrk_start (Image$$ARM_LIB_HEAP$$Base)
+	#define __mbed_krbs_start (Image$$ARM_LIB_HEAP$$Limit)
 	#define __heap_size (Image$$ARM_LIB_HEAP$$ZI$$Length)
-	extern unsigned int SBRK_START;
-	extern unsigned int KRBS_START;
+	extern unsigned int __mbed_sbrk_start;
+	extern unsigned int __mbed_krbs_start;
 	extern unsigned int __heap_size;
 	#pragma import(__use_two_region_memory)
 #else
-
-	extern uint32_t KRBS_START;
-	extern uint32_t SBRK_START;
+	extern uint32_t __mbed_krbs_start;
+	extern uint32_t __mbed_sbrk_start;
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-void * sbrk(ptrdiff_t size);
-void * krbs(const ptrdiff_t size);
-void * krbs_ex(const ptrdiff_t size, ptrdiff_t *actual);
+void * mbed_sbrk(ptrdiff_t size);
+void * mbed_krbs(const ptrdiff_t size);
+void * mbed_krbs_ex(const ptrdiff_t size, ptrdiff_t *actual);
 #ifdef __cplusplus
 }
 #endif

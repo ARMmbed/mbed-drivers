@@ -477,20 +477,18 @@ extern "C" pid_t _getpid(void)
     return 0;
 }
 
+#include "mbed/sbrk.h"
 
+void * volatile mbed_krbs_ptr = &__mbed_krbs_start;
+void * volatile mbed_sbrk_ptr = &__mbed_sbrk_start;
+volatile ptrdiff_t mbed_sbrk_diff = MBED_HEAP_SIZE;
 
-#include "sbrk.h"
-
-void * volatile krbs_ptr = &KRBS_START;
-void * volatile sbrk_ptr = &SBRK_START;
-volatile ptrdiff_t sbrk_diff = HEAP_SIZE;
-
-void * sbrk(ptrdiff_t size)
+void * mbed_sbrk(ptrdiff_t size)
 {
     uintptr_t sbrk_tmp = (uintptr_t)NULL;
-    size_t size_internal = size;
+    ptrdiff_t size_internal = size;
     if (size == 0) {
-        return (caddr_t) sbrk_ptr;
+        return (void *) mbed_sbrk_ptr;
     }
     // Guarantee minimum allocation size
     if (size_internal < SBRK_INC_MIN) {
@@ -499,44 +497,48 @@ void * sbrk(ptrdiff_t size)
     size_internal = ( size_internal + SBRK_ALIGN - 1) & ~(SBRK_ALIGN - 1);
 
     while(1) {
-        uintptr_t ptr_diff = __LDREXW((uint32_t *)&sbrk_diff);
+        ptrdiff_t ptr_diff = __LDREXW((uint32_t *)&mbed_sbrk_diff);
         if (size_internal > ptr_diff) {
             __CLREX();
-            return (caddr_t)-1;
+            return (void *) -1;
         }
         ptr_diff -= size_internal;
-        if (__STREXW(ptr_diff, (uint32_t *)&sbrk_diff))
+        if (__STREXW(ptr_diff, (uint32_t *)&mbed_sbrk_diff))
             continue;
         break;
     }
 
     while (1) {
-        sbrk_tmp = __LDREXW((uint32_t *)&sbrk_ptr);
+        sbrk_tmp = __LDREXW((uint32_t *)&mbed_sbrk_ptr);
         // store the base pointer for the allocated memory
         const uintptr_t sbrk_old = sbrk_tmp;
         // Calculate the new krbs pointer
         sbrk_tmp += size_internal;
         // Guarantee krbs alignment alignment
-        if(__STREXW(sbrk_tmp, (uint32_t *)&sbrk_ptr))
+        if(__STREXW(sbrk_tmp, (uint32_t *)&mbed_sbrk_ptr))
             continue;
         // restore the base pointer of the allocated memory
         sbrk_tmp = sbrk_old;
         break;
     }
-    return (caddr_t) sbrk_tmp;
+    return (void *) sbrk_tmp;
 }
 
-void * krbs(const ptrdiff_t size)
+void * mbed_krbs(const ptrdiff_t size)
 {
-    return krbs_ex(size, NULL);
+    return mbed_krbs_ex(size, NULL);
 }
 
-void * krbs_ex(const ptrdiff_t size, ptrdiff_t *actual)
+void * mbed_krbs_ex(const ptrdiff_t size, ptrdiff_t *actual)
 {
     uintptr_t krbs_tmp = (uintptr_t)NULL;
-    size_t size_internal = size;
+    ptrdiff_t size_internal = size;
     if (size == 0) {
-        return (caddr_t) krbs_ptr;
+        return (void *) mbed_krbs_ptr;
+    }
+    // krbs does not support deallocation.
+    if (size < 0) {
+        return (void *) -1;
     }
     // Guarantee minimum allocation size
     if (size_internal < KRBS_INC_MIN) {
@@ -545,25 +547,25 @@ void * krbs_ex(const ptrdiff_t size, ptrdiff_t *actual)
     size_internal = (size_internal + KRBS_ALIGN - 1) & ~(KRBS_ALIGN - 1);
 
     while(1) {
-        uintptr_t ptr_diff = __LDREXW((uint32_t *)&sbrk_diff);
+        ptrdiff_t ptr_diff = __LDREXW((uint32_t *)&mbed_sbrk_diff);
         if (size_internal > ptr_diff && actual == NULL) {
             __CLREX();
-            return (caddr_t)-1;
+            return (void *) -1;
         }
         ptr_diff -= size_internal;
-        if (__STREXW(ptr_diff, (uint32_t *)&sbrk_diff))
+        if (__STREXW(ptr_diff, (uint32_t *)&mbed_sbrk_diff))
             continue;
         break;
     }
 
     while (1) {
-        krbs_tmp = __LDREXW((uint32_t *)&krbs_ptr);
+        krbs_tmp = __LDREXW((uint32_t *)&mbed_krbs_ptr);
         // Calculate the new krbs pointer
         krbs_tmp -= size_internal;
         // Guarantee krbs alignment alignment
-        if(__STREXW(krbs_tmp, (uint32_t *)&krbs_ptr))
+        if(__STREXW(krbs_tmp, (uint32_t *)&mbed_krbs_ptr))
             continue;
         break;
     }
-    return (caddr_t) krbs_tmp;
+    return (void *) krbs_tmp;
 }
