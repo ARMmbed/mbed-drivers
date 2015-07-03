@@ -24,6 +24,7 @@
   "dependencies": {
     "mbed-hal": "~0.2.0",
     "cmsis-core": "~0.2.0",
+    "mbed-alloc" : "~0.0.0",
     "minar": "~0.1.3"
   },
   "targetDependencies": {},

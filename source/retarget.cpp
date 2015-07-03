@@ -19,6 +19,7 @@
 #include "FilePath.h"
 #include "serial_api.h"
 #include "toolchain.h"
+#include "cmsis.h"
 #include <errno.h>
 
 #if defined(__ARMCC_VERSION)
@@ -43,6 +44,13 @@
 #   include <sys/unistd.h>
 #   include <sys/syslimits.h>
 #   define PREFIX(x)    x
+#endif
+
+#ifndef pid_t
+ typedef int pid_t;
+#endif
+#ifndef caddr_t
+ typedef char * caddr_t;
 #endif
 
 using namespace mbed;
@@ -450,39 +458,114 @@ extern "C" void __iar_argc_argv() {
 }
 #endif
 
-// Provide implementation of _sbrk (low-level dynamic memory allocation
-// routine) for GCC_ARM which compares new heap pointer with MSP instead of
-// SP.  This make it compatible with RTX RTOS thread stacks.
-#if defined(TOOLCHAIN_GCC_ARM)
-// Linker defined symbol used by _sbrk to indicate where heap should start.
-extern "C" int __end__;
-
-// Turn off the errno macro and use actual global variable instead.
-#undef errno
-extern "C" int errno;
-
-// stack pointer handling
-#ifdef  __ICCARM__
-#  define __current_sp() __get_SP()
-#else
-static inline unsigned int __current_sp(void) {
-    register unsigned sp asm("sp");
-    return sp;
+extern "C" void _exit(int status)
+{
+    (void) status;
+    while(1) {
+        __BKPT(0);
+    }
 }
-#endif/*__ICCARM__*/
+extern "C" int _kill(pid_t pid, int sig)
+{
+    (void) pid;
+    (void) sig;
+    errno = EINVAL;
+    return -1;
+}
+extern "C" pid_t _getpid(void)
+{
+    return 0;
+}
 
-// Dynamic memory allocation related syscall.
-extern "C" caddr_t _sbrk(int incr) {
-    static unsigned char* heap = (unsigned char*)&__end__;
-    unsigned char*        prev_heap = heap;
-    unsigned char*        new_heap = heap + incr;
+#include "mbed/sbrk.h"
 
-    if (new_heap >= (unsigned char*)__current_sp()) {
-        errno = ENOMEM;
-        return (caddr_t)-1;
+void * volatile mbed_krbs_ptr = &__mbed_krbs_start;
+void * volatile mbed_sbrk_ptr = &__mbed_sbrk_start;
+volatile ptrdiff_t mbed_sbrk_diff = MBED_HEAP_SIZE;
+
+void * mbed_sbrk(ptrdiff_t size)
+{
+    uintptr_t sbrk_tmp = (uintptr_t)NULL;
+    ptrdiff_t size_internal = size;
+    if (size == 0) {
+        return (void *) mbed_sbrk_ptr;
+    }
+    // Guarantee minimum allocation size
+    if (size_internal < SBRK_INC_MIN) {
+        size_internal = SBRK_INC_MIN;
+    }
+    size_internal = ( size_internal + SBRK_ALIGN - 1) & ~(SBRK_ALIGN - 1);
+
+    while(1) {
+        ptrdiff_t ptr_diff = __LDREXW((uint32_t *)&mbed_sbrk_diff);
+        if (size_internal > ptr_diff) {
+            __CLREX();
+            return (void *) -1;
+        }
+        ptr_diff -= size_internal;
+        if (__STREXW(ptr_diff, (uint32_t *)&mbed_sbrk_diff))
+            continue;
+        break;
     }
 
-    heap = new_heap;
-    return (caddr_t) prev_heap;
+    while (1) {
+        sbrk_tmp = __LDREXW((uint32_t *)&mbed_sbrk_ptr);
+        // store the base pointer for the allocated memory
+        const uintptr_t sbrk_old = sbrk_tmp;
+        // Calculate the new krbs pointer
+        sbrk_tmp += size_internal;
+        // Guarantee krbs alignment alignment
+        if(__STREXW(sbrk_tmp, (uint32_t *)&mbed_sbrk_ptr))
+            continue;
+        // restore the base pointer of the allocated memory
+        sbrk_tmp = sbrk_old;
+        break;
+    }
+    return (void *) sbrk_tmp;
 }
-#endif
+
+void * mbed_krbs(const ptrdiff_t size)
+{
+    return mbed_krbs_ex(size, NULL);
+}
+
+void * mbed_krbs_ex(const ptrdiff_t size, ptrdiff_t *actual)
+{
+    uintptr_t krbs_tmp = (uintptr_t)NULL;
+    ptrdiff_t size_internal = size;
+    if (size == 0) {
+        return (void *) mbed_krbs_ptr;
+    }
+    // krbs does not support deallocation.
+    if (size < 0) {
+        return (void *) -1;
+    }
+    // Guarantee minimum allocation size
+    if (size_internal < KRBS_INC_MIN) {
+        size_internal = KRBS_INC_MIN;
+    }
+    size_internal = (size_internal + KRBS_ALIGN - 1) & ~(KRBS_ALIGN - 1);
+
+    while(1) {
+        ptrdiff_t ptr_diff = __LDREXW((uint32_t *)&mbed_sbrk_diff);
+        if (size_internal > ptr_diff && actual == NULL) {
+            __CLREX();
+            return (void *) -1;
+        }
+        ptr_diff -= size_internal;
+        if (__STREXW(ptr_diff, (uint32_t *)&mbed_sbrk_diff))
+            continue;
+        break;
+    }
+
+    while (1) {
+        krbs_tmp = __LDREXW((uint32_t *)&mbed_krbs_ptr);
+        // Calculate the new krbs pointer
+        krbs_tmp -= size_internal;
+        // Guarantee krbs alignment alignment
+        if(__STREXW(krbs_tmp, (uint32_t *)&mbed_krbs_ptr))
+            continue;
+        break;
+    }
+    return (void *) krbs_tmp;
+}
