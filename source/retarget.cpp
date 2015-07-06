@@ -490,11 +490,13 @@ void * mbed_sbrk(ptrdiff_t size)
     if (size == 0) {
         return (void *) mbed_sbrk_ptr;
     }
-    // Guarantee minimum allocation size
-    if (size_internal < SBRK_INC_MIN) {
-        size_internal = SBRK_INC_MIN;
+    // Minimum increment only applies to positive sbrks
+    if (size_internal > 0) {
+        if ((uintptr_t)size_internal < SBRK_INC_MIN) {
+                size_internal = SBRK_INC_MIN;
+        }
+        size_internal = ( size_internal + SBRK_ALIGN - 1) & ~(SBRK_ALIGN - 1);
     }
-    size_internal = ( size_internal + SBRK_ALIGN - 1) & ~(SBRK_ALIGN - 1);
 
     while(1) {
         ptrdiff_t ptr_diff = __LDREXW((uint32_t *)&mbed_sbrk_diff);
@@ -532,7 +534,7 @@ void * mbed_krbs(const ptrdiff_t size)
 void * mbed_krbs_ex(const ptrdiff_t size, ptrdiff_t *actual)
 {
     uintptr_t krbs_tmp = (uintptr_t)NULL;
-    ptrdiff_t size_internal = size;
+    uintptr_t size_internal = 0;
     if (size == 0) {
         return (void *) mbed_krbs_ptr;
     }
@@ -540,6 +542,7 @@ void * mbed_krbs_ex(const ptrdiff_t size, ptrdiff_t *actual)
     if (size < 0) {
         return (void *) -1;
     }
+    size_internal = (uintptr_t) size;
     // Guarantee minimum allocation size
     if (size_internal < KRBS_INC_MIN) {
         size_internal = KRBS_INC_MIN;
@@ -548,7 +551,7 @@ void * mbed_krbs_ex(const ptrdiff_t size, ptrdiff_t *actual)
 
     while(1) {
         ptrdiff_t ptr_diff = __LDREXW((uint32_t *)&mbed_sbrk_diff);
-        if (size_internal > ptr_diff && actual == NULL) {
+        if ((ptr_diff < 0) || (size_internal > (uintptr_t)ptr_diff && actual == NULL)) {
             __CLREX();
             return (void *) -1;
         }
