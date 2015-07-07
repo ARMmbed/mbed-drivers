@@ -21,10 +21,6 @@
 
 #if DEVICE_SPI_ASYNCH
 
-#if !DEVICE_SPI
-#error spi_master_asynch requires SPI
-#endif
-
 #define SHORT_XFR 3
 #define LONG_XFR 16
 #define TEST_BYTE0 0x00
