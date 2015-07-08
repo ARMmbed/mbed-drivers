@@ -19,9 +19,7 @@
 #include "minar/minar.h"
 #include "Event.h"
 
-#if !DEVICE_SPI
-#error spi_master_asynch requires SPI
-#endif
+#if DEVICE_SPI_ASYNCH
 
 #define SHORT_XFR 3
 #define LONG_XFR 16
@@ -110,3 +108,8 @@ int main() {
     return Scheduler::start();
 }
 
+#else
+int main() {
+    return 1;
+}
+#endif
