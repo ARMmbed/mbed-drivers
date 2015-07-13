@@ -50,6 +50,13 @@ void notify_test_description(const char *description);
 #define MBED_HOSTTEST_TIMEOUT(SECONDS)   notify_timeout(SECONDS)
 #define MBED_HOSTTEST_DESCRIPTION(DESC)  notify_test_description(#DESC)
 #define MBED_HOSTTEST_RESULT(RESULT)     notify_completion(RESULT)
+#define MBED_HOSTTEST_ASSERT(cond)       \
+    do {                                 \
+        if (!(cond)) {                   \
+            printf("HOSTTEST ASSERTION FAILED: '%s' in %s, line %d\r\n", #cond, __FILE__, __LINE__); \
+            notify_completion(false);    \
+        }                                \
+    } while(false)
 
 /**
     Test auto-detection preamble example:
