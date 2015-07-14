@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 #define MBED_PWMOUT_H
 
 #include "platform.h"
-
-#if DEVICE_PWMOUT
 #include "pwmout_api.h"
 
 namespace mbed {
@@ -62,6 +60,10 @@ public:
         pwmout_init(&_pwm, pin);
     }
 
+    virtual ~PwmOut() {
+        pwmout_deinit(&_pwm);
+    }
+
     /** Set the ouput duty-cycle, specified as a percentage (float)
      *
      *  @param value A floating-point value representing the output duty-cycle,
@@ -94,13 +96,13 @@ public:
      *   will be set to zero.
      */
     void period(float seconds) {
-        pwmout_period(&_pwm, seconds);
+        period_us(seconds*1000000.0f);
     }
 
     /** Set the PWM period, specified in milli-seconds (int), keeping the duty cycle the same.
      */
     void period_ms(int ms) {
-        pwmout_period_ms(&_pwm, ms);
+        period_us(ms*1000));
     }
 
     /** Set the PWM period, specified in micro-seconds (int), keeping the duty cycle the same.
@@ -112,13 +114,13 @@ public:
     /** Set the PWM pulsewidth, specified in seconds (float), keeping the period the same.
      */
     void pulsewidth(float seconds) {
-        pwmout_pulsewidth(&_pwm, seconds);
+        pulsewidth_us(seconds*1000000.0f);
     }
 
     /** Set the PWM pulsewidth, specified in milli-seconds (int), keeping the period the same.
      */
     void pulsewidth_ms(int ms) {
-        pwmout_pulsewidth_ms(&_pwm, ms);
+        pulsewidth_us(ms*1000);
     }
 
     /** Set the PWM pulsewidth, specified in micro-seconds (int), keeping the period the same.
@@ -127,7 +129,6 @@ public:
         pwmout_pulsewidth_us(&_pwm, us);
     }
 
-#ifdef MBED_OPERATORS
     /** A operator shorthand for write()
      */
     PwmOut& operator= (float value) {
@@ -145,14 +146,11 @@ public:
     operator float() {
         return read();
     }
-#endif
 
 protected:
     pwmout_t _pwm;
 };
 
 } // namespace mbed
-
-#endif
 
 #endif
