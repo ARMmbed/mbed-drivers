@@ -41,7 +41,7 @@ public:
         gpio_init_in_ex(&_gpio, pin, mode);
     }
 
-    ~DigitalIn() {
+    virtual ~DigitalIn() {
         gpio_deinit(&_gpio);
     }
 
