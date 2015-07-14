@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2013-2014 ARM Limited
+ * Copyright (c) 2013-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,8 +136,9 @@ private:
         bool change = must_replace_vector(irq);
 
         pFunctionPointer_t pf = front ? _chains[irq_pos]->add_front(tptr, mptr) : _chains[irq_pos]->add(tptr, mptr);
-        if (change)
+        if (change) {
             NVIC_SetVector(irq, (uint32_t)&InterruptManager::static_irq_helper);
+        }
         return pf;
     }
 
