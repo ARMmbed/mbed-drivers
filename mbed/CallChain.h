@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 #define MBED_CALLCHAIN_H
 
 #include "FunctionPointer.h"
-#include <string.h>
 
 namespace mbed {
 
@@ -57,7 +56,7 @@ namespace mbed {
  * @endcode
  */
 
-typedef FunctionPointer* pFunctionPointer_t;
+typedef FunctionPointer0* pFunctionPointer_t;
 
 class CallChain {
 public:
@@ -87,7 +86,7 @@ public:
      */
     template<typename T>
     pFunctionPointer_t add(T *tptr, void (T::*mptr)(void)) {
-        return common_add(new FunctionPointer(tptr, mptr));
+        return common_add(new FunctionPointer0(tptr, mptr));
     }
 
     /** Add a function at the beginning of the chain
@@ -109,7 +108,7 @@ public:
      */
     template<typename T>
     pFunctionPointer_t add_front(T *tptr, void (T::*mptr)(void)) {
-        return common_add_front(new FunctionPointer(tptr, mptr));
+        return common_add_front(new FunctionPointer0(tptr, mptr));
     }
 
     /** Get the number of functions in the chain
@@ -151,14 +150,12 @@ public:
      */
     void call();
 
-#ifdef MBED_OPERATORS
     void operator ()(void) {
         call();
     }
     pFunctionPointer_t operator [](int i) const {
         return get(i);
     }
-#endif
 
 private:
     void _check_size();
