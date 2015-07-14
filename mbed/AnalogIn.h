@@ -27,7 +27,9 @@
 //     AnalogIn adc(A0);
 //     adc.enable();
 //     adc.read(buffer, samples, &onDone);
-//     while(!done);
+//     while(!done) {
+//         sleep();
+//     }
 //     adc.normalize(buffer, samples);
 //     // user code
 //     processData(buffer, samples);
