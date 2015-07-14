@@ -19,22 +19,20 @@
 #include "platform.h"
 #include "analogin_api.h"
 
-// Example:
-// int main()
-// {
-//     uint32_t buffer[64];
-//     const uint32_t samples = sizeof(buffer);
-//     AnalogIn adc(A0);
-//     adc.enable();
-//     adc.read(buffer, samples, &onDone);
-//     while(!done) {
-//         sleep();
-//     }
-//     adc.normalize(buffer, samples);
-//     // user code
-//     processData(buffer, samples);
-//     adc.disable();
-// }
+Example:
+int main()
+{
+    uint32_t buffer[64];
+    const uint32_t samples = sizeof(buffer);
+    AnalogIn adc(A0);
+    adc.enable();
+    adc.read(buffer, samples, &onDone);
+    while(!done) { sleep(); }
+    adc.normalize(buffer, samples);
+    // user code
+    processData(buffer, samples);
+    adc.disable();
+}
 
 namespace mbed {
 
@@ -67,7 +65,7 @@ public:
     void read_block(T *buffer, uint32_t amt, FunctionPointer0 userHandler = NULL) {
         if (NULL == userHandler) {
             analogin_read_block(&_adc, buffer, amt, sizeof(buffer), defaultHandler);
-            while(!done);
+            while(!done) { sleep(); }
         } else {
             analogin_read_block(&_adc, buffer, amt, sizeof(buffer), userHandler);
         }
@@ -75,13 +73,13 @@ public:
 
     template <typename T>
     T read(T &value) {
-        analogin_read_block(&_adc, value, 1, sizeof(value), defaultHandler);
+        read_block(value, 1, sizeof(value));
         return value;
     }
 
     operator int() {
         uint32_t tmp;
-        return read(tmp);
+        return read_block(tmp, 1, sizeof(tmp));
     }
 
     template <typename T>
