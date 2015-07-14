@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 #define MBED_DIGITALINOUT_H
 
 #include "platform.h"
-
 #include "gpio_api.h"
 
 namespace mbed {
@@ -31,8 +30,8 @@ public:
      *
      *  @param pin DigitalInOut pin to connect to
      */
-    DigitalInOut(PinName pin) : gpio() {
-        gpio_init_in(&gpio, pin);
+    DigitalInOut(PinName pin) : _gpio() {
+        gpio_init_in(&_gpio, pin);
     }
 
     /** Create a DigitalInOut connected to the specified pin
@@ -42,8 +41,12 @@ public:
      *  @param mode the initial mode of the pin
      *  @param value the initial value of the pin if is an output
      */
-    DigitalInOut(PinName pin, PinDirection direction, PinMode mode, int value) : gpio() {
-        gpio_init_inout(&gpio, pin, direction, mode, value);
+    DigitalInOut(PinName pin, PinDirection direction, PinMode mode, int value) : _gpio() {
+        gpio_init_inout(&_gpio, pin, direction, mode, value);
+    }
+
+    virtual ~DigitalInOut() {
+        gpio_deinit(&_gpio);
     }
 
     /** Set the output, specified as 0 or 1 (int)
@@ -52,7 +55,7 @@ public:
      *      0 for logical 0, 1 (or any other non-zero value) for logical 1
      */
     void write(int value) {
-        gpio_write(&gpio, value);
+        gpio_write(&_gpio, value);
     }
 
     /** Return the output setting, represented as 0 or 1 (int)
@@ -62,19 +65,19 @@ public:
      *    or read the input if set as an input
      */
     int read() {
-        return gpio_read(&gpio);
+        return gpio_read(&_gpio);
     }
 
     /** Set as an output
      */
     void output() {
-        gpio_dir(&gpio, PIN_OUTPUT);
+        gpio_dir(&_gpio, PIN_OUTPUT);
     }
 
     /** Set as an input
      */
     void input() {
-        gpio_dir(&gpio, PIN_INPUT);
+        gpio_dir(&_gpio, PIN_INPUT);
     }
 
     /** Set the input pin mode
@@ -82,10 +85,9 @@ public:
      *  @param mode PullUp, PullDown, PullNone, OpenDrain
      */
     void mode(PinMode pull) {
-        gpio_mode(&gpio, pull);
+        gpio_mode(&_gpio, pull);
     }
 
-#ifdef MBED_OPERATORS
     /** A shorthand for write()
      */
     DigitalInOut& operator= (int value) {
@@ -103,10 +105,9 @@ public:
     operator int() {
         return read();
     }
-#endif
 
 protected:
-    gpio_t gpio;
+    gpio_t _gpio;
 };
 
 } // namespace mbed
