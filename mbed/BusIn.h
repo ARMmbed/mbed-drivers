@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 #ifndef MBED_BUSIN_H
 #define MBED_BUSIN_H
 
-#include "platform.h"
 #include "DigitalIn.h"
 
 namespace mbed {
@@ -30,7 +29,7 @@ public:
 
     /** Create an BusIn, connected to the specified pins
      *
-     * @param <n> DigitalIn pin to connect to bus bit <n> (p5-p30, NC)
+     * @param <n> DigitalIn pin to connect to bus bit <n>
      *
      * @note
      *  It is only required to specify as many pin variables as is required
@@ -58,11 +57,7 @@ public:
      */
     void mode(PinMode pull);
 
-#ifdef MBED_OPERATORS
-    /** A shorthand for read()
-     */
     operator int();
-#endif
 
 protected:
     DigitalIn* _pin[16];
