@@ -47,7 +47,7 @@ public:
         analogout_init(&_dac, pin);
     }
 
-    ~AnalogOut() {
+    virtual ~AnalogOut() {
         disable();
         analogout_deinit();
     }

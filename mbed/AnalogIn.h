@@ -48,7 +48,7 @@ public:
         analogin_init(&_adc, pin);
     }
 
-    ~AnalogIn() {
+    virtual ~AnalogIn() {
         disable();
         analogin_deinit(&_adc, pin);
     }
