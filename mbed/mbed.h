@@ -16,8 +16,6 @@
 #ifndef MBED_H
 #define MBED_H
 
-#define MBED_LIBRARY_VERSION 91
-
 #include "platform.h"
 #include "toolchain.h"
 
@@ -45,18 +43,13 @@
 #include "PwmOut.h"
 #include "Serial.h"
 #include "SPI.h"
-#include "SPISlave.h"
 #include "I2C.h"
-#include "I2CSlave.h"
-#include "Ethernet.h"
-#include "CAN.h"
 #include "RawSerial.h"
 
 // mbed Internal components
 #include "Timer.h"
 #include "Ticker.h"
 #include "Timeout.h"
-#include "LocalFileSystem.h"
 #include "InterruptIn.h"
 #include "wait_api.h"
 #include "sleep_api.h"
