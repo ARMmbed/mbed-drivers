@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 #ifndef MBED_PLATFORM_H
 #define MBED_PLATFORM_H
 
-#define MBED_OPERATORS    1
-
+// All found in mbed-c-hal module
 #include "device.h"
 #include "PinNames.h"
 #include "PeripheralNames.h"
 
+// std-lib stuff
 #include <cstddef>
 #include <cstdlib>
 #include <cstdio>
