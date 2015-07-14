@@ -18,7 +18,6 @@
 
 #include "cmsis.h"
 #include "CallChain.h"
-#include <string.h>
 
 namespace mbed {
 
