@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,16 +35,11 @@ void mbed_assert_internal(const char *expr, const char *file, int line);
 }
 #endif
 
-#ifdef NDEBUG
-#define MBED_ASSERT(expr) ((void)0)
-
-#else
 #define MBED_ASSERT(expr)                                \
 do {                                                     \
     if (!(expr)) {                                       \
         mbed_assert_internal(#expr, __FILE__, __LINE__); \
     }                                                    \
 } while (0)
-#endif
 
 #endif
