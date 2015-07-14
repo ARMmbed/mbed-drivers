@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,39 +17,12 @@
 #define MBED_INTERRUPTIN_H
 
 #include "platform.h"
-
-#if DEVICE_INTERRUPTIN
-
 #include "gpio_api.h"
 #include "gpio_irq_api.h"
 #include "FunctionPointer.h"
 
 namespace mbed {
 
-/** A digital interrupt input, used to call a function on a rising or falling edge
- *
- * Example:
- * @code
- * // Flash an LED while waiting for events
- *
- * #include "mbed.h"
- *
- * InterruptIn event(p16);
- * DigitalOut led(LED1);
- *
- * void trigger() {
- *     printf("triggered!\n");
- * }
- *
- * int main() {
- *     event.rise(&trigger);
- *     while(1) {
- *         led = !led;
- *         wait(0.25);
- *     }
- * }
- * @endcode
- */
 class InterruptIn {
 
 public:
@@ -62,11 +35,8 @@ public:
     InterruptIn(PinName pin);
     virtual ~InterruptIn();
 
-     int read();
-#ifdef MBED_OPERATORS
+    int read();
     operator int();
-
-#endif
 
     /** Attach a function to call when a rising edge occurs on the input
      *
@@ -82,7 +52,7 @@ public:
     template<typename T>
     void rise(T* tptr, void (T::*mptr)(void)) {
         _rise.attach(tptr, mptr);
-        gpio_irq_set(&gpio_irq, IRQ_RISE, 1);
+        gpio_irq_set(&_gpio_irq, IRQ_RISE, 1);
     }
 
     /** Attach a function to call when a falling edge occurs on the input
@@ -99,7 +69,7 @@ public:
     template<typename T>
     void fall(T* tptr, void (T::*mptr)(void)) {
         _fall.attach(tptr, mptr);
-        gpio_irq_set(&gpio_irq, IRQ_FALL, 1);
+        gpio_irq_set(&_gpio_irq, IRQ_FALL, 1);
     }
 
     /** Set the input pin mode
@@ -108,28 +78,25 @@ public:
      */
     void mode(PinMode pull);
 
-    /** Enable IRQ. This method depends on hw implementation, might enable one
-     *  port interrupts. For further information, check gpio_irq_enable().
-     */
-    void enable_irq();
+    void enable() {
+        // enable irq for this pin
+        //  maintain handler information
+    }
 
-    /** Disable IRQ. This method depends on hw implementation, might disable one
-     *  port interrupts. For further information, check gpio_irq_disable().
-     */
-    void disable_irq();
+    void disable() {
+        // diable irq for this pin
+        //  maintain handler information
+    }
 
     static void _irq_handler(uint32_t id, gpio_irq_event event);
 
 protected:
-    gpio_t gpio;
-    gpio_irq_t gpio_irq;
+    gpio_t _gpio;
+    gpio_irq_t _gpio_irq;
 
-    FunctionPointer _rise;
-    FunctionPointer _fall;
+    FunctionPointer0 _rise, _fall;
 };
 
 } // namespace mbed
-
-#endif
 
 #endif
