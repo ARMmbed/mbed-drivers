@@ -19,20 +19,20 @@
 #include "platform.h"
 #include "analogin_api.h"
 
-Example:
-int main()
-{
-    uint32_t buffer[64];
-    const uint32_t samples = sizeof(buffer);
-    AnalogIn adc(A0);
-    adc.enable();
-    adc.read(buffer, samples, &onDone);
-    while(!done);
-    adc.normalize(buffer, samples);
-    // user code
-    processData(buffer, samples);
-    adc.disable();
-}
+// Example:
+// int main()
+// {
+//     uint32_t buffer[64];
+//     const uint32_t samples = sizeof(buffer);
+//     AnalogIn adc(A0);
+//     adc.enable();
+//     adc.read(buffer, samples, &onDone);
+//     while(!done);
+//     adc.normalize(buffer, samples);
+//     // user code
+//     processData(buffer, samples);
+//     adc.disable();
+// }
 
 namespace mbed {
 
