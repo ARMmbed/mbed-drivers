@@ -128,13 +128,13 @@ class CThunk
             return (((uint32_t)&m_thunk)|CTHUNK_ADDRESS);
         }
 
-        /* get thunk entry point for connecting rhunk to an IRQ table */
+        /* get thunk entry point for connecting thunk to an IRQ table */
         inline operator CThunkEntry(void)
         {
             return (CThunkEntry)entry();
         }
 
-        /* get thunk entry point for connecting rhunk to an IRQ table */
+        /* get thunk entry point for connecting thunk to an IRQ table */
         inline operator uint32_t(void)
         {
             return entry();
