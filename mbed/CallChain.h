@@ -56,7 +56,7 @@ namespace mbed {
  * @endcode
  */
 
-typedef FunctionPointer0* pFunctionPointer_t;
+typedef FunctionPointer* pFunctionPointer_t;
 
 class CallChain {
 public:
@@ -86,7 +86,7 @@ public:
      */
     template<typename T>
     pFunctionPointer_t add(T *tptr, void (T::*mptr)(void)) {
-        return common_add(new FunctionPointer0(tptr, mptr));
+        return common_add(new FunctionPointer(tptr, mptr));
     }
 
     /** Add a function at the beginning of the chain
@@ -108,7 +108,7 @@ public:
      */
     template<typename T>
     pFunctionPointer_t add_front(T *tptr, void (T::*mptr)(void)) {
-        return common_add_front(new FunctionPointer0(tptr, mptr));
+        return common_add_front(new FunctionPointer(tptr, mptr));
     }
 
     /** Get the number of functions in the chain
