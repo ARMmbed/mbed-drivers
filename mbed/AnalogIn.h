@@ -19,6 +19,21 @@
 #include "platform.h"
 #include "analogin_api.h"
 
+Example:
+int main()
+{
+    uint32_t buffer[64];
+    const uint32_t samples = sizeof(buffer);
+    AnalogIn adc(A0);
+    adc.enable();
+    adc.read(buffer, samples, &onDone);
+    while(!done);
+    adc.normalize(buffer, samples);
+    // user code
+    processData(buffer, samples);
+    adc.disable();
+}
+
 namespace mbed {
 
 class AnalogIn {
@@ -34,30 +49,31 @@ public:
     }
 
     ~AnalogIn() {
+        disable();
         analogin_deinit(&_adc, pin);
     }
 
     void enable() {
-        analogin_on(_adc);
+        analogin_on(&_adc);
     }
 
     void disable() {
-        analogin_off(_adc);
+        analogin_off(&_adc);
     }
 
     template <typename T>
     void read_block(T *buffer, uint32_t amt, FunctionPointer0 userHandler = NULL) {
         if (NULL == userHandler) {
-            analogin_read_block(buffer, amt, sizeof(buffer), defaultHandler);
+            analogin_read_block(&_adc, buffer, amt, sizeof(buffer), defaultHandler);
             while(!done);
         } else {
-            analogin_read_block(buffer, amt, sizeof(buffer), userHandler);
+            analogin_read_block(&_adc, buffer, amt, sizeof(buffer), userHandler);
         }
     }
 
     template <typename T>
     T read(T &value) {
-        analogin_read_block(value, 1, sizeof(value), defaultHandler);
+        analogin_read_block(&_adc, value, 1, sizeof(value), defaultHandler);
         return value;
     }
 
