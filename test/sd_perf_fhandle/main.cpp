@@ -93,7 +93,7 @@ bool test_sf_file_write_fhandle(const char *filename, const int kib_rw)
         double test_time_sec = timer.read_us() / 1000000.0;
         double speed = kib_rw / test_time_sec;
         printf("%d KiB write in %.3f sec with speed of %.4f KiB/s\r\n", byte_write, test_time_sec, speed);
-        notify_performance_coefficient("write_kibps", speed);
+        notify_performance_coefficient_double("write_kibps", speed);
     } else {
         printf("File '%s' not opened\r\n", filename);
         result = false;
@@ -117,7 +117,7 @@ bool test_sf_file_read_fhandle(const char *filename, const int kib_rw)
         double test_time_sec = timer.read_us() / 1000000.0;
         double speed = kib_rw / test_time_sec;
         printf("%d KiB read in %.3f sec with speed of %.4f KiB/s\r\n", byte_read, test_time_sec, speed);
-        notify_performance_coefficient("fs_read_kibps", speed);
+        notify_performance_coefficient_double("fs_read_kibps", speed);
     } else {
         printf("File '%s' not opened\r\n", filename);
         result = false;

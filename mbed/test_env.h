@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #ifndef TEST_ENV_H_
 #define TEST_ENV_H_
 
@@ -21,7 +21,7 @@
 #include "mbed.h"
 
 #define NL "\n"
-#define RCNL "\r\n"
+#define CRNL "\r\n"
 
 // Const strings used in test_end
 extern const char* TEST_ENV_START;
@@ -30,19 +30,30 @@ extern const char* TEST_ENV_FAILURE;
 extern const char* TEST_ENV_MEASURE;
 extern const char* TEST_ENV_END;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Test result related notification functions
 void notify_start();
-void notify_completion(bool success);
-bool notify_completion_str(bool success, char* buffer);
-void notify_performance_coefficient(const char* measurement_name, const int value);
-void notify_performance_coefficient(const char* measurement_name, const unsigned int value);
-void notify_performance_coefficient(const char* measurement_name, const double value);
+void notify_completion(int success);
+int notify_completion_str(int success, char* buffer);
+void notify_performance_coefficient_int(const char* measurement_name, const int value);
+void notify_performance_coefficient_uint(const char* measurement_name, const unsigned int value);
+void notify_performance_coefficient_double(const char* measurement_name, const double value);
 
 // Host test auto-detection API
 void notify_host_test_name(const char *host_test);
 void notify_timeout(int timeout);
 void notify_test_id(const char *test_id);
 void notify_test_description(const char *description);
+
+// Test functionality useful during testing
+unsigned int testenv_randseed();
+
+#ifdef __cplusplus
+}
+#endif
 
 // Host test auto-detection API
 #define MBED_HOSTTEST_START(TESTID)      notify_test_id(TESTID); notify_start()
@@ -73,10 +84,6 @@ void notify_test_description(const char *description);
         MBED_HOSTTEST_RESULT(result);
     }
 */
-
-
-// Test functionality useful during testing
-unsigned int testenv_randseed();
 
 // Macros, unit test like to provide basic comparisons
 #define TESTENV_STRCMP(GIVEN,EXPECTED) (strcmp(GIVEN,EXPECTED) == 0)
