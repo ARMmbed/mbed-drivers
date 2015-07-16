@@ -483,6 +483,15 @@ extern "C" pid_t _getpid(void)
 
 #include "mbed/sbrk.h"
 
+/* The following macros use IRQ masking to simulate LDREX and STREX on a CM0. Their use
+ * requires declaring a variable called previousPRIMASK within the enclosing
+ * scope. This is needed because CM0 doesn't support LDREX and STREX. */
+#if (__CORTEX_M == 0x00)
+#define __LDREXW(ADDR)        (previousPRIMASK = __get_PRIMASK(), __disable_irq(), *(ADDR))
+#define __CLREX()             if (!previousPRIMASK) __enable_irq()
+#define __STREXW(VALUE, ADDR) (*(ADDR) = VALUE, (previousPRIMASK || (__enable_irq(), true /* turn this into a boolean */)), 0 /* simulate successful STREX */)
+#endif /* (__CORTEX_M == 0x00) */
+
 void * volatile mbed_krbs_ptr = &__mbed_krbs_start;
 void * volatile mbed_sbrk_ptr = &__mbed_sbrk_start;
 volatile ptrdiff_t mbed_sbrk_diff = MBED_HEAP_SIZE;
@@ -502,6 +511,9 @@ void * mbed_sbrk(ptrdiff_t size)
         size_internal = ( size_internal + SBRK_ALIGN - 1) & ~(SBRK_ALIGN - 1);
     }
 
+#if (__CORTEX_M == 0x00)
+    uint32_t previousPRIMASK;
+#endif
     while(1) {
         ptrdiff_t ptr_diff = __LDREXW((uint32_t *)&mbed_sbrk_diff);
         if (size_internal > ptr_diff) {
@@ -553,6 +565,9 @@ void * mbed_krbs_ex(const ptrdiff_t size, ptrdiff_t *actual)
     }
     size_internal = (size_internal + KRBS_ALIGN - 1) & ~(KRBS_ALIGN - 1);
 
+#if (__CORTEX_M == 0x00)
+    uint32_t previousPRIMASK;
+#endif
     while(1) {
         ptrdiff_t ptr_diff = __LDREXW((uint32_t *)&mbed_sbrk_diff);
         if ((ptr_diff < 0) || (size_internal > (uintptr_t)ptr_diff && actual == NULL)) {
