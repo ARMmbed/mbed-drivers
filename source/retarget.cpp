@@ -481,16 +481,8 @@ extern "C" pid_t _getpid(void)
     return 0;
 }
 
+#include "mbed-util/atomic_ops.h"
 #include "mbed/sbrk.h"
-
-/* The following macros use IRQ masking to simulate LDREX and STREX on a CM0. Their use
- * requires declaring a variable called previousPRIMASK within the enclosing
- * scope. This is needed because CM0 doesn't support LDREX and STREX. */
-#if (__CORTEX_M == 0x00)
-#define __LDREXW(ADDR)        (previousPRIMASK = __get_PRIMASK(), __disable_irq(), *(ADDR))
-#define __CLREX()             if (!previousPRIMASK) __enable_irq()
-#define __STREXW(VALUE, ADDR) (*(ADDR) = VALUE, (previousPRIMASK || (__enable_irq(), true /* turn this into a boolean */)), 0 /* simulate successful STREX */)
-#endif /* (__CORTEX_M == 0x00) */
 
 void * volatile mbed_krbs_ptr = &__mbed_krbs_start;
 void * volatile mbed_sbrk_ptr = &__mbed_sbrk_start;
@@ -498,11 +490,11 @@ volatile ptrdiff_t mbed_sbrk_diff = MBED_HEAP_SIZE;
 
 void * mbed_sbrk(ptrdiff_t size)
 {
-    uintptr_t sbrk_tmp = (uintptr_t)NULL;
-    ptrdiff_t size_internal = size;
     if (size == 0) {
         return (void *) mbed_sbrk_ptr;
     }
+
+    ptrdiff_t size_internal = size;
     // Minimum increment only applies to positive sbrks
     if (size_internal > 0) {
         if ((uintptr_t)size_internal < SBRK_INC_MIN) {
@@ -511,35 +503,19 @@ void * mbed_sbrk(ptrdiff_t size)
         size_internal = ( size_internal + SBRK_ALIGN - 1) & ~(SBRK_ALIGN - 1);
     }
 
-#if (__CORTEX_M == 0x00)
-    uint32_t previousPRIMASK;
-#endif
-    while(1) {
-        ptrdiff_t ptr_diff = __LDREXW((uint32_t *)&mbed_sbrk_diff);
+    /* Decrement mbed_sbrk_diff by the size being allocated. */
+    ptrdiff_t ptr_diff = mbed_sbrk_diff;
+    while (1) {
         if (size_internal > ptr_diff) {
-            __CLREX();
             return (void *) -1;
         }
-        ptr_diff -= size_internal;
-        if (__STREXW(ptr_diff, (uint32_t *)&mbed_sbrk_diff))
-            continue;
-        break;
+        if (mbed::util::atomic_cas((uint32_t *)&mbed_sbrk_diff, (uint32_t &)ptr_diff, ptr_diff - size_internal)) {
+            break;
+        }
     }
 
-    while (1) {
-        sbrk_tmp = __LDREXW((uint32_t *)&mbed_sbrk_ptr);
-        // store the base pointer for the allocated memory
-        const uintptr_t sbrk_old = sbrk_tmp;
-        // Calculate the new krbs pointer
-        sbrk_tmp += size_internal;
-        // Guarantee krbs alignment alignment
-        if(__STREXW(sbrk_tmp, (uint32_t *)&mbed_sbrk_ptr))
-            continue;
-        // restore the base pointer of the allocated memory
-        sbrk_tmp = sbrk_old;
-        break;
-    }
-    return (void *) sbrk_tmp;
+    uintptr_t new_sbrk_ptr = mbed::util::atomic_incr((uint32_t *)&mbed_sbrk_ptr, (uint32_t)size_internal);
+    return (void *)(new_sbrk_ptr - size_internal);
 }
 
 void * mbed_krbs(const ptrdiff_t size)
@@ -549,8 +525,6 @@ void * mbed_krbs(const ptrdiff_t size)
 
 void * mbed_krbs_ex(const ptrdiff_t size, ptrdiff_t *actual)
 {
-    uintptr_t krbs_tmp = (uintptr_t)NULL;
-    uintptr_t size_internal = 0;
     if (size == 0) {
         return (void *) mbed_krbs_ptr;
     }
@@ -558,36 +532,24 @@ void * mbed_krbs_ex(const ptrdiff_t size, ptrdiff_t *actual)
     if (size < 0) {
         return (void *) -1;
     }
-    size_internal = (uintptr_t) size;
+
+    uintptr_t size_internal = (uintptr_t) size;
     // Guarantee minimum allocation size
     if (size_internal < KRBS_INC_MIN) {
         size_internal = KRBS_INC_MIN;
     }
     size_internal = (size_internal + KRBS_ALIGN - 1) & ~(KRBS_ALIGN - 1);
 
-#if (__CORTEX_M == 0x00)
-    uint32_t previousPRIMASK;
-#endif
-    while(1) {
-        ptrdiff_t ptr_diff = __LDREXW((uint32_t *)&mbed_sbrk_diff);
-        if ((ptr_diff < 0) || (size_internal > (uintptr_t)ptr_diff && actual == NULL)) {
-            __CLREX();
+    /* Decrement mbed_sbrk_diff by the size being allocated. */
+    ptrdiff_t ptr_diff = mbed_sbrk_diff;
+    while (1) {
+        if ((ptr_diff < 0) || ((size_internal > (uintptr_t)ptr_diff) && (actual == NULL))) {
             return (void *) -1;
         }
-        ptr_diff -= size_internal;
-        if (__STREXW(ptr_diff, (uint32_t *)&mbed_sbrk_diff))
-            continue;
-        break;
+        if (mbed::util::atomic_cas((uint32_t *)&mbed_sbrk_diff, (uint32_t &)ptr_diff, ptr_diff - size_internal)) {
+            break;
+        }
     }
 
-    while (1) {
-        krbs_tmp = __LDREXW((uint32_t *)&mbed_krbs_ptr);
-        // Calculate the new krbs pointer
-        krbs_tmp -= size_internal;
-        // Guarantee krbs alignment alignment
-        if(__STREXW(krbs_tmp, (uint32_t *)&mbed_krbs_ptr))
-            continue;
-        break;
-    }
-    return (void *) krbs_tmp;
+    return (void *)mbed::util::atomic_decr((uint32_t *)&mbed_krbs_ptr, (uint32_t)size_internal);
 }
