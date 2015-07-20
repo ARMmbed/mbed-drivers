@@ -29,6 +29,11 @@ public:
         return (_membercaller != NULL) && (_object != NULL);
     }
 
+    bool operator==(const FunctionPointerBase& other)
+    {
+        return (_membercaller == other._membercaller) && (_object == other._object);
+    }
+
     /**
      * Clears the current function pointer assignment
      * After clear(), this instance will point to nothing (NULL)
