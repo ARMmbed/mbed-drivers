@@ -48,7 +48,7 @@ void flip_2() {
     }
 }
 
-int main() {
+void app_start(minar::Scheduler* sched) {
     MBED_HOSTTEST_TIMEOUT(15);
     MBED_HOSTTEST_SELECT(wait_us_auto);
     MBED_HOSTTEST_DESCRIPTION(Ticker Int);
@@ -58,8 +58,4 @@ int main() {
     led2 = 0;
     flipper_1.attach(&flip_1, 1.0); // the address of the function to be attached (flip) and the interval (1 second)
     flipper_2.attach(&flip_2, 2.0); // the address of the function to be attached (flip) and the interval (2 seconds)
-
-    while (true) {
-        wait(1.0);
-    }
 }

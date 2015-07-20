@@ -31,7 +31,7 @@ void led2_on() {
     fflush(stdout);
 }
 
-int main() {
+void app_start(minar::Scheduler* sched) {
     led1 = 0;
     led2 = 0;
     to1.attach_us(led1_on, 1000000);

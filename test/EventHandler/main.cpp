@@ -345,7 +345,7 @@ static void test_event_assignment_and_swap() {
  * Entry point
  *****************************************************************************/
 
-int main(void)
+void runTest(void)
 {
     printf("========== Starting event handler test ==========\r\n");
     test_standalone_funcs();
@@ -356,6 +356,9 @@ int main(void)
 
     printf ("Final MyArg instance count (should be 0): %d\r\n", MyArg::instcount);
     printf ("\r\nTest Complete\r\n");
-    while (true);
-    return 0;
+}
+
+void app_start(minar::Scheduler* sched)
+{
+    sched->postCallback(&runTest);
 }

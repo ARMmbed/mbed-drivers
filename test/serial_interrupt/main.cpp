@@ -31,7 +31,8 @@ void rxCallback() {
     computer.putc(computer.getc());
 }
 
-int main() {
+void app_start(minar::Scheduler* sched) {
+    // !!! FIXME: make this asynchronous
     printf("start test\n");
     computer.attach(&txCallback, Serial::TxIrq);
     computer.attach(&rxCallback, Serial::RxIrq);

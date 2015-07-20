@@ -70,7 +70,7 @@ void stack_test(char *latest_heap_pointer) {
 }
 
 
-int main (void) {
+void runTest(void) {
     char c;
     initial_stack_p = &c;
 
@@ -88,4 +88,8 @@ int main (void) {
     stack_test(initial_heap_p);
 
     notify_completion(true);
+}
+
+void app_start(minar::Scheduler* sched) {
+    sched->postCallback(&runTest);
 }

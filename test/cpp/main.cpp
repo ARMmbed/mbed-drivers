@@ -69,7 +69,7 @@ Heap::init
 Heap::hello
 Heap::destroy
 *******************/
-int main (void) {
+void runTest (void) {
     MBED_HOSTTEST_TIMEOUT(10);
     MBED_HOSTTEST_SELECT(default_auto);
     MBED_HOSTTEST_DESCRIPTION(C++);
@@ -100,3 +100,8 @@ int main (void) {
 
     MBED_HOSTTEST_RESULT(result);
 }
+
+void app_start(minar::Scheduler* sched) {
+    sched->postCallback(&runTest);
+}
+

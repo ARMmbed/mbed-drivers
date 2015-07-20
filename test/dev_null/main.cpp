@@ -32,7 +32,7 @@ protected:
 
 DevNull null("null");
 
-int main() {
+void runTest() {
     MBED_HOSTTEST_TIMEOUT(20);
     MBED_HOSTTEST_SELECT(dev_null_auto);
     MBED_HOSTTEST_DESCRIPTION(stdout redirected to dev null);
@@ -43,4 +43,8 @@ int main() {
     printf("MBED: printf redirected to /null\r\n");   // This shouldn't appear
     // If failure message can be seen test should fail :)
     MBED_HOSTTEST_RESULT(false);   // This is 'false' on purpose
+}
+
+void app_start(minar::Scheduler* sched) {
+    sched->postCallback(&runTest);
 }

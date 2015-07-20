@@ -25,7 +25,7 @@
 #define FLOATS  0.002,0.92430,15.91320,791.77368,6208.2,25719.4952,426815.982588,6429271.046,42468024.93,212006462.910
 
 
-int main()
+void runTest()
 {
     char buffer[BUFFER_SIZE] = {0};
     bool result = true;
@@ -111,5 +111,10 @@ int main()
     }
 
     notify_completion(result);
-    return 0;
+    return;
 }
+
+void app_start(minar::Scheduler* sched) {
+    sched->postCallback(&runTest);
+}
+
