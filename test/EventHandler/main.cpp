@@ -358,7 +358,7 @@ void runTest(void)
     printf ("\r\nTest Complete\r\n");
 }
 
-void app_start(minar::Scheduler* sched)
+void app_start(int argc, char* argv[])
 {
-    sched->postCallback(&runTest);
+    minar::Scheduler::postCallback(&runTest);
 }

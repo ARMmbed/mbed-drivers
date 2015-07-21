@@ -21,6 +21,6 @@ void blink(){
     myled = !myled;
 }
 
-void app_start(minar::Scheduler* sched) {
-    sched->postCallback(&blink).period(minar::milliseconds(200));
+void app_start(int, char*[]) {
+    minar::Scheduler::postCallback(&blink).period(minar::milliseconds(200));
 }

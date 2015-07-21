@@ -45,6 +45,6 @@ void runTest() {
     MBED_HOSTTEST_RESULT(false);   // This is 'false' on purpose
 }
 
-void app_start(minar::Scheduler* sched) {
-    sched->postCallback(&runTest);
+void app_start(int, char*[]) {
+    minar::Scheduler::postCallback(&runTest);
 }

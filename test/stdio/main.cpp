@@ -22,7 +22,7 @@
  * In the past we had an issue where the stdio retargeting was not linked in.
  */
 
-void app_start(minar::Scheduler* sched) {
+void app_start(int, char*[]) {
     // !!! FIXME: make this asynchronous
     MBED_HOSTTEST_TIMEOUT(20);
     MBED_HOSTTEST_SELECT(stdio_auto);

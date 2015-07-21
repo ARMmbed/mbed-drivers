@@ -48,7 +48,7 @@ void flip_2() {
     }
 }
 
-void app_start(minar::Scheduler* sched) {
+void app_start(int, char*[]) {
     MBED_HOSTTEST_TIMEOUT(15);
     MBED_HOSTTEST_SELECT(wait_us_auto);
     MBED_HOSTTEST_DESCRIPTION(Ticker Int);

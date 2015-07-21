@@ -100,13 +100,13 @@ private:
     uint8_t rx_buf[LONG_XFR];
 };
 
-void app_start(minar::Scheduler* sched) {
+void app_start(int, char*[]) {
     static SPITest test;
-    sched->postCallback(FunctionPointer0<void>(&test, &SPITest::start).bind());
+    minar::Scheduler::postCallback(FunctionPointer0<void>(&test, &SPITest::start).bind());
 }
 
 #else
-void app_start(minar::Scheduler* sched) {
+void app_start(int, char*[]) {
 }
 #endif
 

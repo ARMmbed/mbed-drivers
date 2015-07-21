@@ -30,7 +30,7 @@ void print_char(char c = '*')
 }
 
 
-void app_start(minar::Scheduler* sched) {
+void app_start(int, char*[]) {
     // !!! FIXME: make this asynchronous
 
     MBED_HOSTTEST_TIMEOUT(15);

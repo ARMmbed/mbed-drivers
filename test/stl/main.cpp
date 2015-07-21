@@ -134,9 +134,9 @@ void runTest()
     notify_completion(result);
 }
 
-void app_start(minar::Scheduler* sched) {
+void app_start(int, char*[]) {
     // run the test both at init time and properly from the scheduler, the
     // standard library should work from both contexts
     runTest();
-    sched->postCallback(&runTest);
+    minar::Scheduler::postCallback(&runTest);
 }

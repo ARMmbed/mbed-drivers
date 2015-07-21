@@ -19,7 +19,7 @@
 
 #define CUSTOM_TIME  1256729737
 
-void app_start(minar::Scheduler* sched) {
+void app_start(int, char*[]) {
     // !!! FIXME: make this asynchronous
 
     MBED_HOSTTEST_TIMEOUT(20);

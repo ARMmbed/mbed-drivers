@@ -41,7 +41,7 @@ void togglePin(void)
     ticker_count++;
 }
 
-void app_start(minar::Scheduler* sched)
+void app_start(int, char*[])
 {
     MBED_HOSTTEST_TIMEOUT(15);
     MBED_HOSTTEST_SELECT(wait_us_auto);

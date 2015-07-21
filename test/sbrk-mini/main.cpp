@@ -8,7 +8,7 @@ extern volatile uintptr_t mbed_sbrk_diff;
 
 #define TEST_SMALL sizeof(uint32_t)
 
-void app_start(minar::Scheduler* sched)
+void app_start(int, char*[])
 {
     MBED_HOSTTEST_TIMEOUT(10);
     MBED_HOSTTEST_SELECT(default);

@@ -26,7 +26,7 @@ namespace {
     char buffer[BUFFER_SIZE] = {0};
 }
 
-void app_start(minar::Scheduler* sched) {
+void app_start(int, char*[]) {
     // !!! FIXME: make this asynchronous!
 
     MBED_HOSTTEST_TIMEOUT(20);

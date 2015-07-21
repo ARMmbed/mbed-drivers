@@ -31,13 +31,9 @@ void led2_on() {
     fflush(stdout);
 }
 
-void app_start(minar::Scheduler* sched) {
+void app_start(int, char*[]) {
     led1 = 0;
     led2 = 0;
     to1.attach_us(led1_on, 1000000);
     to2.attach_us(led2_on, 2000000);
-    while (1) {
-        printf("Entering sleep.\n");
-        sleep();
-    }
 }

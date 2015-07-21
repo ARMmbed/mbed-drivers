@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-// this header is a no-op if included from C: the app_start function must be
-// implemented in C++
-#ifdef __cplusplus
-
 #ifndef __MBED_CORE_MBED_APP_H__
 #define __MBED_CORE_MBED_APP_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif // #ifdef __cplusplus
 
 /** app_start is used to set up the user's application. It should not block.
  *
@@ -28,21 +28,18 @@
  *
  * @code
  * using namespace mbed::minar;
- * void app_start(Scheduler* sched){
- *     sched->postCallback(&doSomething);
- *     sched->postCallback(&doSomethingElse).delay(milliseconds(100)).period(milliseconds(200));
+ * void app_start(int argc, char *argv[]){
+ *     Scheduler::postCallback(&doSomething);
+ *     Scheduler::postCallback(&doSomethingElse).delay(milliseconds(100)).period(milliseconds(200));
  * }
  * @endcode
  */
 
-// forward-declare the Scheduler instance type:
-namespace minar{
-class Scheduler;
-} // namespace minar
+void app_start(int argc, char *argv[]);
 
-void app_start(minar::Scheduler* sched);
+#ifdef __cplusplus
+} // extern "C"
+#endif // #ifdef __cplusplus
 
 #endif // ndef __MBED_CORE_MBED_APP_H__
-
-#endif // #ifdef __cplusplus
 

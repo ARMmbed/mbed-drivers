@@ -46,7 +46,7 @@ void ticker_callback_1(void)
     print_char();
 }
 
-void app_start(minar::Scheduler* sched)
+void app_start(int, char*[])
 {
     MBED_HOSTTEST_TIMEOUT(15);
     MBED_HOSTTEST_SELECT(wait_us_auto);
