@@ -457,7 +457,7 @@ extern "C" int main(void) {
     minar::Scheduler::postCallback(
         FunctionPointer2<void, int, char**>(&app_start).bind(0, NULL)
     );
-    return minar::Scheduler::instance()->start();
+    return minar::Scheduler::start();
 }
 
 
