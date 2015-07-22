@@ -103,7 +103,6 @@ private:
 int main() {
     static SPITest test;
 
-    Scheduler::initialize();
     Scheduler::postCallback(FunctionPointer0<void>(&test, &SPITest::start).bind());
     return Scheduler::start();
 }
