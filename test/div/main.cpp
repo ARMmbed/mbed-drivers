@@ -32,7 +32,7 @@ const char *result_str(bool result) {
     return result ? "[OK]" : "[FAIL]";
 }
 
-int main() {
+void runTest() {
     MBED_HOSTTEST_TIMEOUT(20);
     MBED_HOSTTEST_SELECT(default_auto);
     MBED_HOSTTEST_DESCRIPTION(Integer constant division);
@@ -57,4 +57,8 @@ int main() {
     }
 
     MBED_HOSTTEST_RESULT(result);
+}
+
+void app_start(int, char*[]) {
+    minar::Scheduler::postCallback(&runTest);
 }

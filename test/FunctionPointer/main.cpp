@@ -37,7 +37,7 @@ void bareprint() {
     printf("Bare Print\r\n");
 }
 
-int main(void) {
+void runTest(void) {
     MBED_HOSTTEST_TIMEOUT(10);
     MBED_HOSTTEST_SELECT(default_auto);
     MBED_HOSTTEST_DESCRIPTION(FunctionPointer test);
@@ -68,5 +68,8 @@ int main(void) {
 
     printf("Test Complete\r\n");
     MBED_HOSTTEST_RESULT(true);
-    return 0;
+}
+
+void app_start(int argc, char* argv[]) {
+    minar::Scheduler::postCallback(&runTest);
 }

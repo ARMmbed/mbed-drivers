@@ -8,7 +8,7 @@ extern volatile uintptr_t mbed_sbrk_diff;
 
 #define TEST_SMALL sizeof(uint32_t)
 
-int main()
+void app_start(int, char*[])
 {
     MBED_HOSTTEST_TIMEOUT(10);
     MBED_HOSTTEST_SELECT(default);
@@ -72,6 +72,5 @@ int main()
     } while (0);
 
     MBED_HOSTTEST_RESULT(tests_pass);
-    return !tests_pass;
-
+    return;
 }

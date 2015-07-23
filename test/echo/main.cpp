@@ -26,7 +26,9 @@ namespace {
     char buffer[BUFFER_SIZE] = {0};
 }
 
-int main() {
+void app_start(int, char*[]) {
+    // !!! FIXME: make this asynchronous!
+
     MBED_HOSTTEST_TIMEOUT(20);
     MBED_HOSTTEST_SELECT(echo);
     MBED_HOSTTEST_DESCRIPTION(Serial Echo at 115200);

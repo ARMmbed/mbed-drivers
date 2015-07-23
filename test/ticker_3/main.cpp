@@ -46,7 +46,7 @@ void ticker_callback_1(void)
     print_char();
 }
 
-int main(void)
+void app_start(int, char*[])
 {
     MBED_HOSTTEST_TIMEOUT(15);
     MBED_HOSTTEST_SELECT(wait_us_auto);
@@ -54,6 +54,4 @@ int main(void)
     MBED_HOSTTEST_START("MBED_34");
 
     ticker.attach(ticker_callback_1, 1.0);
-
-    while(1);
 }

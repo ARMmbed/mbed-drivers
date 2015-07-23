@@ -41,7 +41,7 @@ void togglePin(void)
     ticker_count++;
 }
 
-int main()
+void app_start(int, char*[])
 {
     MBED_HOSTTEST_TIMEOUT(15);
     MBED_HOSTTEST_SELECT(wait_us_auto);
@@ -49,6 +49,4 @@ int main()
     MBED_HOSTTEST_START("MBED_23");
 
     tick.attach_us(togglePin, 1000);
-
-    while (1);
 }
