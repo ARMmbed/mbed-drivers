@@ -509,7 +509,7 @@ void * mbed_sbrk(ptrdiff_t size)
         if (size_internal > ptr_diff) {
             return (void *) -1;
         }
-        if (mbed::util::atomic_cas((uint32_t *)&mbed_sbrk_diff, ptr_diff, ptr_diff - size_internal)) {
+        if (mbed::util::atomic_cas((uint32_t *)&mbed_sbrk_diff, &ptr_diff, ptr_diff - size_internal)) {
             break;
         }
     }
@@ -546,7 +546,7 @@ void * mbed_krbs_ex(const ptrdiff_t size, ptrdiff_t *actual)
         if ((size_internal > (uintptr_t)ptr_diff) && (actual == NULL)) {
             return (void *) -1;
         }
-        if (mbed::util::atomic_cas((uint32_t *)&mbed_sbrk_diff, ptr_diff, ptr_diff - size_internal)) {
+        if (mbed::util::atomic_cas((uint32_t *)&mbed_sbrk_diff, &ptr_diff, ptr_diff - size_internal)) {
             break;
         }
     }
