@@ -46,13 +46,11 @@ void toggleOff(void) {
     timer.attach_us(toggleOn, 500);
 }
 
-int main() {
+void app_start(int, char*[]) {
     MBED_HOSTTEST_TIMEOUT(15);
     MBED_HOSTTEST_SELECT(wait_us_auto);
     MBED_HOSTTEST_DESCRIPTION(Timeout Int us);
     MBED_HOSTTEST_START("MBED_24");
 
     toggleOn();
-
-    while (1);
 }

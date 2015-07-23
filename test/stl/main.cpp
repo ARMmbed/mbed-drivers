@@ -73,7 +73,7 @@ struct greaterAbs {
 };
 
 
-int main()
+void runTest()
 {
     int p_integers[] = {POSITIVE_INTEGERS};
     int n_integers[] = {NEGATIVE_INTEGERS};
@@ -132,5 +132,11 @@ int main()
     }
 
     notify_completion(result);
-    return 0;
+}
+
+void app_start(int, char*[]) {
+    // run the test both at init time and properly from the scheduler, the
+    // standard library should work from both contexts
+    runTest();
+    minar::Scheduler::postCallback(&runTest);
 }

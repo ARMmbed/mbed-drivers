@@ -15,9 +15,10 @@
  */
 
 #include "mbed.h"
+#include "minar/minar.h"
 #include "test_env.h"
 
-int main() {
+void runTest(){
     MBED_HOSTTEST_TIMEOUT(10);
     MBED_HOSTTEST_SELECT(detect_auto);
     MBED_HOSTTEST_DESCRIPTION(Simple detect test);
@@ -28,4 +29,9 @@ int main() {
     printf("MBED: Test ID '%s'\r\n", TEST_SUITE_TEST_ID);
     printf("MBED: UUID '%s'\r\n", TEST_SUITE_UUID);
     MBED_HOSTTEST_RESULT(true);
+}
+
+
+void app_start(int, char*[]) {
+    minar::Scheduler::postCallback(&runTest);
 }

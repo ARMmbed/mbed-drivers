@@ -21,6 +21,8 @@
 #include "toolchain.h"
 #include "cmsis.h"
 #include <errno.h>
+#include "app.h"
+#include "minar/minar.h"
 
 #if defined(__ARMCC_VERSION)
 #   include <rt_sys.h>
@@ -417,14 +419,9 @@ extern "C" WEAK void __cxa_pure_virtual(void) {
 #endif
 
 // ****************************************************************************
-// mbed_main is a function that is called before main()
-// mbed_sdk_init() is also a function that is called before main(), but unlike
-// mbed_main(), it is not meant for user code, but for the SDK itself to perform
-// initializations before main() is called.
-
-extern "C" WEAK void mbed_main(void);
-extern "C" WEAK void mbed_main(void) {
-}
+// mbed_sdk_init() is a function that is called before starting the scheduler,
+// it is not meant for user code, but for HAL ports to perform initialization
+// before the scheduler is started
 
 extern "C" WEAK void mbed_sdk_init(void);
 extern "C" WEAK void mbed_sdk_init(void) {
@@ -435,7 +432,6 @@ extern "C" int $Super$$main(void);
 
 extern "C" int $Sub$$main(void) {
     mbed_sdk_init();
-    mbed_main();
     return $Super$$main();
 }
 #elif defined(TOOLCHAIN_GCC)  || defined(TARGET_LIKE_CLANG)
@@ -443,7 +439,6 @@ extern "C" int __real_main(void);
 
 extern "C" int __wrap_main(void) {
     mbed_sdk_init();
-    mbed_main();
     return __real_main();
 }
 #elif defined(TOOLCHAIN_IAR)
@@ -451,12 +446,21 @@ extern "C" int __wrap_main(void) {
 // to ld's --wrap. It does have a --redirect, but that doesn't help, since redirecting
 // 'main' to another symbol looses the original 'main' symbol. However, its startup
 // code will call a function to setup argc and argv (__iar_argc_argv) if it is defined.
-// Since mbed doesn't use argc/argv, we use this function to call our mbed_main.
+// Since mbed doesn't use argc/argv, we use this function to call mbed_sdk_init.
 extern "C" void __iar_argc_argv() {
     mbed_sdk_init();
-    mbed_main();
 }
 #endif
+
+// the user should set up their application in app_start
+extern "C" int main(void) {
+    minar::Scheduler::postCallback(
+        FunctionPointer2<void, int, char**>(&app_start).bind(0, NULL)
+    );
+    return minar::Scheduler::start();
+}
+
+
 
 extern "C" void _exit(int status)
 {
