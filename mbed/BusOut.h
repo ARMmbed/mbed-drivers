@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public:
 
     /** Create an BusOut, connected to the specified pins
      *
-     *  @param p<n> DigitalOut pin to connect to bus bit <n> (p5-p30, NC)
+     *  @param p<n> DigitalOut pin to connect to bus bit <n>
      *
      *  @note
      *  It is only required to specify as many pin variables as is required
@@ -56,7 +56,6 @@ public:
      */
     int read();
 
-#ifdef MBED_OPERATORS
     /** A shorthand for write()
      */
     BusOut& operator= (int v);
@@ -65,7 +64,6 @@ public:
     /** A shorthand for read()
      */
     operator int();
-#endif
 
 protected:
     DigitalOut* _pin[16];

@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,6 @@
 #define MBED_PORTIN_H
 
 #include "platform.h"
-
-#if DEVICE_PORTIN
-
 #include "port_api.h"
 
 namespace mbed {
@@ -59,6 +56,10 @@ public:
         port_init(&_port, port, mask, PIN_INPUT);
     }
 
+    virtual ~PortIn() {
+        port_deinit(&_port);
+    }
+
     /** Read the value currently output on the port
      *
      *  @returns
@@ -87,7 +88,5 @@ private:
 };
 
 } // namespace mbed
-
-#endif
 
 #endif

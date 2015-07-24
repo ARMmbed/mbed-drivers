@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
  */
 #ifndef MBED_DEBUG_H
 #define MBED_DEBUG_H
-#include "device.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if DEVICE_STDIO_MESSAGES
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -52,12 +50,6 @@ static inline void debug_if(int condition, const char *format, ...) {
         va_end(args);
     }
 }
-
-#else
-static inline void debug(const char *format, ...) {}
-static inline void debug_if(int condition, const char *format, ...) {}
-
-#endif
 
 #ifdef __cplusplus
 }

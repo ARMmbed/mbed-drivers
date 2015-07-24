@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,8 @@ public:
      *
      *  @param pin DigitalOut pin to connect to
      */
-    DigitalOut(PinName pin) : gpio() {
-        gpio_init_out(&gpio, pin);
+    DigitalOut(PinName pin) : _gpio() {
+        gpio_init_out(&_gpio, pin);
     }
 
     /** Create a DigitalOut connected to the specified pin
@@ -54,8 +54,12 @@ public:
      *  @param pin DigitalOut pin to connect to
      *  @param value the initial pin value
      */
-    DigitalOut(PinName pin, int value) : gpio() {
-        gpio_init_out_ex(&gpio, pin, value);
+    DigitalOut(PinName pin, int value) : _gpio() {
+        gpio_init_out_ex(&_gpio, pin, value);
+    }
+
+    virtual ~DigitalInOut() {
+        gpio_deinit(&_gpio);
     }
 
     /** Set the output, specified as 0 or 1 (int)
@@ -64,7 +68,7 @@ public:
      *      0 for logical 0, 1 (or any other non-zero value) for logical 1
      */
     void write(int value) {
-        gpio_write(&gpio, value);
+        gpio_write(&_gpio, value);
     }
 
     /** Return the output setting, represented as 0 or 1 (int)
@@ -74,10 +78,9 @@ public:
      *    0 for logical 0, 1 for logical 1
      */
     int read() {
-        return gpio_read(&gpio);
+        return gpio_read(&_gpio);
     }
 
-#ifdef MBED_OPERATORS
     /** A shorthand for write()
      */
     DigitalOut& operator= (int value) {
@@ -95,10 +98,9 @@ public:
     operator int() {
         return read();
     }
-#endif
 
 protected:
-    gpio_t gpio;
+    gpio_t _gpio;
 };
 
 } // namespace mbed

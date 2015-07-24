@@ -17,18 +17,12 @@
 #define MBED_SPI_H
 
 #include "platform.h"
-
-#if DEVICE_SPI
-
 #include "spi_api.h"
-
-#if DEVICE_SPI_ASYNCH
 #include "CThunk.h"
 #include "dma_api.h"
 #include "CircularBuffer.h"
 #include "FunctionPointer.h"
 #include "Transaction.h"
-#endif
 
 namespace mbed {
 
@@ -45,34 +39,47 @@ namespace mbed {
  *
  * #include "mbed.h"
  *
+ * // hardware ssel (where applicable)
+ * //SPI device(p5, p6, p7, p8); // mosi, miso, sclk, ssel
+ *
+ * // software ssel
  * SPI device(p5, p6, p7); // mosi, miso, sclk
+ * DigitalOut cs(p8); // ssel
  *
  * int main() {
+ *     // hardware ssel (where applicable)
+ *     //int response = device.write(0xFF);
+ *
+ *     // software ssel
+ *     cs = 0;
  *     int response = device.write(0xFF);
+ *     cs = 1;
  * }
  * @endcode
  */
 class SPI {
 
 public:
+
     /** Create a SPI master connected to the specified pins
-     *
-     * Pin Options:
-     *  (5, 6, 7) or (11, 12, 13)
      *
      *  mosi or miso can be specfied as NC if not used
      *
      *  @param mosi SPI Master Out, Slave In pin
      *  @param miso SPI Master In, Slave Out pin
      *  @param sclk SPI Clock pin
+     *  @param ssel SPI chip select pin
      */
-    SPI(PinName mosi, PinName miso, PinName sclk, PinName _unused=NC);
+    SPI(PinName mosi, PinName miso, PinName sclk, PinName ssel=NC);
+
+    virtual ~SPI() {
+        spi_deinit(&_spi);
+    }
 
     /** Configure the data transmission format
      *
-     *  @param bits  Number of bits per SPI frame (4 - 16)
-     *  @param mode  Clock polarity and phase mode (0 - 3)
-     *  @param order Bit order. SPI_MSB (standard) or SPI_LSB.
+     *  @param bits Number of bits per SPI frame (4 - 16)
+     *  @param mode Clock polarity and phase mode (0 - 3)
      *
      * @code
      * mode | POL PHA
@@ -83,7 +90,7 @@ public:
      *   3  |  1   1
      * @endcode
      */
-    void format(int bits, int mode = 0, spi_bitorder_t order = SPI_MSB);
+    void format(int bits, int mode = 0);
 
     /** Set the spi bus clock frequency
      *
@@ -98,56 +105,32 @@ public:
      *  @returns
      *    Response from the SPI slave
     */
-    virtual int write(int value);
-
-#if DEVICE_SPI_ASYNCH
+    int write(int value) {
+        uint32_t read_ch;
+        transfer(value, 1, &read_ch, 1, defaultHandler);
+        while(!done) { sleep(); }
+        return read_ch;
+    }
 
     /** Start non-blocking SPI transfer using 8bit buffers.
      *
      * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
      *                  the default SPI value is sent
-     * @param tx_length The length of TX buffer
+     * @param tx_length The length of TX buffer in bytes
      * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
      *                  received data are ignored
-     * @param rx_length The length of RX buffer
+     * @param rx_length The length of RX buffer in bytes
      * @param callback  The event callback function
-     * @param event     The logical OR of events to modify
+     * @param event     The logical OR of events to modify. Look at spi hal header file for SPI events.
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
-    virtual int transfer(uint8_t *tx_buffer, int tx_length, uint8_t *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE) {
-        return transfer(tx_buffer, tx_length, rx_buffer, rx_length, 8, callback, event);
-    }
-
-    /** Start non-blocking SPI transfer using 16bit buffers.
-     *
-     * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
-     *                  the default SPI value is sent
-     * @param tx_length The length of TX buffer
-     * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
-     *                  received data are ignored
-     * @param rx_length The length of RX buffer
-     * @param callback  The event callback function
-     * @param event     The logical OR of events to modify
-     * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
-     */
-    virtual int transfer(uint16_t *tx_buffer, int tx_length, uint16_t *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE) {
-        return transfer(tx_buffer, tx_length, rx_buffer, rx_length, 16, callback, event);
-    }
-
-    /** Start non-blocking SPI transfer using 32bit buffers.
-     *
-     * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
-     *                  the default SPI value is sent
-     * @param tx_length The length of TX buffer
-     * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
-     *                  received data are ignored
-     * @param rx_length The length of RX buffer
-     * @param callback  The event callback function
-     * @param event     The logical OR of events to modify
-     * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
-     */
-    virtual int transfer(uint32_t *tx_buffer, int tx_length, uint32_t *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE)  {
-        return transfer((void *)tx_buffer, tx_length, (void *)rx_buffer, rx_length, 32, callback, event);
+    template<typename Type>
+    int transfer(const Type *tx_buffer, int tx_length, Type *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE) {
+        if (spi_active(&_spi)) {
+            return queue_transfer(tx_buffer, tx_length, rx_buffer, rx_length, sizeof(Type)*8, callback, event);
+        }
+        start_transfer(tx_buffer, tx_length, rx_buffer, rx_length, sizeof(Type)*8, callback, event);
+        return 0;
     }
 
     /** Abort the on-going SPI transfer, and continue with transfer's in the queue if any.
@@ -179,47 +162,45 @@ protected:
      *
      * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
      *                  the default SPI value is sent
-     * @param tx_length The length of TX buffer
+     * @param tx_length The length of TX buffer in bytes
      * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
      *                  received data are ignored
-     * @param rx_length The length of RX buffer
+     * @param rx_length The length of RX buffer in bytes
      * @param bit_width The buffers element width
      * @param callback  The event callback function
      * @param event     The logical OR of events to modify
      * @return Zero if the transfer has started or was added to the queue, or -1 if SPI peripheral is busy/buffer is full
     */
-    int transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
+    int transfer(const void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
 
     /**
      *
      * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
      *                  the default SPI value is sent
-     * @param tx_length The length of TX buffer
+     * @param tx_length The length of TX buffer in bytes
      * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
      *                  received data are ignored
-     * @param rx_length The length of RX buffer
+     * @param rx_length The length of RX buffer in bytes
      * @param bit_width The buffers element width
      * @param callback  The event callback function
      * @param event     The logical OR of events to modify
      * @return Zero if a transfer was added to the queue, or -1 if the queue is full
     */
-    int queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
+    int queue_transfer(const void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
 
     /** Configures a callback, spi peripheral and initiate a new transfer
      *
      * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
      *                  the default SPI value is sent
-     * @param tx_length The length of TX buffer
+     * @param tx_length The length of TX buffer in bytes
      * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
      *                  received data are ignored
-     * @param rx_length The length of RX buffer
+     * @param rx_length The length of RX buffer in bytes
      * @param bit_width The buffers element width
      * @param callback  The event callback function
      * @param event     The logical OR of events to modify
     */
-    void start_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
-
-#if TRANSACTION_QUEUE_SIZE_SPI
+    void start_transfer(const void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, unsigned char bit_width, const event_callback_t& callback, int event);
 
     /** Start a new transaction
      *
@@ -232,33 +213,21 @@ protected:
     */
     void dequeue_transaction();
     static CircularBuffer<Transaction<SPI>, TRANSACTION_QUEUE_SIZE_SPI> _transaction_buffer;
-#endif
-
-#endif
-
-public:
-    virtual ~SPI() {
-    }
 
 protected:
     spi_t _spi;
 
-#if DEVICE_SPI_ASYNCH
     CThunk<SPI> _irq;
     event_callback_t _callback;
     DMAUsage _usage;
-#endif
 
     void aquire(void);
     static SPI *_owner;
     int _bits;
     int _mode;
-    spi_bitorder_t _order;
     int _hz;
 };
 
 } // namespace mbed
-
-#endif
 
 #endif

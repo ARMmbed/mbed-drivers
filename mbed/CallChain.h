@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 #define MBED_CALLCHAIN_H
 
 #include "FunctionPointer.h"
-#include <string.h>
 
 namespace mbed {
 
@@ -151,14 +150,12 @@ public:
      */
     void call();
 
-#ifdef MBED_OPERATORS
     void operator ()(void) {
         call();
     }
     pFunctionPointer_t operator [](int i) const {
         return get(i);
     }
-#endif
 
 private:
     void _check_size();

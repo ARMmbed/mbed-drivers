@@ -17,36 +17,13 @@
 #define MBED_I2C_H
 
 #include "platform.h"
-
-#if DEVICE_I2C
-
 #include "i2c_api.h"
-
-#if DEVICE_I2C_ASYNCH
 #include "CThunk.h"
 #include "dma_api.h"
 #include "FunctionPointer.h"
-#endif
 
 namespace mbed {
 
-/** An I2C Master, used for communicating with I2C slave devices
- *
- * Example:
- * @code
- * // Read from I2C slave at address 0x62
- *
- * #include "mbed.h"
- *
- * I2C i2c(p28, p27);
- *
- * int main() {
- *     int address = 0x62;
- *     char data[2];
- *     i2c.read(address, data, 2);
- * }
- * @endcode
- */
 class I2C {
 
 public:
@@ -69,6 +46,10 @@ public:
      */
     I2C(PinName sda, PinName scl);
 
+    virtual ~I2C() {
+        i2c_deinit(&_i2c);
+    }
+
     /** Set the frequency of the I2C interface
      *
      *  @param hz The bus frequency in hertz
@@ -89,16 +70,11 @@ public:
      *       0 on success (ack),
      *   non-0 on failure (nack)
      */
-    int read(int address, char *data, int length, bool repeated = false);
-
-    /** Read a single byte from the I2C bus
-     *
-     *  @param ack indicates if the byte is to be acknowledged (1 = acknowledge)
-     *
-     *  @returns
-     *    the byte read
-     */
-    int read(int ack);
+    int read(int address, char *data, int length, bool repeated = false) {
+        transfer(address, NULL, 0, data, length, defaultHandler);
+        while(!done) { sleep(); }
+        return error;
+    }
 
     /** Write to an I2C slave
      *
@@ -114,28 +90,15 @@ public:
      *       0 on success (ack),
      *   non-0 on failure (nack)
      */
-    int write(int address, const char *data, int length, bool repeated = false);
+    int write(int address, const char *data, int length, bool repeated = false) {
+        transfer(address, data, length, NULL, 0, defaultHandler);
+        while(!done) { sleep(); }
+        return error;
+    }
 
-    /** Write single byte out on the I2C bus
-     *
-     *  @param data data to write out on bus
-     *
-     *  @returns
-     *    '1' if an ACK was received,
-     *    '0' otherwise
-     */
-    int write(int data);
-
-    /** Creates a start condition on the I2C bus
-     */
-
-    void start(void);
-
-    /** Creates a stop condition on the I2C bus
-     */
-    void stop(void);
-
-#if DEVICE_I2C_ASYNCH
+    void recover(void) {
+        // recover from a bad bus state
+    }
 
     /** Start non-blocking I2C transfer.
      *
@@ -159,9 +122,6 @@ protected:
     event_callback_t _callback;
     CThunk<I2C> _irq;
     DMAUsage _usage;
-#endif
-
-protected:
     void aquire();
 
     i2c_t _i2c;
@@ -170,7 +130,5 @@ protected:
 };
 
 } // namespace mbed
-
-#endif
 
 #endif
