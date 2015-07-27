@@ -135,13 +135,6 @@ public:
     */
     int set_dma_usage(DMAUsage usage);
 
-    /** Set TX value which is used during transfer when tx buffer is not set.
-     *  The default value is SPI_FILL_WORD.
-     *
-     *  @param value value to be set
-    */
-    void set_tx_fill_word(uint32_t value);
-
 protected:
     /** SPI IRQ handler
      *
