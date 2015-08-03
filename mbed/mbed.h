@@ -65,7 +65,6 @@
 #include "InterruptIn.h"
 #include "wait_api.h"
 #include "sleep_api.h"
-#include "rtc_time.h"
 
 using namespace mbed;
 using namespace std;
