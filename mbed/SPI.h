@@ -114,7 +114,8 @@ public:
      * @param event     The logical OR of SPI events to modify. Look at spi hal header file for SPI events.
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
-    int transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE);
+    int transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE, void *context = NULL);
+    int transfer(const Buffer& tx, const Buffer& rx, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE, void *context = NULL);
 
     /** Abort the on-going SPI transfer, and continue with transfer's in the queue if any.
      */
@@ -141,7 +142,7 @@ protected:
     */
     void irq_handler_asynch(void);
 
-    /**
+   /**
      *
      * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
      *                  the default SPI value is sent
@@ -154,7 +155,7 @@ protected:
      * @param event     The logical OR of events to modify
      * @return Zero if a transfer was added to the queue, or -1 if the queue is full
     */
-    int queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event);
+    int queue_transfer(const Buffer& tx, const Buffer& rx, const event_callback_t& callback, int event, void *context);
 
     /** Configures a callback, spi peripheral and initiate a new transfer
      *
@@ -168,7 +169,7 @@ protected:
      * @param callback  The event callback function
      * @param event     The logical OR of events to modify
     */
-    void start_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event);
+    void start_transfer(const Buffer& tx, const Buffer& rx, const event_callback_t& callback, int event, void *context);
 
 #if TRANSACTION_QUEUE_SIZE_SPI
 
@@ -196,7 +197,7 @@ protected:
 
 #if DEVICE_SPI_ASYNCH
     CThunk<SPI> _irq;
-    event_callback_t _callback;
+    transaction_cbdata_t _current_callback;
     DMAUsage _usage;
 #endif
 

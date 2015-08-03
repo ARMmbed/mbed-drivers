@@ -23,6 +23,7 @@
 #include "Stream.h"
 #include "FunctionPointer.h"
 #include "serial_api.h"
+#include "Transaction.h"
 
 #if DEVICE_SERIAL_ASYNCH
 #include "CThunk.h"
@@ -133,16 +134,8 @@ public:
      *  @param callback The event callback function
      *  @param event    The logical OR of TX events
      */
-    int write(uint8_t *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_TX_COMPLETE);
-
-    /** Begin asynchronous write using 16bit buffer. The completition invokes registered TX event callback
-     *
-     *  @param buffer   The buffer where received data will be stored
-     *  @param length   The buffer length
-     *  @param callback The event callback function
-     *  @param event    The logical OR of TX events
-     */
-    int write(uint16_t *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_TX_COMPLETE);
+    int write(void *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_TX_COMPLETE, void *context = NULL);
+    int write(const Buffer& buf, const event_callback_t& callback, int event = SERIAL_EVENT_TX_COMPLETE, void *context = NULL);
 
     /** Abort the on-going write transfer
      */
@@ -156,17 +149,8 @@ public:
      *  @param event      The logical OR of RX events
      *  @param char_match The matching character
      */
-    int read(uint8_t *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_RX_COMPLETE, unsigned char char_match = SERIAL_RESERVED_CHAR_MATCH);
-
-    /** Begin asynchronous reading using 16bit buffer. The completition invokes registred RX event callback.
-     *
-     *  @param buffer     The buffer where received data will be stored
-     *  @param length     The buffer length
-     *  @param callback   The event callback function
-     *  @param event      The logical OR of RX events
-     *  @param char_match The matching character
-     */
-    int read(uint16_t *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_RX_COMPLETE, unsigned char char_match = SERIAL_RESERVED_CHAR_MATCH);
+    int read(void *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_RX_COMPLETE, unsigned char char_match = SERIAL_RESERVED_CHAR_MATCH, void *context = NULL);
+    int read(const Buffer& buffer, const event_callback_t& callback, int event = SERIAL_EVENT_RX_COMPLETE, unsigned char char_match = SERIAL_RESERVED_CHAR_MATCH, void *context = NULL);
 
     /** Abort the on-going read transfer
      */
@@ -187,8 +171,8 @@ public:
     int set_dma_usage_rx(DMAUsage usage);
 
 protected:
-    void start_read(void *buffer, int buffer_size, char buffer_width, const event_callback_t& callback, int event, unsigned char char_match);
-    void start_write(void *buffer, int buffer_size, char buffer_width, const event_callback_t& callback, int event);
+    void start_read(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event, unsigned char char_match, void *context);
+    void start_write(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event, void *context);
     void interrupt_handler_asynch(void);
 #endif
 
@@ -202,8 +186,8 @@ protected:
 
 #if DEVICE_SERIAL_ASYNCH
     CThunk<SerialBase> _thunk_irq;
-    event_callback_t _tx_callback;
-    event_callback_t _rx_callback;
+    transaction_cbdata_t _current_tx_callback;
+    transaction_cbdata_t _current_rx_callback;
     DMAUsage _tx_usage;
     DMAUsage _rx_usage;
 #endif

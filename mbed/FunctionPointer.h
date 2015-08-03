@@ -472,7 +472,7 @@ const struct FunctionPointerBase<R>::ArgOps FunctionPointer3<R,A1,A2,A3>::_fp3_o
 };
 
 typedef FunctionPointer0<void> FunctionPointer;
-typedef FunctionPointer1<void, int> event_callback_t;
+//typedef FunctionPointer1<void, int> event_callback_t;
 
 } // namespace mbed
 

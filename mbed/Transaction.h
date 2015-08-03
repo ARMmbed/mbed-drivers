@@ -18,20 +18,37 @@
 
 #include "platform.h"
 #include "FunctionPointer.h"
+#include "mbed/Buffer.h"
 
 namespace mbed {
+
+/** Signature of user callback:
+ *
+ *    void transaction_callback(RxTxBuffer buf, int event, void *context);
+ *
+ * Arguments:
+ *    buf: the Rx/Tx buffers that were transferred as part of the transaction
+ *    event: the event that triggered the callback
+ *    context: optional user provided context, propagated to the callback
+ */
+typedef FunctionPointer3<void, RxTxBuffer, int, void*> event_callback_t;
 
 /** Transaction structure
  */
 typedef struct {
-    void *tx_buffer;           /**< Tx buffer */
-    size_t tx_length;          /**< Length of Tx buffer*/
-    void *rx_buffer;           /**< Rx buffer */
-    size_t rx_length;          /**< Length of Rx buffer */
+    RxTxBuffer buffers;        /**< Buffers used in the transaction */
     uint32_t event;            /**< Event for a transaction */
     event_callback_t callback; /**< User's callback */
-    uint8_t width;             /**< Buffer's word width (8, 16, 32, 64) */
+    void* context;             /**< User provided context */
 } transaction_t;
+
+/** Transaction callback data.
+ */
+typedef struct {
+    RxTxBuffer buffers;        /**< buffer data */
+    event_callback_t callback; /**< Callback associated with transaction */
+    void *context;             /**< User context */
+} transaction_cbdata_t;
 
 /** Transaction class defines a transaction.
  */

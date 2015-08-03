@@ -26,6 +26,7 @@
 #include "CThunk.h"
 #include "dma_api.h"
 #include "FunctionPointer.h"
+#include "Transaction.h"
 #endif
 
 namespace mbed {
@@ -149,14 +150,15 @@ public:
      * @param repeated Repeated start, true - do not send stop at end
      * @return Zero if the transfer has started, or -1 if I2C peripheral is busy
      */
-    int transfer(int address, char *tx_buffer, int tx_length, char *rx_buffer, int rx_length, const event_callback_t& callback, int event = I2C_EVENT_TRANSFER_COMPLETE, bool repeated = false);
+    int transfer(int address, char *tx_buffer, int tx_length, char *rx_buffer, int rx_length, const event_callback_t& callback, int event = I2C_EVENT_TRANSFER_COMPLETE, bool repeated = false, void *context = NULL);
+    int transfer(int address, const Buffer& tx_buffer, const Buffer& rx_buffer, const event_callback_t& callback, int event = I2C_EVENT_TRANSFER_COMPLETE, bool repeated = false, void *context = NULL);
 
     /** Abort the on-going I2C transfer
      */
     void abort_transfer();
 protected:
     void irq_handler_asynch(void);
-    event_callback_t _callback;
+    transaction_cbdata_t _current_callback;
     CThunk<I2C> _irq;
     DMAUsage _usage;
 #endif
