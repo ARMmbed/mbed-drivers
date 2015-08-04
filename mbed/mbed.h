@@ -32,7 +32,6 @@
 
 // mbed Debug libraries
 #include "mbed_error.h"
-#include "mbed_interface.h"
 #include "mbed_assert.h"
 
 // mbed Peripheral components
@@ -57,7 +56,6 @@
 #include "Timer.h"
 #include "Ticker.h"
 #include "Timeout.h"
-#include "LocalFileSystem.h"
 #include "InterruptIn.h"
 #include "wait_api.h"
 #include "sleep_api.h"
