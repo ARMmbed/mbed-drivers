@@ -125,9 +125,9 @@ int SerialBase::write(const Buffer& buffer, const event_callback_t& callback, in
 
 void SerialBase::start_write(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event, void *context)
 {
-    _current_tx_callback.callback = callback;
-    _current_tx_callback.buffers.tx_buffer = buffer;
-    _current_tx_callback.context = context;
+    _current_tx_transaction.callback = callback;
+    _current_tx_transaction.buffer = buffer;
+    _current_tx_transaction.context = context;
     _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
     serial_tx_asynch(&_serial, buffer.buf, buffer.length, buffer_width, _thunk_irq.entry(), event, _tx_usage);
 }
@@ -176,9 +176,9 @@ int SerialBase::read(const Buffer& buffer, const event_callback_t& callback, int
 
 void SerialBase::start_read(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event, unsigned char char_match, void *context)
 {
-    _current_rx_callback.callback = callback;
-    _current_tx_callback.buffers.rx_buffer = buffer;
-    _current_tx_callback.context = context;
+    _current_rx_transaction.callback = callback;
+    _current_tx_transaction.buffer = buffer;
+    _current_tx_transaction.context = context;
     _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
     serial_rx_asynch(&_serial, buffer.buf, buffer.length, buffer_width, _thunk_irq.entry(), event, char_match, _rx_usage);
 }
@@ -187,13 +187,13 @@ void SerialBase::interrupt_handler_asynch(void)
 {
     int event = serial_irq_handler_asynch(&_serial);
     int rx_event = event & SERIAL_EVENT_RX_MASK;
-    if (_current_rx_callback.callback && rx_event) {
-        minar::Scheduler::postCallback(_current_rx_callback.callback.bind(_current_rx_callback.buffers, rx_event, _current_rx_callback.context));
+    if (_current_rx_transaction.callback && rx_event) {
+        minar::Scheduler::postCallback(_current_rx_transaction.callback.bind(_current_rx_transaction.buffer, rx_event, _current_rx_transaction.context));
     }
 
     int tx_event = event & SERIAL_EVENT_TX_MASK;
-    if (_current_tx_callback.callback && tx_event) {
-        minar::Scheduler::postCallback(_current_tx_callback.callback.bind(_current_tx_callback.buffers, tx_event, _current_tx_callback.context));
+    if (_current_tx_transaction.callback && tx_event) {
+        minar::Scheduler::postCallback(_current_tx_transaction.callback.bind(_current_tx_transaction.buffer, tx_event, _current_tx_transaction.context));
     }
 }
 

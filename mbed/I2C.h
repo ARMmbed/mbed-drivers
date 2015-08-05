@@ -138,6 +138,10 @@ public:
 
 #if DEVICE_I2C_ASYNCH
 
+    typedef FunctionPointer4<void, Buffer, Buffer, int, void*> event_callback_t;
+    typedef TwoWayTransaction<event_callback_t> transaction_data_t;
+    typedef Transaction<I2C, transaction_data_t> transaction_t;
+
     /** Start non-blocking I2C transfer.
      *
      * @param address   8/10 bit I2c slave address
@@ -158,7 +162,7 @@ public:
     void abort_transfer();
 protected:
     void irq_handler_asynch(void);
-    transaction_cbdata_t _current_callback;
+    transaction_data_t _current_transaction;
     CThunk<I2C> _irq;
     DMAUsage _usage;
 #endif

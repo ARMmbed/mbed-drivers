@@ -103,10 +103,10 @@ int I2C::transfer(int address, const Buffer& tx_buffer, const Buffer& rx_buffer,
     }
     aquire();
 
-    _current_callback.buffers.tx_buffer = tx_buffer;
-    _current_callback.buffers.rx_buffer = rx_buffer;
-    _current_callback.callback = callback;
-    _current_callback.context = context;
+    _current_transaction.tx_buffer = tx_buffer;
+    _current_transaction.rx_buffer = rx_buffer;
+    _current_transaction.callback = callback;
+    _current_transaction.context = context;
     int stop = (repeated) ? 0 : 1;
     _irq.callback(&I2C::irq_handler_asynch);
     i2c_transfer_asynch(&_i2c, tx_buffer.buf, tx_buffer.length, rx_buffer.buf, rx_buffer.length, address, stop, _irq.entry(), event, _usage);
@@ -121,8 +121,8 @@ void I2C::abort_transfer(void)
 void I2C::irq_handler_asynch(void)
 {
     int event = i2c_irq_handler_asynch(&_i2c);
-    if (_current_callback.callback && event) {
-        minar::Scheduler::postCallback(_current_callback.callback.bind(_current_callback.buffers, event, _current_callback.context));
+    if (_current_transaction.callback && event) {
+        minar::Scheduler::postCallback(_current_transaction.callback.bind(_current_transaction.tx_buffer, _current_transaction.rx_buffer, event, _current_transaction.context));
     }
 
 }

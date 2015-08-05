@@ -74,7 +74,11 @@ public:
 
     /** Determine if there is a character available to read
      *
-     *  @returns
+         typedef FunctionPointer3<void, Buffer, int, void*> event_callback_t;
+    typedef OneWayTransaction<event_callback_t> transaction_data_t;
+    typedef Transaction<SerialBase, transaction_data_t> transaction_t;
+
+*  @returns
      *    1 if there is a character available to read,
      *    0 otherwise
      */
@@ -126,6 +130,10 @@ public:
     static void _irq_handler(uint32_t id, SerialIrq irq_type);
 
 #if DEVICE_SERIAL_ASYNCH
+    typedef FunctionPointer3<void, Buffer, int, void*> event_callback_t;
+    typedef OneWayTransaction<event_callback_t> transaction_data_t;
+    typedef Transaction<SerialBase, transaction_data_t> transaction_t;
+
 
     /** Begin asynchronous write using 8bit buffer. The completition invokes registered TX event callback
      *
@@ -186,8 +194,8 @@ protected:
 
 #if DEVICE_SERIAL_ASYNCH
     CThunk<SerialBase> _thunk_irq;
-    transaction_cbdata_t _current_tx_callback;
-    transaction_cbdata_t _current_rx_callback;
+    transaction_data_t _current_tx_transaction;
+    transaction_data_t _current_rx_transaction;
     DMAUsage _tx_usage;
     DMAUsage _rx_usage;
 #endif

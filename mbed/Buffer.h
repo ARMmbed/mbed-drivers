@@ -21,23 +21,16 @@
 namespace mbed {
 
 /** A buffer is a (pointer to data, size of data) pair
+ *  It's a convenient way of passing around a pointer to a memory region
+ *  and the memory size of that region in a single object
+ *  It doesn't take ownership of the pointer passed to it and it doesn't do
+ *  any kind of memory management.
  */
 struct Buffer {
     Buffer(void *buf = NULL, size_t length = 0): buf(buf), length(length) {}
 
     void *buf;
-    size_t length;
-};
-
-/** A RxTxBuffer is a pair of a RX buffer and a TX buffer (used in a transaction)
- */
-struct RxTxBuffer {
-    RxTxBuffer(const Buffer& rx, const Buffer& tx): rx_buffer(rx), tx_buffer(tx) {}
-    RxTxBuffer(void *rx = NULL, size_t rx_len = 0, void *tx = NULL, size_t tx_len = 0):
-        rx_buffer(rx, rx_len), tx_buffer(tx, tx_len) {}
-
-    Buffer rx_buffer;
-    Buffer tx_buffer;
+    int length;
 };
 
 } // namespace mbed

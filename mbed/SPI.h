@@ -101,6 +101,10 @@ public:
     virtual int write(int value);
 
 #if DEVICE_SPI_ASYNCH
+    typedef FunctionPointer4<void, Buffer, Buffer, int, void*> event_callback_t;
+    typedef TwoWayTransaction<event_callback_t> transaction_data_t;
+    typedef Transaction<SPI, transaction_data_t> transaction_t;
+
 
     /** Start non-blocking SPI transfer.
      *
@@ -177,13 +181,13 @@ protected:
      *
      *  @param data Transaction data
     */
-    void start_transaction(transaction_t *data);
+    void start_transaction(transaction_data_t *data);
 
     /** Dequeue a transaction
      *
     */
     void dequeue_transaction();
-    static CircularBuffer<Transaction<SPI>, TRANSACTION_QUEUE_SIZE_SPI> _transaction_buffer;
+    static CircularBuffer<transaction_t, TRANSACTION_QUEUE_SIZE_SPI> _transaction_buffer;
 #endif
 
 #endif
@@ -197,7 +201,7 @@ protected:
 
 #if DEVICE_SPI_ASYNCH
     CThunk<SPI> _irq;
-    transaction_cbdata_t _current_callback;
+    transaction_data_t _current_transaction;
     DMAUsage _usage;
 #endif
 
