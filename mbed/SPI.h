@@ -121,6 +121,69 @@ public:
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
     int transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE);
+    class TransferParameters {
+        friend SPI;
+    public:
+        TransferParameters():
+            _freq(0),
+            _irqCallback(),
+            _callback(),
+            _tx(NULL),
+            _rx(NULL),
+            _tlen(0),
+            _rlen(0),
+            _eventMask(-1),
+            _cs(),
+            _posted(false),
+            _spi(NULL)
+        {}
+        TransferParameters & frequency(uint32_t freq){_freq = freq;posted = false;}
+        TransferParameters & irq_callback(event_callback_t irqCallback){_irqCallback = irqCallback;posted = false;}
+        TransferParameters & callback(event_callback_t callback){_callback = callback;posted = false;}
+        TransferParameters & tx_buffer(void * buf, size_t length){_tx = buf; _tlen = length;posted = false;}
+        TransferParameters & rx_buffer(void * buf, size_t length){_rx = buf; _rlen = length;posted = false;}
+        TransferParameters & event_mask(int mask){_eventMask = mask;posted = false;}
+        TransferParameters & cs_pin(PinName cs) {_cs = cs;posted = false;}
+
+        ~TransferParameters() {
+            if(_spi && !_posted) {
+                int err = _spi->transfer(_tx,_tlen,_rx,_rlen,_callback,_eventMask);
+                if (err && _callback) {
+                    minar::Scheduler::postCallback(_callback.bind(SPI_EVENT_ERROR));
+                }
+            }
+        }
+    private:
+        uint32_t _freq;
+        event_callback_t _irqCallback;
+        event_callback_t _callback;
+        void * _tx;
+        void * _rx;
+        size_t _tlen;
+        size_t _rlen;
+        int _eventMask;
+        PinName _cs;
+        bool _posted;
+        SPI *_spi;
+    }
+
+    int post_transfer(TransferParameters tp) {
+        if(!_posted) {
+            _posted = true;
+            return transfer(tp._tx,tp._tlen,tp._rx,tp._rlen,tp._callback,tp._eventMask);
+        } else {
+            return 0;
+        }
+    }
+    TransferParameters post_transfer() {
+        TransferParameters tp;
+        tp._spi = this;
+        return tp;
+    }
+
+    int post_transfer(TransferParameters tp) {
+        return transfer(tp._tx,tp._tlen,tp._rx,tp._rlen,tp._callback,tp._eventMask);
+    }
 
      /** Start non-blocking SPI transfer.
      *
