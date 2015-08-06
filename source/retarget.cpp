@@ -504,12 +504,12 @@ void * mbed_sbrk(ptrdiff_t size)
     }
 
     /* Decrement mbed_sbrk_diff by the size being allocated. */
-    uint32_t ptr_diff = mbed_sbrk_diff;
+    ptrdiff_t ptr_diff = mbed_sbrk_diff;
     while (1) {
         if (size_internal > ptr_diff) {
             return (void *) -1;
         }
-        if (mbed::util::atomic_cas((uint32_t *)&mbed_sbrk_diff, &ptr_diff, ptr_diff - size_internal)) {
+        if (mbed::util::atomic_cas((uint32_t *)&mbed_sbrk_diff, (uint32_t *)&ptr_diff, (uint32_t)(ptr_diff - size_internal))) {
             break;
         }
     }
@@ -541,12 +541,12 @@ void * mbed_krbs_ex(const ptrdiff_t size, ptrdiff_t *actual)
     size_internal = (size_internal + KRBS_ALIGN - 1) & ~(KRBS_ALIGN - 1);
 
     /* Decrement mbed_sbrk_diff by the size being allocated. */
-    uint32_t ptr_diff = mbed_sbrk_diff;
+    ptrdiff_t ptr_diff = mbed_sbrk_diff;
     while (1) {
         if ((size_internal > (uintptr_t)ptr_diff) && (actual == NULL)) {
             return (void *) -1;
         }
-        if (mbed::util::atomic_cas((uint32_t *)&mbed_sbrk_diff, &ptr_diff, ptr_diff - size_internal)) {
+        if (mbed::util::atomic_cas((uint32_t *)&mbed_sbrk_diff, (uint32_t *)&ptr_diff, (uint32_t)(ptr_diff - size_internal))) {
             break;
         }
     }
