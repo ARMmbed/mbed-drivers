@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mbed.h"
+#include "test_env.h"
 
-DigitalOut led1(LED1);
-DigitalOut led2(LED2);
+DigitalOut led1(TEST_PIN_LED1);
+DigitalOut led2(TEST_PIN_LED2);
 Timeout to1;
 Timeout to2;
 
@@ -25,6 +25,7 @@ void led1_on() {
     printf("led1\n\r");
     fflush(stdout);
 }
+
 void led2_on() {
     led2 = !led2;
     printf("led2\n\r");

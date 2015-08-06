@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "mbed.h"
 #include "test_env.h"
 
 void print_char(char c = '*')
@@ -24,7 +23,7 @@ void print_char(char c = '*')
 }
 
 Ticker flipper_1;
-DigitalOut led1(LED1);
+DigitalOut led1(TEST_PIN_LED1);
 
 void flip_1() {
     static int led1_state = 0;
@@ -37,7 +36,7 @@ void flip_1() {
 }
 
 Ticker flipper_2;
-DigitalOut led2(LED2);
+DigitalOut led2(TEST_PIN_LED2);
 
 void flip_2() {
     static int led2_state = 0;

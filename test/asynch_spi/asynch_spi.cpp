@@ -19,8 +19,6 @@
 #include "minar/minar.h"
 #include "Event.h"
 
-#if DEVICE_SPI_ASYNCH
-
 #define SHORT_XFR 3
 #define LONG_XFR 16
 #define TEST_BYTE0 0x00
@@ -33,21 +31,12 @@
 #define TEST_BYTE_RX TEST_BYTE3
 #define TEST_BYTE_TX_BASE TEST_BYTE5
 
-#if defined(TARGET_K64F)
-#define TEST_MOSI_PIN PTD2
-#define TEST_MISO_PIN PTD3
-#define TEST_SCLK_PIN PTD1
-#define TEST_CS_PIN   PTD0
-#else
-#error Target not supported
-#endif
-
 using namespace minar;
 
 class SPITest {
 
 public:
-    SPITest(): spi(TEST_MOSI_PIN, TEST_MISO_PIN, TEST_SCLK_PIN), cs(TEST_CS_PIN) {
+    SPITest(): spi(TEST_PIN_SPI_MOSI, TEST_PIN_SPI_MISO, TEST_PIN_SPI_SCK), cs(TEST_PIN_SPI_CS) {
         for (uint32_t i = 0; i < sizeof(tx_buf); i++) {
             tx_buf[i] = i + TEST_BYTE_TX_BASE;
         }
@@ -104,9 +93,4 @@ void app_start(int, char*[]) {
     static SPITest test;
     Scheduler::postCallback(FunctionPointer0<void>(&test, &SPITest::start).bind());
 }
-
-#else
-void app_start(int, char*[]) {
-}
-#endif
 

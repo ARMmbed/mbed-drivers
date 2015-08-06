@@ -13,50 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mbed.h"
 
-#if defined(TARGET_LPC4088)
-InterruptIn button(p18);
-InterruptIn button1(p17);
-InterruptIn button2(p16);
-InterruptIn button3(p15);
-InterruptIn button4(p14);
-InterruptIn button5(p13);
-InterruptIn button6(p12);
-InterruptIn button7(p11);
-InterruptIn button8(p10);
-InterruptIn button9(p9);
-DigitalOut led(LED1);
-DigitalOut flash(LED4);
+#include "test_env.h"
 
-#elif defined(TARGET_LPC1114)
-InterruptIn button(p30); // SW2 (User switch)
-InterruptIn button1(p5);
-InterruptIn button2(p6);
-InterruptIn button3(p7);
-InterruptIn button4(p9);
-InterruptIn button5(p10);
-InterruptIn button6(p12);
-InterruptIn button7(p13);
-InterruptIn button8(p14);
-InterruptIn button9(p15);
-DigitalOut led(LED1);
-DigitalOut flash(LED2);
-
-#else
-InterruptIn button(p30);
-InterruptIn button1(p29);
-InterruptIn button2(p28);
-InterruptIn button3(p27);
-InterruptIn button4(p26);
-InterruptIn button5(p25);
-InterruptIn button6(p24);
-InterruptIn button7(p23);
-InterruptIn button8(p22);
-InterruptIn button9(p21);
-DigitalOut led(LED1);
-DigitalOut flash(LED4);
-#endif
+InterruptIn button(TEST_PIN_InterruptIn_0);
+InterruptIn button1(TEST_PIN_InterruptIn_1);
+InterruptIn button2(TEST_PIN_InterruptIn_2);
+InterruptIn button3(TEST_PIN_InterruptIn_3);
+InterruptIn button4(TEST_PIN_InterruptIn_4);
+InterruptIn button5(TEST_PIN_InterruptIn_5);
+InterruptIn button6(TEST_PIN_InterruptIn_6);
+InterruptIn button7(TEST_PIN_InterruptIn_7);
+InterruptIn button8(TEST_PIN_InterruptIn_8);
+InterruptIn button9(TEST_PIN_InterruptIn_9);
+DigitalOut led(TEST_PIN_LED1);
+DigitalOut flash(TEST_PIN_LED2);
 
 void flip() {
     led = !led;
@@ -65,9 +36,7 @@ void flip() {
 int main() {
     flash = 0;
     led = 0;
-#if defined(TARGET_LPC1114)
     button.mode(PullUp);
-#endif
     button.rise(&flip);  // attach the address of the flip function to the rising edge
     button1.rise(&flip);
     button2.rise(&flip);

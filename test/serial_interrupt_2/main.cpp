@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mbed.h"
+#include "test_env.h"
 
-Serial pc(USBTX, USBRX);
+Serial pc(TEST_PIN_Serial_ECHO_TX, TEST_PIN_Serial_ECHO_RX);
+Serial uart(TEST_PIN_Serial_TX, TEST_PIN_Serial_RX);
 
-#if defined(TARGET_LPC4088)
-Serial uart(P4_22, P4_23);
-#else
-Serial uart(p9, p10);
-#endif
-
-DigitalOut led1(LED1);
-DigitalOut led2(LED2);
+DigitalOut led1(TEST_PIN_LED1);
+DigitalOut led2(TEST_PIN_LED2);
 
 // This function is called when a character goes into the RX buffer.
 void rxCallback(void) {

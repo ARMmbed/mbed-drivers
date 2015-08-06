@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-#include "mbed.h"
 #include "test_env.h"
 
 void ticker_callback_1(void);
 void ticker_callback_2(void);
 
-DigitalOut led0(LED1);
-DigitalOut led1(LED2);
+DigitalOut led0(TEST_PIN_LED1);
+DigitalOut led1(TEST_PIN_LED2);
 Ticker ticker;
 
 void print_char(char c = '*')

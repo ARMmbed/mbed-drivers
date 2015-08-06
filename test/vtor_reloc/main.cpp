@@ -22,12 +22,10 @@
 #include "cmsis_nvic.h"
 #include <string.h>
 
-#define PIN_IN      (p5)
-#define PIN_OUT     (p25)
 #define NUM_VECTORS (16+33)
 
-DigitalOut out(PIN_OUT);
-DigitalOut myled(LED1);
+DigitalOut out(TEST_PIN_DigitalOut);
+DigitalOut myled(TEST_PIN_LED1);
 
 volatile int checks = 0;
 uint32_t int_table[NUM_VECTORS];
@@ -49,7 +47,7 @@ void in_handler() {
 }
 
 static bool test_once() {
-    InterruptIn in(PIN_IN);
+    InterruptIn in(TEST_PIN_InterruptIn_0);
     checks = 0;
     printf("Interrupt table location: 0x%08X\r\n", SCB->VTOR);
     in.rise(NULL);

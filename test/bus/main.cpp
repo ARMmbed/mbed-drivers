@@ -16,8 +16,8 @@
 #include "mbed.h"
 #include "test_env.h"
 
-BusOut bus1(D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12, D13, D14, D15);
-BusOut bus2(A5, A4, A3, A2, A1, A0);
+BusOut bus1(TEST_PIN_BusOut_0, TEST_PIN_BusOut_1, TEST_PIN_BusOut_2, TEST_PIN_BusOut_3, TEST_PIN_BusOut_4, TEST_PIN_BusOut_5, TEST_PIN_BusOut_6, TEST_PIN_BusOut_7, TEST_PIN_BusOut_8, TEST_PIN_BusOut_9, TEST_PIN_BusOut_10, TEST_PIN_BusOut_11, TEST_PIN_BusOut_12, TEST_PIN_BusOut_13, TEST_PIN_BusOut_14, TEST_PIN_BusOut_15);
+BusOut bus2(TEST_PIN_BusOut_16, TEST_PIN_BusOut_17, TEST_PIN_BusOut_18, TEST_PIN_BusOut_19, TEST_PIN_BusOut_20, TEST_PIN_BusOut_21);
 int i;
 
 int main()
