@@ -137,13 +137,13 @@ public:
             _posted(false),
             _spi(NULL)
         {}
-        TransferParameters & frequency(uint32_t freq){_freq = freq;posted = false;}
-        TransferParameters & irq_callback(event_callback_t irqCallback){_irqCallback = irqCallback;posted = false;}
-        TransferParameters & callback(event_callback_t callback){_callback = callback;posted = false;}
-        TransferParameters & tx_buffer(void * buf, size_t length){_tx = buf; _tlen = length;posted = false;}
-        TransferParameters & rx_buffer(void * buf, size_t length){_rx = buf; _rlen = length;posted = false;}
-        TransferParameters & event_mask(int mask){_eventMask = mask;posted = false;}
-        TransferParameters & cs_pin(PinName cs) {_cs = cs;posted = false;}
+        TransferParameters & frequency(uint32_t freq){_freq = freq; posted = false; return *this;}
+        TransferParameters & irq_callback(event_callback_t irqCallback){_irqCallback = irqCallback;posted = false; return *this;}
+        TransferParameters & callback(event_callback_t callback){_callback = callback;posted = false; return *this;}
+        TransferParameters & tx_buffer(void * buf, size_t length){_tx = buf; _tlen = length;posted = false; return *this;}
+        TransferParameters & rx_buffer(void * buf, size_t length){_rx = buf; _rlen = length;posted = false; return *this;}
+        TransferParameters & event_mask(int mask){_eventMask = mask;posted = false; return *this;}
+        TransferParameters & cs_pin(PinName cs) {_cs = cs;posted = false; return *this;}
 
         ~TransferParameters() {
             if(_spi && !_posted) {
