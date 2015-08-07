@@ -1,5 +1,5 @@
 {
-  "name": "mbed-core",
+  "name": "mbed-drivers",
   "version": "0.5.2",
   "description": "mbed SDK",
   "private": true,
@@ -24,9 +24,9 @@
   "dependencies": {
     "mbed-hal": "~0.5.0",
     "cmsis-core": "~0.2.0",
-    "mbed-alloc": "~0.0.0",
+    "ualloc": "~0.0.0",
     "minar": "~0.6.0",
-    "mbed-util": "~0.0.11"
+    "core-util": "~0.0.11"
   },
   "targetDependencies": {},
   "scripts": {
