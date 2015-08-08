@@ -111,23 +111,22 @@ void SerialBase::set_flow_control(Flow type, PinName flow1, PinName flow2) {
 
 #if DEVICE_SERIAL_ASYNCH
 
-int SerialBase::write(void *buffer, int length, const event_callback_t& callback, int event, void *context) {
-    return write(Buffer(buffer, length), callback, event, context);
+int SerialBase::write(void *buffer, int length, const event_callback_t& callback, int event) {
+    return write(Buffer(buffer, length), callback, event);
 }
 
-int SerialBase::write(const Buffer& buffer, const event_callback_t& callback, int event, void *context) {
+int SerialBase::write(const Buffer& buffer, const event_callback_t& callback, int event) {
     if (serial_tx_active(&_serial)) {
         return -1; // transaction ongoing
     }
-    start_write(buffer, 8, callback, event, context);
+    start_write(buffer, 8, callback, event);
     return 0;
 }
 
-void SerialBase::start_write(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event, void *context)
+void SerialBase::start_write(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event)
 {
     _current_tx_transaction.callback = callback;
     _current_tx_transaction.buffer = buffer;
-    _current_tx_transaction.context = context;
     _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
     serial_tx_asynch(&_serial, buffer.buf, buffer.length, buffer_width, _thunk_irq.entry(), event, _tx_usage);
 }
@@ -160,25 +159,24 @@ int SerialBase::set_dma_usage_rx(DMAUsage usage)
     return 0;
 }
 
-int SerialBase::read(void *buffer, int length, const event_callback_t& callback, int event, unsigned char char_match, void *context) {
-    return read(Buffer(buffer, length), callback, event, char_match, context);
+int SerialBase::read(void *buffer, int length, const event_callback_t& callback, int event, unsigned char char_match) {
+    return read(Buffer(buffer, length), callback, event, char_match);
 }
 
-int SerialBase::read(const Buffer& buffer, const event_callback_t& callback, int event, unsigned char char_match, void *context)
+int SerialBase::read(const Buffer& buffer, const event_callback_t& callback, int event, unsigned char char_match)
 {
     if (serial_rx_active(&_serial)) {
         return -1; // transaction ongoing
     }
-    start_read(buffer, 8, callback, event, char_match, context);
+    start_read(buffer, 8, callback, event, char_match);
     return 0;
 }
 
 
-void SerialBase::start_read(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event, unsigned char char_match, void *context)
+void SerialBase::start_read(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event, unsigned char char_match)
 {
     _current_rx_transaction.callback = callback;
     _current_tx_transaction.buffer = buffer;
-    _current_tx_transaction.context = context;
     _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
     serial_rx_asynch(&_serial, buffer.buf, buffer.length, buffer_width, _thunk_irq.entry(), event, char_match, _rx_usage);
 }
@@ -188,12 +186,12 @@ void SerialBase::interrupt_handler_asynch(void)
     int event = serial_irq_handler_asynch(&_serial);
     int rx_event = event & SERIAL_EVENT_RX_MASK;
     if (_current_rx_transaction.callback && rx_event) {
-        minar::Scheduler::postCallback(_current_rx_transaction.callback.bind(_current_rx_transaction.buffer, rx_event, _current_rx_transaction.context));
+        minar::Scheduler::postCallback(_current_rx_transaction.callback.bind(_current_rx_transaction.buffer, rx_event));
     }
 
     int tx_event = event & SERIAL_EVENT_TX_MASK;
     if (_current_tx_transaction.callback && tx_event) {
-        minar::Scheduler::postCallback(_current_tx_transaction.callback.bind(_current_tx_transaction.buffer, tx_event, _current_tx_transaction.context));
+        minar::Scheduler::postCallback(_current_tx_transaction.callback.bind(_current_tx_transaction.buffer, tx_event));
     }
 }
 

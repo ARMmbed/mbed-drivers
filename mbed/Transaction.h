@@ -29,7 +29,6 @@ struct OneWayTransaction {
     Buffer buffer;             /**< Transaction buffer */
     uint32_t event;            /**< Event for a transaction */
     Callback callback;         /**< User's callback */
-    void* context;             /**< User provided context */
 };
 
 /** Transactions in two directions (RX and TX)
@@ -40,7 +39,6 @@ struct TwoWayTransaction {
     Buffer rx_buffer;          /**< Receive buffer */
     uint32_t event;            /**< Event for a transaction */
     Callback callback;         /**< User's callback */
-    void* context;             /**< User provided context */
 };
 
 /** Transaction class defines a transaction.

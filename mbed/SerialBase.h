@@ -130,10 +130,11 @@ public:
     static void _irq_handler(uint32_t id, SerialIrq irq_type);
 
 #if DEVICE_SERIAL_ASYNCH
-    typedef FunctionPointer3<void, Buffer, int, void*> event_callback_t;
-    typedef OneWayTransaction<event_callback_t> transaction_data_t;
-    typedef Transaction<SerialBase, transaction_data_t> transaction_t;
-
+    /** Serial transfer callback
+     *  @param Buffer the transfer buffer
+     *  @param int the event that triggered the calback
+     */
+    typedef FunctionPointer2<void, Buffer, int> event_callback_t;
 
     /** Begin asynchronous write using 8bit buffer. The completition invokes registered TX event callback
      *
@@ -142,8 +143,15 @@ public:
      *  @param callback The event callback function
      *  @param event    The logical OR of TX events
      */
-    int write(void *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_TX_COMPLETE, void *context = NULL);
-    int write(const Buffer& buf, const event_callback_t& callback, int event = SERIAL_EVENT_TX_COMPLETE, void *context = NULL);
+    int write(void *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_TX_COMPLETE);
+
+    /** Begin asynchronous write using 8bit buffer. The completition invokes registered TX event callback
+     *
+     *  @param buffer   The buffer where received data will be stored
+     *  @param callback The event callback function
+     *  @param event    The logical OR of TX events
+     */
+    int write(const Buffer& buf, const event_callback_t& callback, int event = SERIAL_EVENT_TX_COMPLETE);
 
     /** Abort the on-going write transfer
      */
@@ -157,8 +165,16 @@ public:
      *  @param event      The logical OR of RX events
      *  @param char_match The matching character
      */
-    int read(void *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_RX_COMPLETE, unsigned char char_match = SERIAL_RESERVED_CHAR_MATCH, void *context = NULL);
-    int read(const Buffer& buffer, const event_callback_t& callback, int event = SERIAL_EVENT_RX_COMPLETE, unsigned char char_match = SERIAL_RESERVED_CHAR_MATCH, void *context = NULL);
+    int read(void *buffer, int length, const event_callback_t& callback, int event = SERIAL_EVENT_RX_COMPLETE, unsigned char char_match = SERIAL_RESERVED_CHAR_MATCH);
+
+    /** Begin asynchronous reading using 8bit buffer. The completition invokes registred RX event callback.
+     *
+     *  @param buffer     The buffer where received data will be stored
+     *  @param callback   The event callback function
+     *  @param event      The logical OR of RX events
+     *  @param char_match The matching character
+     */
+    int read(const Buffer& buffer, const event_callback_t& callback, int event = SERIAL_EVENT_RX_COMPLETE, unsigned char char_match = SERIAL_RESERVED_CHAR_MATCH);
 
     /** Abort the on-going read transfer
      */
@@ -179,8 +195,8 @@ public:
     int set_dma_usage_rx(DMAUsage usage);
 
 protected:
-    void start_read(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event, unsigned char char_match, void *context);
-    void start_write(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event, void *context);
+    void start_read(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event, unsigned char char_match);
+    void start_write(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event);
     void interrupt_handler_asynch(void);
 #endif
 
@@ -193,6 +209,9 @@ protected:
     int _base_putc(int c);
 
 #if DEVICE_SERIAL_ASYNCH
+    typedef OneWayTransaction<event_callback_t> transaction_data_t;
+    typedef Transaction<SerialBase, transaction_data_t> transaction_t;
+
     CThunk<SerialBase> _thunk_irq;
     transaction_data_t _current_tx_transaction;
     transaction_data_t _current_rx_transaction;
