@@ -50,7 +50,6 @@
 #include "PwmOut.h"
 #include "Serial.h"
 #include "SPI.h"
-#include "SPISlave.h"
 #include "I2C.h"
 #include "I2CSlave.h"
 #include "Ethernet.h"
