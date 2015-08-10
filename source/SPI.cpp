@@ -24,7 +24,7 @@ namespace mbed {
 CircularBuffer<SPI::transaction_t, TRANSACTION_QUEUE_SIZE_SPI> SPI::_transaction_buffer;
 #endif
 
-SPI::SPI(PinName mosi, PinName miso, PinName sclk, PinName _unused) :
+SPI::SPI(PinName mosi, PinName miso, PinName sclk) :
         _spi(),
 #if DEVICE_SPI_ASYNCH
         _irq(this),
@@ -34,9 +34,8 @@ SPI::SPI(PinName mosi, PinName miso, PinName sclk, PinName _unused) :
         _mode(0),
         _order(SPI_MSB),
         _hz(1000000) {
-    (void) _unused;
-    spi_init(&_spi, mosi, miso, sclk, NC);
-    spi_format(&_spi, _bits, _mode, _order, 0);
+    spi_init(&_spi, mosi, miso, sclk);
+    spi_format(&_spi, _bits, _mode, _order);
     spi_frequency(&_spi, _hz);
 }
 
@@ -59,7 +58,7 @@ SPI* SPI::_owner = NULL;
 // ignore the fact there are multiple physical spis, and always update if it wasnt us last
 void SPI::aquire() {
      if (_owner != this) {
-        spi_format(&_spi, _bits, _mode, _order, 0);
+        spi_format(&_spi, _bits, _mode, _order);
         spi_frequency(&_spi, _hz);
         _owner = this;
     }

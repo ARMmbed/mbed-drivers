@@ -66,7 +66,7 @@ public:
      *  @param miso SPI Master In, Slave Out pin
      *  @param sclk SPI Clock pin
      */
-    SPI(PinName mosi, PinName miso, PinName sclk, PinName _unused=NC);
+    SPI(PinName mosi, PinName miso, PinName sclk);
 
     /** Configure the data transmission format
      *
