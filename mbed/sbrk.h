@@ -76,7 +76,7 @@ extern uint32_t __heap_size;
 
 #ifdef __ARMCC_VERSION
 	#define __mbed_sbrk_start (Image$$ARM_LIB_HEAP$$Base)
-	#define __mbed_krbs_start (Image$$ARM_LIB_HEAP$$Limit)
+	#define __mbed_krbs_start (Image$$ARM_LIB_HEAP$$ZI$$Limit)
 	#define __heap_size (Image$$ARM_LIB_HEAP$$ZI$$Length)
 	extern unsigned int __mbed_sbrk_start;
 	extern unsigned int __mbed_krbs_start;
