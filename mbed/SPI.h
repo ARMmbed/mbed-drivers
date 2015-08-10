@@ -124,35 +124,18 @@ public:
     class TransferParameters {
         friend SPI;
     public:
-        TransferParameters():
-            _freq(0),
-            _irqCallback(),
-            _callback(),
-            _tx(NULL),
-            _rx(NULL),
-            _tlen(0),
-            _rlen(0),
-            _eventMask(-1),
-            _cs(),
-            _posted(false),
-            _spi(NULL)
-        {}
-        TransferParameters & frequency(uint32_t freq){_freq = freq; posted = false; return *this;}
-        TransferParameters & irq_callback(event_callback_t irqCallback){_irqCallback = irqCallback;posted = false; return *this;}
-        TransferParameters & callback(event_callback_t callback){_callback = callback;posted = false; return *this;}
-        TransferParameters & tx_buffer(void * buf, size_t length){_tx = buf; _tlen = length;posted = false; return *this;}
-        TransferParameters & rx_buffer(void * buf, size_t length){_rx = buf; _rlen = length;posted = false; return *this;}
-        TransferParameters & event_mask(int mask){_eventMask = mask;posted = false; return *this;}
-        TransferParameters & cs_pin(PinName cs) {_cs = cs;posted = false; return *this;}
+        TransferParameters();
+        TransferParameters & frequency(uint32_t freq);
+        TransferParameters & irq_callback(const event_callback_t &irqCallback);
+        TransferParameters & callback(const event_callback_t &callback);
+        TransferParameters & tx_buffer(const void * buf, size_t length);
+        TransferParameters & rx_buffer(void * buf, size_t length);
+        TransferParameters & event_mask(int mask);
+        TransferParameters & cs_pin(PinName cs);
+        TransferParameters & cs_setup_time(uint32_t microseconds);
+        TransferParameters & cs_hold_time(uint32_t microseconds);
 
-        ~TransferParameters() {
-            if(_spi && !_posted) {
-                int err = _spi->transfer(_tx,_tlen,_rx,_rlen,_callback,_eventMask);
-                if (err && _callback) {
-                    minar::Scheduler::postCallback(_callback.bind(SPI_EVENT_ERROR));
-                }
-            }
-        }
+        ~TransferParameters();
     private:
         uint32_t _freq;
         event_callback_t _irqCallback;
@@ -163,25 +146,11 @@ public:
         size_t _rlen;
         int _eventMask;
         PinName _cs;
-        bool _posted;
-        SPI *_spi;
+        uint32_t _cs_setup_time;
+        uint32_t _cs_hold_time;
+        uint8_t _spi_mode;
     }
-
-    int post_transfer(TransferParameters tp) {
-        if(!_posted) {
-            _posted = true;
-            return transfer(tp._tx,tp._tlen,tp._rx,tp._rlen,tp._callback,tp._eventMask);
-        } else {
-            return 0;
-        }
-    }
-    TransferParameters post_transfer() {
-        TransferParameters tp;
-        tp._spi = this;
-        return tp;
-    }
-
-    int post_transfer(TransferParameters tp) {
+    int post_transfer(const TransferParameters & tp) {
         return transfer(tp._tx,tp._tlen,tp._rx,tp._rlen,tp._callback,tp._eventMask);
     }
 
