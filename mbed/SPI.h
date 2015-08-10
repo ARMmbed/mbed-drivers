@@ -101,6 +101,12 @@ public:
     virtual int write(int value);
 
 #if DEVICE_SPI_ASYNCH
+    /** SPI transfer callback
+     *  @param Buffer the tx buffer
+     *  @param Buffer the rx buffer
+     *  @param int the event that triggered the calback
+     */
+    typedef FunctionPointer3<void, Buffer, Buffer, int> event_callback_t;
 
     /** Start non-blocking SPI transfer.
      *
@@ -115,6 +121,18 @@ public:
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
     int transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE);
+
+     /** Start non-blocking SPI transfer.
+     *
+     * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
+     *                  the default SPI Avalue is sent
+     * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
+     *                  received data are ignored
+     * @param callback  The event callback function
+     * @param event     The logical OR of SPI events to modify. Look at spi hal header file for SPI events.
+     * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
+     */
+    int transfer(const Buffer& tx_buffer, const Buffer& rx_buffer, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE);
 
     /** Abort the on-going SPI transfer, and continue with transfer's in the queue if any.
      */
@@ -141,7 +159,7 @@ protected:
     */
     void irq_handler_asynch(void);
 
-    /**
+   /**
      *
      * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
      *                  the default SPI value is sent
@@ -154,7 +172,7 @@ protected:
      * @param event     The logical OR of events to modify
      * @return Zero if a transfer was added to the queue, or -1 if the queue is full
     */
-    int queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event);
+    int queue_transfer(const Buffer& tx, const Buffer& rx, const event_callback_t& callback, int event);
 
     /** Configures a callback, spi peripheral and initiate a new transfer
      *
@@ -168,21 +186,24 @@ protected:
      * @param callback  The event callback function
      * @param event     The logical OR of events to modify
     */
-    void start_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event);
+    void start_transfer(const Buffer& tx, const Buffer& rx, const event_callback_t& callback, int event);
 
 #if TRANSACTION_QUEUE_SIZE_SPI
+
+    typedef TwoWayTransaction<event_callback_t> transaction_data_t;
+    typedef Transaction<SPI, transaction_data_t> transaction_t;
 
     /** Start a new transaction
      *
      *  @param data Transaction data
     */
-    void start_transaction(transaction_t *data);
+    void start_transaction(transaction_data_t *data);
 
     /** Dequeue a transaction
      *
     */
     void dequeue_transaction();
-    static CircularBuffer<Transaction<SPI>, TRANSACTION_QUEUE_SIZE_SPI> _transaction_buffer;
+    static CircularBuffer<transaction_t, TRANSACTION_QUEUE_SIZE_SPI> _transaction_buffer;
 #endif
 
 #endif
@@ -196,7 +217,7 @@ protected:
 
 #if DEVICE_SPI_ASYNCH
     CThunk<SPI> _irq;
-    event_callback_t _callback;
+    transaction_data_t _current_transaction;
     DMAUsage _usage;
 #endif
 

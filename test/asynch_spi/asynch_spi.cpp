@@ -58,7 +58,7 @@ public:
         printf("Starting short transfer test\r\n");
         init_rx_buffer();
         cs = 0;
-        printf("Res is %d\r\n", spi.transfer(tx_buf, SHORT_XFR, rx_buf, SHORT_XFR, event_callback_t(this, &SPITest::short_transfer_complete_cb), SPI_EVENT_COMPLETE));
+        printf("Res is %d\r\n", spi.transfer(tx_buf, SHORT_XFR, rx_buf, SHORT_XFR, SPI::event_callback_t(this, &SPITest::short_transfer_complete_cb), SPI_EVENT_COMPLETE));
     }
 
 private:
@@ -68,28 +68,28 @@ private:
         }
     }
 
-    void compare_buffers(uint32_t len) {
+    void compare_buffers(const uint8_t *src, const uint8_t *dest, uint32_t len) {
          for (uint32_t i = 0; i < len; i ++) {
-            if (tx_buf[i] != rx_buf[i]) {
-                printf("MISMATCH at position %u: expected %d, got %d\r\n", i, (int)tx_buf[i], (int)rx_buf[i]);
+            if (src[i] != dest[i]) {
+                printf("MISMATCH at position %u: expected %d, got %d\r\n", i, (int)src[i], (int)dest[i]);
             }
         }
     }
 
-    void short_transfer_complete_cb(int narg) {
+    void short_transfer_complete_cb(Buffer tx_buffer, Buffer rx_buffer, int event) {
         cs = 1;
-        printf("Short transfer DONE, event is %d\r\n", narg);
-        compare_buffers(SHORT_XFR);
+        printf("Short transfer DONE, event is %d\r\n", event);
+        compare_buffers((uint8_t*)rx_buffer.buf, (uint8_t*)tx_buffer.buf, rx_buffer.length);
         printf("Starting long transfer test\r\n");
         init_rx_buffer();
         cs = 0;
-        printf("Res is %d\r\n", spi.transfer(tx_buf, LONG_XFR, rx_buf, LONG_XFR, event_callback_t(this, &SPITest::long_transfer_complete_cb), SPI_EVENT_COMPLETE));
+        printf("Res is %d\r\n", spi.transfer(tx_buf, LONG_XFR, rx_buf, LONG_XFR, SPI::event_callback_t(this, &SPITest::long_transfer_complete_cb), SPI_EVENT_COMPLETE));
     }
 
-    void long_transfer_complete_cb(int narg) {
+    void long_transfer_complete_cb(Buffer tx_buffer, Buffer rx_buffer, int event) {
         cs = 1;
-        printf("Long transfer DONE, event is %d\r\n", narg);
-        compare_buffers(LONG_XFR);
+        printf("Long transfer DONE, event is %d\r\n", event);
+        compare_buffers((uint8_t*)rx_buffer.buf, (uint8_t*)tx_buffer.buf, rx_buffer.length);
         printf("**** Test done ****\r\n");
     }
 

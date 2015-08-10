@@ -18,27 +18,35 @@
 
 #include "platform.h"
 #include "FunctionPointer.h"
+#include "mbed/Buffer.h"
 
 namespace mbed {
 
-/** Transaction structure
+/** Transactions in one direction (RX or TX)
  */
-typedef struct {
-    void *tx_buffer;           /**< Tx buffer */
-    size_t tx_length;          /**< Length of Tx buffer*/
-    void *rx_buffer;           /**< Rx buffer */
-    size_t rx_length;          /**< Length of Rx buffer */
+template <typename Callback>
+struct OneWayTransaction {
+    Buffer buffer;             /**< Transaction buffer */
     uint32_t event;            /**< Event for a transaction */
-    event_callback_t callback; /**< User's callback */
-    uint8_t width;             /**< Buffer's word width (8, 16, 32, 64) */
-} transaction_t;
+    Callback callback;         /**< User's callback */
+};
+
+/** Transactions in two directions (RX and TX)
+ */
+template <typename Callback>
+struct TwoWayTransaction {
+    Buffer tx_buffer;          /**< Transmit buffer */
+    Buffer rx_buffer;          /**< Receive buffer */
+    uint32_t event;            /**< Event for a transaction */
+    Callback callback;         /**< User's callback */
+};
 
 /** Transaction class defines a transaction.
  */
-template<typename Class>
+template<typename Class, typename TransactionData>
 class Transaction {
 public:
-    Transaction(Class *tpointer, const transaction_t& transaction) : _obj(tpointer), _data(transaction) {
+    Transaction(Class *tpointer, const TransactionData& transaction) : _obj(tpointer), _data(transaction) {
     }
 
     Transaction() : _obj(), _data() {
@@ -59,15 +67,16 @@ public:
      *
      * @return The transaction which was stored
      */
-    transaction_t* get_transaction() {
+    TransactionData* get_transaction() {
         return &_data;
     }
 
 private:
     Class* _obj;
-    transaction_t _data;
+    TransactionData _data;
 };
 
-}
+} // namespace mbed
 
-#endif
+#endif // #ifndef MBED_TRANSACTION_H
+

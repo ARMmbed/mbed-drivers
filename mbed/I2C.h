@@ -26,6 +26,7 @@
 #include "CThunk.h"
 #include "dma_api.h"
 #include "FunctionPointer.h"
+#include "Transaction.h"
 #endif
 
 namespace mbed {
@@ -136,6 +137,12 @@ public:
     void stop(void);
 
 #if DEVICE_I2C_ASYNCH
+    /** I2C transfer callback
+     *  @param Buffer the tx buffer
+     *  @param Buffer the rx buffer
+     *  @param int the event that triggered the calback
+     */
+    typedef FunctionPointer3<void, Buffer, Buffer, int> event_callback_t;
 
     /** Start non-blocking I2C transfer.
      *
@@ -151,12 +158,27 @@ public:
      */
     int transfer(int address, char *tx_buffer, int tx_length, char *rx_buffer, int rx_length, const event_callback_t& callback, int event = I2C_EVENT_TRANSFER_COMPLETE, bool repeated = false);
 
+     /** Start non-blocking I2C transfer.
+     *
+     * @param address   8/10 bit I2c slave address
+     * @param tx_buffer The TX buffer with data to be transfered
+     * @param rx_buffer The RX buffer which is used for received data
+     * @param event     The logical OR of events to modify
+     * @param callback  The event callback function
+     * @param repeated Repeated start, true - do not send stop at end
+     * @return Zero if the transfer has started, or -1 if I2C peripheral is busy
+     */
+    int transfer(int address, const Buffer& tx_buffer, const Buffer& rx_buffer, const event_callback_t& callback, int event = I2C_EVENT_TRANSFER_COMPLETE, bool repeated = false);
+
     /** Abort the on-going I2C transfer
      */
     void abort_transfer();
 protected:
+    typedef TwoWayTransaction<event_callback_t> transaction_data_t;
+    typedef Transaction<I2C, transaction_data_t> transaction_t;
+
     void irq_handler_asynch(void);
-    event_callback_t _callback;
+    transaction_data_t _current_transaction;
     CThunk<I2C> _irq;
     DMAUsage _usage;
 #endif

@@ -21,7 +21,7 @@
 namespace mbed {
 
 #if DEVICE_SPI_ASYNCH && TRANSACTION_QUEUE_SIZE_SPI
-CircularBuffer<Transaction<SPI>, TRANSACTION_QUEUE_SIZE_SPI> SPI::_transaction_buffer;
+CircularBuffer<SPI::transaction_t, TRANSACTION_QUEUE_SIZE_SPI> SPI::_transaction_buffer;
 #endif
 
 SPI::SPI(PinName mosi, PinName miso, PinName sclk, PinName _unused) :
@@ -72,12 +72,15 @@ int SPI::write(int value) {
 
 #if DEVICE_SPI_ASYNCH
 
-int SPI::transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event)
-{
+int SPI::transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event) {
+    return transfer(Buffer(tx_buffer, tx_length), Buffer(rx_buffer, rx_length), callback, event);
+}
+
+int SPI::transfer(const Buffer& tx, const Buffer& rx, const event_callback_t& callback, int event) {
     if (spi_active(&_spi)) {
-        return queue_transfer(tx_buffer, tx_length, rx_buffer, rx_length, callback, event);
+        return queue_transfer(tx, rx, callback, event);
     }
-    start_transfer(tx_buffer, tx_length, rx_buffer, rx_length, callback, event);
+    start_transfer(tx, rx, callback, event);
     return 0;
 }
 
@@ -112,18 +115,15 @@ int SPI::set_dma_usage(DMAUsage usage)
     return  0;
 }
 
-int SPI::queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event)
-{
+int SPI::queue_transfer(const Buffer& tx, const Buffer& rx, const event_callback_t& callback, int event) {
 #if TRANSACTION_QUEUE_SIZE_SPI
-    transaction_t t;
+    transaction_data_t t;
 
-    t.tx_buffer = tx_buffer;
-    t.tx_length = tx_length;
-    t.rx_buffer = rx_buffer;
-    t.rx_length = rx_length;
+    t.tx_buffer = tx;
+    t.rx_buffer = rx;
     t.event = event;
     t.callback = callback;
-    Transaction<SPI> transaction(this, t);
+    transaction_t transaction(this, t);
     if (_transaction_buffer.full()) {
         return -1; // the buffer is full
     } else {
@@ -135,27 +135,28 @@ int SPI::queue_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_
 #endif
 }
 
-void SPI::start_transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event)
-{
+void SPI::start_transfer(const Buffer& tx, const Buffer& rx, const event_callback_t& callback, int event) {
     aquire();
-    _callback = callback;
+    _current_transaction.callback = callback;
+    _current_transaction.tx_buffer = tx;
+    _current_transaction.rx_buffer = rx;
     _irq.callback(&SPI::irq_handler_asynch);
-    spi_master_transfer(&_spi, tx_buffer, tx_length, rx_buffer, rx_length, _irq.entry(), event , _usage);
+    spi_master_transfer(&_spi, tx.buf, tx.length, rx.buf, rx.length, 8, _irq.entry(), event , _usage);
 }
 
 #if TRANSACTION_QUEUE_SIZE_SPI
 
-void SPI::start_transaction(transaction_t *data)
+void SPI::start_transaction(transaction_data_t *data)
 {
-    start_transfer(data->tx_buffer, data->tx_length, data->rx_buffer, data->rx_length, data->callback, data->event);
+    start_transfer(data->tx_buffer, data->rx_buffer, data->callback, data->event);
 }
 
 void SPI::dequeue_transaction()
 {
-    Transaction<SPI> t;
+    transaction_t t;
     if (_transaction_buffer.pop(t)) {
         SPI* obj = t.get_object();
-        transaction_t* data = t.get_transaction();
+        transaction_data_t* data = t.get_transaction();
         obj->start_transaction(data);
     }
 }
@@ -165,8 +166,8 @@ void SPI::dequeue_transaction()
 void SPI::irq_handler_asynch(void)
 {
     int event = spi_irq_handler_asynch(&_spi);
-    if (_callback && (event & SPI_EVENT_ALL)) {
-        minar::Scheduler::postCallback(_callback.bind(event & SPI_EVENT_ALL));
+    if (_current_transaction.callback && (event & SPI_EVENT_ALL)) {
+        minar::Scheduler::postCallback(_current_transaction.callback.bind(_current_transaction.tx_buffer, _current_transaction.rx_buffer, event & SPI_EVENT_ALL));
     }
 #if TRANSACTION_QUEUE_SIZE_SPI
     if (event & (SPI_EVENT_ALL | SPI_EVENT_INTERNAL_TRANSFER_COMPLETE)) {
