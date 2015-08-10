@@ -141,7 +141,7 @@ void SPI::start_transfer(const Buffer& tx, const Buffer& rx, const event_callbac
     _current_transaction.tx_buffer = tx;
     _current_transaction.rx_buffer = rx;
     _irq.callback(&SPI::irq_handler_asynch);
-    spi_master_transfer(&_spi, tx.buf, tx.length, rx.buf, rx.length, 8, _irq.entry(), event , _usage);
+    spi_master_transfer(&_spi, tx.buf, tx.length, rx.buf, rx.length, _irq.entry(), event , _usage);
 }
 
 #if TRANSACTION_QUEUE_SIZE_SPI
