@@ -22,7 +22,7 @@
     "mbed"
   ],
   "dependencies": {
-    "mbed-hal": "~0.5.0",
+    "mbed-hal": "~0.6.0",
     "cmsis-core": "~0.2.0",
     "ualloc": "~0.0.0",
     "minar": "~0.6.0",
