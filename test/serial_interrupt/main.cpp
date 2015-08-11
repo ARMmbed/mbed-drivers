@@ -34,7 +34,7 @@ void rxCallback() {
 }
 
 void app_start(int, char*[]) {
-	MBED_HOSTTEST_TIMEOUT(20);
+    MBED_HOSTTEST_TIMEOUT(20);
     MBED_HOSTTEST_SELECT(echo);
     MBED_HOSTTEST_DESCRIPTION(serial interrupt test);
     MBED_HOSTTEST_START("MBED_14");
