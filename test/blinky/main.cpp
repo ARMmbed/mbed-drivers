@@ -14,13 +14,25 @@
  * limitations under the License.
  */
 #include "mbed.h"
+#include "test_env.h"
 
 DigitalOut myled(LED1);
+uint32_t count = 20;
 
-void blink(){
+void blink() {
+    if (count) {
+    	if (count == 1) {
+    		printf("{{success}}\r\n");
+    	}
+    	count--;
+    }
     myled = !myled;
 }
 
 void app_start(int, char*[]) {
+    MBED_HOSTTEST_TIMEOUT(20);
+    MBED_HOSTTEST_SELECT(default_auto);
+    MBED_HOSTTEST_DESCRIPTION(Blinky);
+    MBED_HOSTTEST_START("MBED_BLINKY");
     minar::Scheduler::postCallback(&blink).period(minar::milliseconds(200));
 }

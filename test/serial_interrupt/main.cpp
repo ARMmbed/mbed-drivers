@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 #include "mbed.h"
+#include "test_env.h"
+
 
 DigitalOut led1(LED1);
 DigitalOut led2(LED2);
@@ -32,7 +34,11 @@ void rxCallback() {
 }
 
 void app_start(int, char*[]) {
-    printf("start test\n");
+    MBED_HOSTTEST_TIMEOUT(20);
+    MBED_HOSTTEST_SELECT(echo);
+    MBED_HOSTTEST_DESCRIPTION(serial interrupt test);
+    MBED_HOSTTEST_START("MBED_14");
+    computer.baud(115200);
     computer.attach(&txCallback, Serial::TxIrq);
     computer.attach(&rxCallback, Serial::RxIrq);
 }

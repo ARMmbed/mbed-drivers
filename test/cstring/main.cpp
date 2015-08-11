@@ -31,6 +31,10 @@ void runTest()
     bool result = true;
     bool cmp_result;
 
+    MBED_HOSTTEST_TIMEOUT(10);
+    MBED_HOSTTEST_SELECT(default_auto);
+    MBED_HOSTTEST_DESCRIPTION(C string operations);
+    MBED_HOSTTEST_START("MBED_33");
     {
         CLEAN_BUFFER(buffer);
         sprintf(buffer, "%i %d %i %d %i %d %i %d %i %d %i %i", NEGATIVE_INTEGERS);
@@ -110,7 +114,7 @@ void runTest()
         result = result && cmp_result;
     }
 
-    notify_completion(result);
+    MBED_HOSTTEST_RESULT(result);
     return;
 }
 
