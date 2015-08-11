@@ -72,6 +72,11 @@ void stack_test(char *latest_heap_pointer) {
 
 void runTest(void) {
     char c;
+    MBED_HOSTTEST_TIMEOUT(10);
+    MBED_HOSTTEST_SELECT(default_auto);
+    MBED_HOSTTEST_DESCRIPTION(Heap & Stack);
+    MBED_HOSTTEST_START("MBED_13");
+
     initial_stack_p = &c;
 
     initial_heap_p = (char*)malloc(1);
@@ -87,7 +92,7 @@ void runTest(void) {
     initial_heap_p++;
     stack_test(initial_heap_p);
 
-    notify_completion(true);
+    MBED_HOSTTEST_RESULT(true);
 }
 
 void app_start(int, char*[]) {

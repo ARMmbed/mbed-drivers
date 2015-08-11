@@ -80,6 +80,11 @@ void runTest()
     float floats[] = {FLOATS};
     bool result = true;
 
+    MBED_HOSTTEST_TIMEOUT(10);
+    MBED_HOSTTEST_SELECT(default_auto);
+    MBED_HOSTTEST_DESCRIPTION(C++ STL);
+    MBED_HOSTTEST_START("MBED_A3"); 
+
     {
         std::vector<int> v_pints(p_integers, p_integers + TABLE_SIZE(p_integers));
         bool equal_result = std::equal(v_pints.begin(), v_pints.end(), p_integers);
@@ -131,7 +136,7 @@ void runTest()
         }
     }
 
-    notify_completion(result);
+    MBED_HOSTTEST_RESULT(result);
 }
 
 void app_start(int, char*[]) {
