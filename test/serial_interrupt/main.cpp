@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mbed.h"
+#include "test_env.h"
 
-DigitalOut led1(LED1);
-DigitalOut led2(LED2);
+DigitalOut led1(TEST_PIN_LED1);
+DigitalOut led2(TEST_PIN_LED2);
 
-Serial computer(USBTX, USBRX);
+Serial computer(TEST_PIN_Serial_ECHO_TX, TEST_PIN_Serial_ECHO_RX);
 
 // This function is called when a character goes into the TX buffer.
 void txCallback() {

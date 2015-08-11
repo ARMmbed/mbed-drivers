@@ -15,7 +15,7 @@
  */
 #include "mbed.h"
 
-DigitalOut myled(LED1);
+DigitalOut myled(TEST_PIN_LED1);
 
 void blink(){
     myled = !myled;

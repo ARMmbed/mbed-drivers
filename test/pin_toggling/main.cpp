@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mbed.h"
+#include "test_env.h"
 
-DigitalOut out(p5);
+DigitalOut out(TEST_PIN_DigitalOut);
 
 int main() {
     while (true) {

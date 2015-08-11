@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "mbed.h"
 #include "test_env.h"
 
 #define CUSTOM_TIME  1256729737

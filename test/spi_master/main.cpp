@@ -16,25 +16,8 @@
 #include "mbed.h"
 #include "test_env.h"
 
-#if defined(TARGET_KL25Z)
-SPI spi(PTD2, PTD3, PTD1);   // mosi, miso, sclk
-DigitalOut cs(PTA13);
-#elif defined(TARGET_KL05Z)
-SPI spi(PTA7, PTA6, PTB0);   // mosi, miso, sclk
-DigitalOut cs(PTB1);
-#elif defined(TARGET_KL46Z)
-SPI spi(PTD2, PTD3, PTD1);   // mosi, miso, sclk
-DigitalOut cs(PTA13);
-#elif defined(TARGET_FF_ARDUINO)
-SPI spi(D11, D12, D13);   // mosi, miso, sclk
-DigitalOut cs(D10);
-#elif defined(TARGET_LIKE_STK3700)
-SPI spi(PD0, PD1, PD2);
-DigitalOut cs(PD3);
-#else
-SPI spi(p5, p6, p7); // mosi, miso, sclk
-DigitalOut cs(p8);
-#endif
+SPI spi(TEST_PIN_SPI_mosi, TEST_PIN_SPI_miso, TEST_PIN_SPI_sck);
+DigitalOut cs(TEST_PIN_SPI_cs);
 
 int main() {
     int data = 0;

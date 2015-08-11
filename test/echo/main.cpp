@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-#include "mbed.h"
 #include "test_env.h"
-
-#define TXPIN     USBTX
-#define RXPIN     USBRX
 
 
 namespace {
@@ -34,7 +30,7 @@ void app_start(int, char*[]) {
     MBED_HOSTTEST_DESCRIPTION(Serial Echo at 115200);
     MBED_HOSTTEST_START("MBED_A9");
 
-    Serial pc(TXPIN, RXPIN);
+    Serial pc(TEST_PIN_Serial_ECHO_TX, TEST_PIN_Serial_ECHO_RX);
     pc.baud(115200);
 
     while (1) {

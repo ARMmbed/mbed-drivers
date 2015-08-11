@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "mbed.h"
 #include "test_env.h"
 
 /* This test purpose is to verify the behaviour when the program does not link

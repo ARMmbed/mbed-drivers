@@ -18,22 +18,10 @@
 #include "cmsis.h"
 #include "test_env.h"
 
-#if defined(TARGET_LPC1768) || defined(TARGET_LPC4088)
-#define TIMER_IRQ       TIMER3_IRQn
-#elif defined(TARGET_LPC11U24) || defined(TARGET_LPC1114)
-#define TIMER_IRQ       TIMER_32_1_IRQn
-#elif defined(TARGET_KL25Z)
-#define TIMER_IRQ       LPTimer_IRQn
-#elif defined(TARGET_LPC2368)
-#define TIMER_IRQ       TIMER3_IRQn
-#else
-#error This test can't run on this target.
-#endif
-
-Serial pc(USBTX, USBRX);
+Serial pc(TEST_PIN_Serial_ECHO_TX, TEST_PIN_Serial_ECHO_RX);
 
 Ticker flipper_1;
-DigitalOut led1(LED1);
+DigitalOut led1(TEST_PIN_LED1);
 int led1_state = 0;
 void flip_1() {
     if (led1_state) {
@@ -51,19 +39,12 @@ private:
     Serial& _s;
     char _c;
 };
+
 Ticker flipper_2;
 Sender s1(pc, '1');
 Sender s2(pc, '2');
 
-#if defined(TARGET_LPC1768) || defined(TARGET_LPC11U24) || defined(TARGET_LPC4088) || defined(TARGET_LPC2368) || defined(TARGET_LPC1114)
-#   define LED_NAME LED2
-#elif defined(TARGET_KL05Z)
-#   define LED_NAME LED2
-#else
-#   define LED_NAME PTE31
-#endif
-
-DigitalOut led2(LED_NAME);
+DigitalOut led2(TEST_PIN_LED2);
 int led2_state = 0;
 void flip_2() {
     if (led2_state) {

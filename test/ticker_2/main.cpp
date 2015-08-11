@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-#include "mbed.h"
 #include "test_env.h"
 
 Ticker tick;
-DigitalOut led(LED1);
+DigitalOut led(TEST_PIN_LED1);
 
 namespace {
     const int MS_INTERVALS = 1000;

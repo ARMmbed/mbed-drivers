@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include "mbed.h"
+#include "test_definitions.h"
 
 #define NL "\n"
 #define RCNL "\r\n"

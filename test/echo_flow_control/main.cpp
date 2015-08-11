@@ -13,35 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mbed.h"
+#include "test_env.h"
 
-#if defined(TARGET_LPC1768)
-#define UART_TX             p9
-#define UART_RX             p10
-#define FLOW_CONTROL_RTS    p30
-#define FLOW_CONTROL_CTS    p29
-#define RTS_CHECK_PIN       p8
-#else
-#error This test is not supported on this target
-#endif
+Serial pc(TEST_PIN_Serial_TX, TEST_PIN_Serial_RX);
+InterruptIn in(TEST_PIN_IRQ_RTS);
+DigitalOut led(TEST_PIN_LED1);
 
-Serial pc(UART_TX, UART_RX);
-
-#ifdef RTS_CHECK_PIN
-InterruptIn in(RTS_CHECK_PIN);
-DigitalOut led(LED1);
 static void checker(void) {
   led = !led;
 }
-#endif
 
 int main() {
     char buf[256];
 
-    pc.set_flow_control(Serial::RTSCTS, FLOW_CONTROL_RTS, FLOW_CONTROL_CTS);
-#ifdef RTS_CHECK_PIN
+    pc.set_flow_control(Serial::RTSCTS, TEST_PIN_Serial_RTS, TEST_PIN_Serial_CTS);
     in.fall(checker);
-#endif
+
     while (1) {
         pc.gets(buf, 256);
         pc.printf("%s", buf);
