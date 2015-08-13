@@ -30,6 +30,91 @@
 #include "Transaction.h"
 #endif
 
+
+/**
+ * SPI Transaction Details
+ *      ___                 _               ____
+ * SSEL    |_______________|_|_____________|
+ * SCK  __________XXXXXXXX_____XXXXXXXX_________
+ *         |     |       |    |       |    |  + SSEL_clear_hold_timeout
+ *         |     |       |    |       |    |  + Dequeue next transaction
+ *         |     |       |    |       |    + post-transfer timer expires
+ *         |     |       |    |       |    + clear_SSEL
+ *         |     |       |    |       |    + postCallback() -> [USER]
+ *         |     |       |    |       + word_done
+ *         |     |       |    |       + xfer_done
+ *         |     |       |    |       + irqPostCB() -> [USER]
+ *         |     |       |    |       + start post-transfer timer
+ *         |     |       |    + sw_auto_toggle_end (optional)
+ *         |     |       |    + word_start
+ *         |     |       + word_done
+ *         |     |       + sw_auto_toggle_start (optional)
+ *         |     + setup_timeout expires
+ *         |     + xfer_start
+ *         |     + word_start
+ *         +
+ *
+ * beforeXfer() :
+ *     If a transfer is not active:
+ *         Dequeue a transaction
+ *         If there is a user pre-xfer callback:
+ *             call the user pre-xfer callback
+ *         Configure the SPI peripheral with the transaction's configuration parameters
+ *         If the transaction requires autotoggle and the peripheral does not support it:
+ *             Disable FIFOs
+ *             Enable interrupt on every word
+ *     If CS is not managed:
+ *         If CS is not NC:
+ *             set GPIO active (CS)
+ *         If the setup delay is not 0:
+ *             post sendData() to execute (setup delay) from now
+ *     If sendData() was not posted:
+ *         call sendData()
+ *     Done
+ *
+ * sendData():
+ *     If DMA is enabled:
+ *         Start the DMA transfer
+ *     Otherwise:
+ *         If FIFOs are enabled:
+ *             Fill the send FIFO
+ *         Otherwise:
+ *             call SendWord()
+ *     Done
+ *
+ *
+ * SPI irq():
+ *     clear callSetCSInactive
+ *     if FIFOs are enabled:
+ *         empty the recv FIFO
+ *         refill the send FIFO
+ *     Otherwise:
+ *         If CS is not managed:
+ *             If the hold delay is not 0:
+ *                 post callAfterXfer() to execute (hold delay) from now
+ *         If callAfterXfer() was not posted:
+ *             set callAfterXfer
+ *     If there are no more words to send or receive:
+ *         If there is a user post-xfer irqCallback:
+ *             Call the user post-xfer irqCallback
+ *         set callAfterXfer
+ *     If callAfterXfer:
+ *         call afterXfer()
+ *     Done
+ *
+ * afterXfer():
+ *     If CS is not managed:
+ *         If CS is not NC:
+ *             set GPIO inactive (CS)
+ *         If inactive delay is not 0:
+ *             post beforeXfer() to execute (inactive delay) from now
+ *     If beforeXfer was not posted:
+ *         call beforeXfer()
+ *     Done
+ */
+
+
+
 namespace mbed {
 
 /** A SPI Master, used for communicating with SPI slave devices
