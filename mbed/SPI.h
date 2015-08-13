@@ -30,6 +30,91 @@
 #include "Transaction.h"
 #endif
 
+
+/**
+ * SPI Transaction Details
+ *      ___                 _               ____
+ * SSEL    |_______________|_|_____________|
+ * SCK  __________XXXXXXXX_____XXXXXXXX_________
+ *         |     |       |    |       |    |  + SSEL_clear_hold_timeout
+ *         |     |       |    |       |    |  + Dequeue next transaction
+ *         |     |       |    |       |    + post-transfer timer expires
+ *         |     |       |    |       |    + clear_SSEL
+ *         |     |       |    |       |    + postCallback() -> [USER]
+ *         |     |       |    |       + word_done
+ *         |     |       |    |       + xfer_done
+ *         |     |       |    |       + irqPostCB() -> [USER]
+ *         |     |       |    |       + start post-transfer timer
+ *         |     |       |    + sw_auto_toggle_end (optional)
+ *         |     |       |    + word_start
+ *         |     |       + word_done
+ *         |     |       + sw_auto_toggle_start (optional)
+ *         |     + setup_timeout expires
+ *         |     + xfer_start
+ *         |     + word_start
+ *         +
+ *
+ * beforeXfer() :
+ *     If a transfer is not active:
+ *         Dequeue a transaction
+ *         If there is a user pre-xfer callback:
+ *             call the user pre-xfer callback
+ *         Configure the SPI peripheral with the transaction's configuration parameters
+ *         If the transaction requires autotoggle and the peripheral does not support it:
+ *             Disable FIFOs
+ *             Enable interrupt on every word
+ *     If CS is not managed:
+ *         If CS is not NC:
+ *             set GPIO active (CS)
+ *         If the setup delay is not 0:
+ *             post sendData() to execute (setup delay) from now
+ *     If sendData() was not posted:
+ *         call sendData()
+ *     Done
+ *
+ * sendData():
+ *     If DMA is enabled:
+ *         Start the DMA transfer
+ *     Otherwise:
+ *         If FIFOs are enabled:
+ *             Fill the send FIFO
+ *         Otherwise:
+ *             call SendWord()
+ *     Done
+ *
+ *
+ * SPI irq():
+ *     clear callSetCSInactive
+ *     if FIFOs are enabled:
+ *         empty the recv FIFO
+ *         refill the send FIFO
+ *     Otherwise:
+ *         If CS is not managed:
+ *             If the hold delay is not 0:
+ *                 post callAfterXfer() to execute (hold delay) from now
+ *         If callAfterXfer() was not posted:
+ *             set callAfterXfer
+ *     If there are no more words to send or receive:
+ *         If there is a user post-xfer irqCallback:
+ *             Call the user post-xfer irqCallback
+ *         set callAfterXfer
+ *     If callAfterXfer:
+ *         call afterXfer()
+ *     Done
+ *
+ * afterXfer():
+ *     If CS is not managed:
+ *         If CS is not NC:
+ *             set GPIO inactive (CS)
+ *         If inactive delay is not 0:
+ *             post beforeXfer() to execute (inactive delay) from now
+ *     If beforeXfer was not posted:
+ *         call beforeXfer()
+ *     Done
+ */
+
+
+
 namespace mbed {
 
 /** A SPI Master, used for communicating with SPI slave devices
@@ -121,6 +206,38 @@ public:
      * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
      */
     int transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE);
+    class TransferParameters {
+        friend SPI;
+    public:
+        TransferParameters();
+        TransferParameters & frequency(uint32_t freq);
+        TransferParameters & irq_callback(const event_callback_t &irqCallback);
+        TransferParameters & callback(const event_callback_t &callback);
+        TransferParameters & tx_buffer(const void * buf, size_t length);
+        TransferParameters & rx_buffer(void * buf, size_t length);
+        TransferParameters & event_mask(int mask);
+        TransferParameters & cs_pin(PinName cs);
+        TransferParameters & cs_setup_time(uint32_t microseconds);
+        TransferParameters & cs_hold_time(uint32_t microseconds);
+
+        ~TransferParameters();
+    private:
+        uint32_t _freq;
+        event_callback_t _irqCallback;
+        event_callback_t _callback;
+        void * _tx;
+        void * _rx;
+        size_t _tlen;
+        size_t _rlen;
+        int _eventMask;
+        PinName _cs;
+        uint32_t _cs_setup_time;
+        uint32_t _cs_hold_time;
+        uint8_t _spi_mode;
+    }
+    int post_transfer(const TransferParameters & tp) {
+        return transfer(tp._tx,tp._tlen,tp._rx,tp._rlen,tp._callback,tp._eventMask);
+    }
 
      /** Start non-blocking SPI transfer.
      *
