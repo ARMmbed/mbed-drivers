@@ -33,26 +33,19 @@
 
 /**
  * SPI Transaction Details
- *      ___                 _               ____
- * SSEL    |_______________|_|_____________|
- * SCK  __________XXXXXXXX_____XXXXXXXX_________
- *         |     |       |    |       |    |  + SSEL_clear_hold_timeout
- *         |     |       |    |       |    |  + Dequeue next transaction
- *         |     |       |    |       |    + post-transfer timer expires
- *         |     |       |    |       |    + clear_SSEL
- *         |     |       |    |       |    + postCallback() -> [USER]
- *         |     |       |    |       + word_done
- *         |     |       |    |       + xfer_done
- *         |     |       |    |       + irqPostCB() -> [USER]
- *         |     |       |    |       + start post-transfer timer
- *         |     |       |    + sw_auto_toggle_end (optional)
- *         |     |       |    + word_start
- *         |     |       + word_done
- *         |     |       + sw_auto_toggle_start (optional)
- *         |     + setup_timeout expires
- *         |     + xfer_start
- *         |     + word_start
- *         +
+ *      ___                 _                ____
+ * SSEL    |_______________|_|______________|
+ * SCK  __________XXXXXXXX______XXXXXXXX_________
+ *         |     |       | | | |       |    |
+ *         |     |       | | | |       |    |
+ *         |     |       | | | |       |    + afterXfer()
+ *         |     |       | | | |       + SPIirq()
+ *         |     |       | | | + sendData()
+ *         |     |       | | + beforeXfer()
+ *         |     |       | + afterXfer()
+ *         |     |       + SPIirq()
+ *         |     + sendData()
+ *         + beforeXfer()
  *
  * beforeXfer() :
  *     If a transfer is not active:
@@ -83,7 +76,7 @@
  *     Done
  *
  *
- * SPI irq():
+ * SPIirq():
  *     clear callSetCSInactive
  *     if FIFOs are enabled:
  *         empty the recv FIFO
