@@ -22,11 +22,140 @@
 namespace mbed {
 
 #if DEVICE_SPI_ASYNCH && TRANSACTION_QUEUE_SIZE_SPI
-CircularBuffer<SPI::transaction_t, TRANSACTION_QUEUE_SIZE_SPI> SPI::_transaction_buffer;
+typedef CircularBuffer<SPI_xfer_data,TRANSACTION_QUEUE_SIZE_SPI> SPI_xfer_Queue_t
 #endif
 
-class SPI_physical : public SPI_interface {
 
+class SPI_physical : public SPI_interface {
+    SPI_physical(PinName mosi, PinName miso, PinName sclk):
+        _irq(this)
+    {
+        _irq.callback(&SPI_physical::SPIirq)
+        spi_init(&_spi, mosi, miso, sclk);
+    }
+    /** Start non-blocking SPI transfer.
+     * @param tp The transfer Parameters descriptor object
+     * @return Zero if the transfer has started, or an error code if
+     *         a problem occurred.
+     */
+    int post_transfer(const SPI_xfer_data & tp)
+    {
+        _queue.push(tp);
+        //TODO: Critical Section
+        if (!_currentTransfer) {
+            preXfer();
+        }
+    }
+protected:
+    /* SPI State machine functions */
+
+    void preXfer()
+    {
+        bool dataPosted = false;
+        /* If a transfer is not active: */
+        if (_currentTransfer)
+        {
+            if (_queue.empty()){
+                // TODO: Halt the SPI peripheral, clock gate, power gate
+                return;
+            }
+            /* Dequeue a transaction */
+            _queue.pop(_currentTransfer);
+            /* Mark this pass as the first call for the
+            _transferFirstXfer
+            /* If there is a user pre-xfer callback: */
+            if (_currentTransfer._irqPreCallback) {
+                /* call the user pre-xfer callback */
+                _currentTransfer._irqPreCallback(&_currentTransfer);
+            }
+            spi_format(&_spi,
+                _currentTransfer._bits,
+                _currentTransfer._mode,
+                _currentTransfer._order,
+                0);
+            spi_frequency(&_spi, _currentTransfer._hz);
+            _currentSSEL = _currentTransfer._cs;
+            _SSELActiveHigh = _currentTransfer._csActiveHigh;
+            if (_currentSSEL != NC) {
+                /* If CS can be managed by the SPI peripheral */
+                _SSELManaged = (pinmap_peripheral(PinMap_SPI_SSEL, _currentSSEL) != NC);
+                if (_SSELManaged) {
+                    /* Configure the CS pin */
+                    pinmap_pinout(_currentSSEL, PinMap_SPI_SSEL);
+                } else {
+                    /* Configure the CS pin as GPOut */
+                    gpio_init_out(&_ssel, _currentSSEL);
+                    /* set GPIO active (CS) */
+                    gpio_write(&_ssel, _SSELActiveHigh);
+                }
+                // TODO:
+
+                ///* If the transaction requires autotoggle and the peripheral does not support it:
+                //if (spi_can_toggle(&_spi, _currentSSEL)) {
+                //    /* Disable FIFOs */
+                //    spi_fifo_set(&_spi, false);
+                //    /* Enable interrupt on every word */
+                //    spi_irq_set(&_spi, ???);
+                //}
+            }
+            if (!_SSELManaged && _currentTransfer._cs_setup_time != 0) {
+                minar::Scheduler::postCallback(event_callback_t(this, &SPI_physical::sendData).bind())
+                        .delay(_currentTransfer._cs_setup_time)
+                        .tolerance(0);
+                dataPosted = true;
+            }
+        } else {
+            /* If CS is not managed: */
+            if (!_SSELManaged) {
+                /* If CS is not NC: */
+                if (_currentSSEL != NC) {
+                    /* set GPIO active (CS) */
+                    gpio_write(&_ssel, _SSELActiveHigh);
+                }
+                /* If the setup delay is not 0: */
+                if (_currentTransfer._cs_setup_time != 0) {
+                    /* post sendData() to execute (setup delay) from now */
+                    minar::Scheduler::postCallback(event_callback_t(this, &SPI_physical::sendData).bind())
+                            .delay(_currentTransfer._cs_setup_time)
+                            //TODO: What tolerance is perimissible here?
+                            .tolerance(0);
+                    dataPosted = true;
+                }
+
+            }
+        }
+        /* If sendData() was not posted: */
+        if (!dataPosted) {
+            /* Send data now */
+            sendData();
+        }
+
+    }
+    void sendData()
+    {
+
+    }
+    void SPIirq(void *)
+    {
+
+    }
+    void postXfer()
+    {
+
+    }
+
+protected:
+    PinName _currentSSEL;
+    bool _SSELManaged;
+    bool _SSELActiveHigh;
+    bool _transferFirstXfer;
+    //TODO: It's not possible to reinitialize a DigitalOut object.
+    gpio_t _ssel;
+protected:
+    spi_t _spi;
+    CThunk<SPI> _irq;
+    SPI_xfer_data _currentTransfer;
+    SPI_xfer_Queue_t _queue;
 }
 
 static SPI_interface * _interfaces[MODULE_SIZE_SPI];
@@ -48,7 +177,7 @@ SPI_interface * SPI::get_instance(PinName mosi, PinName miso, PinName sclk)
     if (_interfaces[instance] == NULL) {
         _interfaces[instance] = new SPI_physical(mosi, miso, sclk);
     }
-    
+
     return _interfaces[instance];
 }
 
@@ -101,53 +230,6 @@ void SPI::set_dma_usage(DMAUsage usage)
     _xd.dma_usage(usage);
 }
 
-int SPI::queue_transfer(const Buffer& tx, const Buffer& rx, const event_callback_t& callback, int event) {
-#if TRANSACTION_QUEUE_SIZE_SPI
-    transaction_data_t t;
-
-    t.tx_buffer = tx;
-    t.rx_buffer = rx;
-    t.event = event;
-    t.callback = callback;
-    transaction_t transaction(this, t);
-    if (_transaction_buffer.full()) {
-        return -1; // the buffer is full
-    } else {
-        _transaction_buffer.push(transaction);
-        return 0;
-    }
-#else
-    return -1;
-#endif
-}
-
-void SPI::start_transfer(const Buffer& tx, const Buffer& rx, const event_callback_t& callback, int event) {
-    aquire();
-    _current_transaction.callback = callback;
-    _current_transaction.tx_buffer = tx;
-    _current_transaction.rx_buffer = rx;
-    _irq.callback(&SPI::irq_handler_asynch);
-    spi_master_transfer(&_spi, tx.buf, tx.length, rx.buf, rx.length, _irq.entry(), event , _usage);
-}
-
-#if TRANSACTION_QUEUE_SIZE_SPI
-
-void SPI::start_transaction(transaction_data_t *data)
-{
-    start_transfer(data->tx_buffer, data->rx_buffer, data->callback, data->event);
-}
-
-void SPI::dequeue_transaction()
-{
-    transaction_t t;
-    if (_transaction_buffer.pop(t)) {
-        SPI* obj = t.get_object();
-        transaction_data_t* data = t.get_transaction();
-        obj->start_transaction(data);
-    }
-}
-
-#endif
 
 void SPI::irq_handler_asynch(void)
 {
@@ -223,7 +305,6 @@ SPI::SPI_xfer_data::~SPI_xfer_data() {
 }
 
 
-#endif
 
 } // namespace mbed
 

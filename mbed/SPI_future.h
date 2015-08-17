@@ -110,28 +110,35 @@
 
 namespace mbed {
 
+class SPI_physical;
+
 class SPI_xfer_data {
     public:
         SPI_xfer_data(const SPI_xdata & xd);
         SPI_xfer_data();
         SPI_xfer_data & frequency(uint32_t freq);
-        SPI_xfer_data & irq_callback(const event_callback_t &irqCallback);
+        SPI_xfer_data & irq_pre_callback(const event_callback_t &irqCallback);
+        SPI_xfer_data & irq_post_callback(const event_callback_t &irqCallback);
         SPI_xfer_data & callback(const event_callback_t &callback);
         SPI_xfer_data & tx_buffer(const void * buf, size_t length);
         SPI_xfer_data & rx_buffer(void * buf, size_t length);
         SPI_xfer_data & event_mask(int mask);
-        SPI_xfer_data & cs_pin(PinName cs);
+        SPI_xfer_data & cs_pin(PinName cs, bool activeHigh);
         SPI_xfer_data & cs_setup_time(uint32_t microseconds);
         SPI_xfer_data & cs_hold_time(uint32_t microseconds);
         SPI_xfer_data & cs_inactive_time(uint32_t microseconds);
         SPI_xfer_data & mode(uint8_t bits, uint8_t mode, spi_bitorder_t order);
         SPI_xfer_data & dma_usage(DMAUsage usage);
         operator=(const SPI_xdata & xd);
+        operator bool() const;
         ~SPI_xfer_data();
     protected:
+        friend SPI_Physical;
+
         uint32_t _freq;
-        event_callback_t _irqCallback;
         event_callback_t _callback;
+        event_callback_t _irqPreCallback;
+        event_callback_t _irqPostCallback;
         void * _tx;
         void * _rx;
         size_t _tlen;
@@ -141,6 +148,8 @@ class SPI_xfer_data {
         uint32_t _cs_setup_time;
         uint32_t _cs_hold_time;
         uint32_t _cs_inactive_time;
+        bool _csActiveHigh;
+        bool _csAutoToggle;
         uint8_t _bits;
         uint8_t _spi_mode;
         spi_bitorder_t _order;
@@ -154,17 +163,6 @@ class SPI_interface {
      *         a problem occurred.
      */
     virtual int post_transfer(const SPI_xfer_data & tp)=0;
-    /** Abort the on-going SPI transfer, and continue with transfer's in the queue if any.
-     */
-    virtual void abort_transfer()=0;
-
-    /** Clear the transaction buffer
-     */
-    virtual void clear_transfer_buffer()=0;
-
-    /** Clear the transaction buffer and abort on-going transfer.
-     */
-    virtual void abort_all_transfers()=0;
 }
 
 
