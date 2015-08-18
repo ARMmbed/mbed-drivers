@@ -176,68 +176,6 @@ void SPI::irq_handler_asynch(void)
 #endif
 }
 
-SPI::TransferParameters::TransferParameters():
-    _freq(0),
-    _irqCallback(),
-    _callback(),
-    _tx(NULL),
-    _rx(NULL),
-    _tlen(0),
-    _rlen(0),
-    _eventMask(-1),
-    _cs(),
-    _posted(false),
-    _spi(NULL)
-{
-}
-TransferParameters & SPI::TransferParameters::frequency(uint32_t freq)
-{
-    _freq = freq;
-    return *this;
-}
-TransferParameters & SPI::TransferParameters::irq_callback(event_callback_t irqCallback)
-{
-    _irqCallback = irqCallback;
-    return *this;
-}
-TransferParameters & SPI::TransferParameters::callback(event_callback_t callback)
-{
-    _callback = callback;
-    return *this;
-}
-TransferParameters & SPI::TransferParameters::tx_buffer(void * buf, size_t length)
-{
-    _tx = buf;
-    _tlen = length;
-    return *this;
-}
-TransferParameters & SPI::TransferParameters::rx_buffer(void * buf, size_t length)
-{
-    _rx = buf;
-    _rlen = length;
-    return *this;
-}
-TransferParameters & SPI::TransferParameters::event_mask(int mask)
-{
-    _eventMask = mask;
-    return *this;
-}
-TransferParameters & SPI::TransferParameters::cs_pin(PinName cs)
-{
-    _cs = cs;
-    return *this;
-}
-
-SPI::TransferParameters::~TransferParameters() {
-    if(_spi && !_posted) {
-        int err = _spi->transfer(_tx,_tlen,_rx,_rlen,_callback,_eventMask);
-        if (err && _callback) {
-            minar::Scheduler::postCallback(_callback.bind(SPI_EVENT_ERROR));
-        }
-    }
-}
-
-
 #endif
 
 } // namespace mbed
