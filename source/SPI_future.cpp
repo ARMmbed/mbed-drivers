@@ -28,7 +28,7 @@ typedef CircularBuffer<SPI_xfer_data,TRANSACTION_QUEUE_SIZE_SPI> SPI_xfer_Queue_
 
 class SPI_physical : public SPI_interface {
     SPI_physical(PinName mosi, PinName miso, PinName sclk):
-        _irq(this)
+        _irq(this), _useDMA(false)
     {
         _irq.callback(&SPI_physical::SPIirq)
         spi_init(&_spi, mosi, miso, sclk);
@@ -42,81 +42,93 @@ class SPI_physical : public SPI_interface {
     {
         _queue.push(tp);
         //TODO: Critical Section
-        if (!_currentTransfer) {
+        if (!_active) {
+            _active = true;
             preXfer();
         }
     }
 protected:
-    /* SPI State machine functions */
+    void _startTransfer()
+    {
+        /* If there is a user pre-xfer callback: */
+        if (_xfer._irqPreCallback) {
+            /* call the user pre-xfer callback */
+            _xfer._irqPreCallback(&_xfer);
+        }
+        spi_format(&_spi,
+            _xfer._bits,
+            _xfer._mode,
+            _xfer._order,
+            0);
+        spi_frequency(&_spi, _xfer._hz);
+        _wordSize = _xfer._bits / CHAR_BITS;
+        _tx_offset = 0;
+        _rx_offset = 0;
+        while (_wordSize & (_wordSize - 1)) {
+            _wordSize++;
+        }
+        if (_xfer._cs != NC) {
+            /* If CS can be managed by the SPI peripheral */
+            _SSELManaged = (pinmap_peripheral(PinMap_SPI_SSEL, _xfer._cs) != NC);
+            if (_SSELManaged) {
+                /* Configure the CS pin */
+                pinmap_pinout(_xfer._cs, PinMap_SPI_SSEL);
+            } else {
+                /* Configure the CS pin as GPOut */
+                gpio_init_out(&_ssel, _xfer._cs);
+                /* set GPIO active (CS) */
+                gpio_write(&_ssel, _xfer._csActiveHigh);
+            }
+            // TODO:
 
+            ///* If the transaction requires autotoggle and the peripheral does not support it:
+            //if (spi_can_toggle(&_spi, _xfer._cs)) {
+            //    /* Disable FIFOs */
+            //    spi_fifo_set(&_spi, false);
+            //    _useFIFO = false;
+            //    /* Enable interrupt on every word */
+            //    spi_irq_set(&_spi, ???);
+            //}
+        }
+    }
+    /* SPI State machine functions */
     void preXfer()
     {
         bool dataPosted = false;
         /* If a transfer is not active: */
-        if (_currentTransfer)
+        if (!_active || xfer_done())
         {
             if (_queue.empty()){
                 // TODO: Halt the SPI peripheral, clock gate, power gate
+                _active = false;
+                spi_power_down(&_spi);
                 return;
             }
+            if (!active) {
+                spi_power_up(&_spi);
+            }
             /* Dequeue a transaction */
-            _queue.pop(_currentTransfer);
-            /* Mark this pass as the first call for the
-            _transferFirstXfer
-            /* If there is a user pre-xfer callback: */
-            if (_currentTransfer._irqPreCallback) {
-                /* call the user pre-xfer callback */
-                _currentTransfer._irqPreCallback(&_currentTransfer);
-            }
-            spi_format(&_spi,
-                _currentTransfer._bits,
-                _currentTransfer._mode,
-                _currentTransfer._order,
-                0);
-            spi_frequency(&_spi, _currentTransfer._hz);
-            _currentSSEL = _currentTransfer._cs;
-            _SSELActiveHigh = _currentTransfer._csActiveHigh;
-            if (_currentSSEL != NC) {
-                /* If CS can be managed by the SPI peripheral */
-                _SSELManaged = (pinmap_peripheral(PinMap_SPI_SSEL, _currentSSEL) != NC);
-                if (_SSELManaged) {
-                    /* Configure the CS pin */
-                    pinmap_pinout(_currentSSEL, PinMap_SPI_SSEL);
-                } else {
-                    /* Configure the CS pin as GPOut */
-                    gpio_init_out(&_ssel, _currentSSEL);
-                    /* set GPIO active (CS) */
-                    gpio_write(&_ssel, _SSELActiveHigh);
-                }
-                // TODO:
-
-                ///* If the transaction requires autotoggle and the peripheral does not support it:
-                //if (spi_can_toggle(&_spi, _currentSSEL)) {
-                //    /* Disable FIFOs */
-                //    spi_fifo_set(&_spi, false);
-                //    /* Enable interrupt on every word */
-                //    spi_irq_set(&_spi, ???);
-                //}
-            }
-            if (!_SSELManaged && _currentTransfer._cs_setup_time != 0) {
+            _queue.pop(_xfer);
+            _startTransfer();
+            if (!_SSELManaged && _xfer._cs_setup_time != 0) {
                 minar::Scheduler::postCallback(event_callback_t(this, &SPI_physical::sendData).bind())
-                        .delay(_currentTransfer._cs_setup_time)
+                        .delay(_xfer._cs_setup_time)
                         .tolerance(0);
                 dataPosted = true;
             }
         } else {
             /* If CS is not managed: */
-            if (!_SSELManaged) {
+            if (!_SSELManaged && _xfer._csAutoToggle) {
                 /* If CS is not NC: */
-                if (_currentSSEL != NC) {
+                if (_xfer._cs != NC) {
                     /* set GPIO active (CS) */
-                    gpio_write(&_ssel, _SSELActiveHigh);
+                    gpio_write(&_ssel, _xfer._csActiveHigh);
                 }
                 /* If the setup delay is not 0: */
-                if (_currentTransfer._cs_setup_time != 0) {
+                if (_xfer._cs_setup_time != 0) {
                     /* post sendData() to execute (setup delay) from now */
                     minar::Scheduler::postCallback(event_callback_t(this, &SPI_physical::sendData).bind())
-                            .delay(_currentTransfer._cs_setup_time)
+                            .delay(_xfer._cs_setup_time)
                             //TODO: What tolerance is perimissible here?
                             .tolerance(0);
                     dataPosted = true;
@@ -131,31 +143,160 @@ protected:
         }
 
     }
+    uint32_t get_next_tx_value() {
+        uint32_t value;
+        if (_tx_offset >= _xfer._tlen) {
+            value = _xfer._tx_fill;
+        } else {
+            uintptr_t ptr = (uintptr_t)_xfer._tx + _tx_offset * _wordSize;
+            switch(_wordSize) {
+                case 1:
+                    value = *(uint8_t *)ptr;
+                    break;
+                case 2:
+                    value = *(uint16_t *)ptr;
+                    break;
+                case 4:
+                    value = *(uint32_t *)ptr;
+                    break;
+                default:
+                    MBED_ASSERT("invalid _bits for SPI");
+                    break;
+            }
+        }
+        return value;
+    }
+    bool xfer_done() {
+        return ((_tx_offset >= _xfer._tlen) && (_rx_offset >= _xfer._rlen));
+    }
+    void spi_fill_fifo()
+    {
+        while (!spi_tx_fifo_full(&_spi) && !xfer_done()) {
+            spi_send_word(&_spi,get_next_tx_value());
+            _tx_offset++;
+        }
+    }
     void sendData()
     {
-
+        /* If DMA is enabled: */
+        if (_useDMA) {
+            /* Start the DMA transfer */
+            // TODO: DMA
+            // spi_start_dma(&_spi, _xfer._tx, _xfer._tlen, _xfer._rx, _xfer._rlen)
+        }
+        /* If FIFOs are enabled: */
+        else if (_useFIFO) {
+            /* Fill the send FIFO */
+            spi_fill_fifo();
+        } else {
+            /* Send one word */
+            spi_send_word(&_spi,get_next_tx_value());
+            _tx_offset++;
+        }
     }
-    void SPIirq(void *)
+    void store_word(uint32_t value)
     {
+        if (_rx_offset >= _xfer._rlen) {
+        } else {
+            uintptr_t ptr = (uintptr_t)_xfer._rx + _rx_offset * _wordSize;
+            switch(_wordSize) {
+                case 1:
+                    *(uint8_t *)ptr = value;
+                    break;
+                case 2:
+                    *(uint16_t *)ptr = value;
+                    break;
+                case 4:
+                    *(uint32_t *)ptr = value;
+                    break;
+                default:
+                    MBED_ASSERT("invalid _bits for SPI");
+                    break;
+            }
+        }
+    }
+    void spi_drain_fifo()
+    {
+        while (!spi_rx_fifo_empty()) {
+            uint32_t value = spi_get_word(&_spi);
+            store_word(value);
+        }
+    }
+    void SPIirq()
+    {
+        bool callSetCSInactive = false;
+
+        if (_useDMA) {
+            //TODO:
+        }
+        else if (_useFIFO) {
+            spi_fifo_drain();
+            if (!xfer_done()) {
+                spi_fifo_fill();
+            }
+        } else {
+            store_word(spi_get_word(&_spi));
+            _rx_offset++;
+            if (!xfer_done()) {
+                spi_send_word(&_spi,get_next_tx_value());
+                _tx_offset++;
+            }
+        }
+        if (!_SSELManaged && _xfer._cs_hold_time && (_xfer._csAutoToggle || xfer_done())) {
+            minar::Scheduler::postCallback(event_callback_t(this, &SPI_physical::postXfer).bind())
+                    .delay(_xfer._cs_hold_time)
+                    .tolerance(0);
+        } else {
+            callSetCSInactive = true;
+        }
+        if (xfer_done() && _xfer._irqPostCallback {
+                _xfer._irqPostCallback();
+            }
+        }
+        if (callSetCSInactive) {
+            postXfer();
+        }
 
     }
     void postXfer()
     {
-
+        bool callPreXfer = false;
+        if (!_SSELManaged && _xfer._cs != NC) {
+            gpio_write(&_ssel, !_xfer._csActiveHigh);
+        }
+        if (xfer_done() && _xfer._callback){
+            minar::Scheduler::postCallback(_xfer._callback.bind());
+        }
+        if (!_SSELManaged && _xfer._cs_inactive_time  ) {
+            minar::Scheduler::postCallback(event_callback_t(this, &SPI_physical::preXfer).bind())
+                    .delay(_xfer._cs_inactive_time)
+                    .tolerance(0);
+        } else {
+            preXfer();
+        }
     }
 
 protected:
-    PinName _currentSSEL;
+    /* SSEL managment */
     bool _SSELManaged;
-    bool _SSELActiveHigh;
-    bool _transferFirstXfer;
     //TODO: It's not possible to reinitialize a DigitalOut object.
     gpio_t _ssel;
 protected:
+    /* Transfer Management */
+    bool _useDMA;
+    bool _useFIFO;
+    size_t _tx_offset;
+    size_t _rx_offset;
+    size_t _tr_total;
+    uint32_t _tx_fill;
+    uint8_t _wordSize;
+
+protected:
     spi_t _spi;
     CThunk<SPI> _irq;
-    SPI_xfer_data _currentTransfer;
+    SPI_xfer_data _xfer;
     SPI_xfer_Queue_t _queue;
+    volatile bool _active;
 }
 
 static SPI_interface * _interfaces[MODULE_SIZE_SPI];
@@ -210,42 +351,16 @@ int SPI::post_transfer(const SPI_xfer_data & tp) {
     return _instance->post_transfer(tp);
 }
 
-void SPI::abort_transfer()
-{
-    _instance->abort_transfer();
-}
-
-void SPI::clear_transfer_buffer()
-{
-    _instance->clear_transfer_buffer();
-}
-
-void SPI::abort_all_transfers()
-{
-    _instance->abort_all_transfers();
-}
-
 void SPI::set_dma_usage(DMAUsage usage)
 {
     _xd.dma_usage(usage);
 }
 
-
-void SPI::irq_handler_asynch(void)
-{
-    int event = spi_irq_handler_asynch(&_spi);
-    if (_current_transaction.callback && (event & SPI_EVENT_ALL)) {
-        minar::Scheduler::postCallback(_current_transaction.callback.bind(_current_transaction.tx_buffer, _current_transaction.rx_buffer, event & SPI_EVENT_ALL));
-    }
-#if TRANSACTION_QUEUE_SIZE_SPI
-    if (event & (SPI_EVENT_ALL | SPI_EVENT_INTERNAL_TRANSFER_COMPLETE)) {
-        // SPI peripheral is free (event happend), dequeue transaction
-        dequeue_transaction();
-    }
-#endif
+SPI_xfer_data SPI::xd() {
+    return _xd;
 }
 
-SPI::SPI_xfer_data::SPI_xfer_data():
+SPI_xfer_data::SPI_xfer_data():
     _freq(0),
     _irqCallback(),
     _callback(),
@@ -257,45 +372,45 @@ SPI::SPI_xfer_data::SPI_xfer_data():
     _cs()
 {
 }
-SPI_xfer_data & SPI::SPI_xfer_data::frequency(uint32_t freq)
+SPI_xfer_data & SPI_xfer_data::frequency(uint32_t freq)
 {
     _freq = freq;
     return *this;
 }
-SPI_xfer_data & SPI::SPI_xfer_data::irq_callback(event_callback_t irqCallback)
+SPI_xfer_data & SPI_xfer_data::irq_callback(event_callback_t irqCallback)
 {
     _irqCallback = irqCallback;
     return *this;
 }
-SPI_xfer_data & SPI::SPI_xfer_data::callback(event_callback_t callback)
+SPI_xfer_data & SPI_xfer_data::callback(event_callback_t callback)
 {
     _callback = callback;
     return *this;
 }
-SPI_xfer_data & SPI::SPI_xfer_data::tx_buffer(void * buf, size_t length)
+SPI_xfer_data & SPI_xfer_data::tx_buffer(void * buf, size_t length)
 {
     _tx = buf;
     _tlen = length;
     return *this;
 }
-SPI_xfer_data & SPI::SPI_xfer_data::rx_buffer(void * buf, size_t length)
+SPI_xfer_data & SPI_xfer_data::rx_buffer(void * buf, size_t length)
 {
     _rx = buf;
     _rlen = length;
     return *this;
 }
-SPI_xfer_data & SPI::SPI_xfer_data::event_mask(int mask)
+SPI_xfer_data & SPI_xfer_data::event_mask(int mask)
 {
     _eventMask = mask;
     return *this;
 }
-SPI_xfer_data & SPI::SPI_xfer_data::cs_pin(PinName cs)
+SPI_xfer_data & SPI_xfer_data::cs_pin(PinName cs)
 {
     _cs = cs;
     return *this;
 }
 
-SPI::SPI_xfer_data::~SPI_xfer_data() {
+SPI_xfer_data::~SPI_xfer_data() {
     if(_spi && !_posted) {
         int err = _spi->transfer(_tx,_tlen,_rx,_rlen,_callback,_eventMask);
         if (err && _callback) {
@@ -303,8 +418,6 @@ SPI::SPI_xfer_data::~SPI_xfer_data() {
         }
     }
 }
-
-
 
 } // namespace mbed
 

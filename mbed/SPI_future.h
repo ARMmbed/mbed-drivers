@@ -143,6 +143,7 @@ class SPI_xfer_data {
         void * _rx;
         size_t _tlen;
         size_t _rlen;
+        uint32_t _tx_fill;
         int _eventMask;
         PinName _cs;
         uint32_t _cs_setup_time;
@@ -155,6 +156,27 @@ class SPI_xfer_data {
         spi_bitorder_t _order;
         DMAUsage _usage;
 };
+
+// SPI API TODO:
+// void spi_power_down(spi_t *obj)
+// void spi_power_up(spi_t *obj)
+// void spi_fifo_set(spi_t *obj, int enable);
+// void spi_irq_set(spi_t *obj, uint32_t irq_source_mask)
+// int spi_start_dma(spi_t *obj,
+//               uint8_t bits,
+//               void *tx_buf,
+//               size_t tx_len,
+//               void *rx_buf,
+//               size_t rx_len,
+//               void (*dma_irq)());
+// void spi_send_word(spi_t *obj,
+//               uint32_t value);
+// uint32_t spi_get_word(spi_t *obj);
+// int spi_tx_fifo_empty(spi_t *obj);
+// int spi_rx_fifo_empty(spi_t *obj);
+// int spi_tx_fifo_full(spi_t *obj);
+
+
 
 class SPI_interface {
     /** Start non-blocking SPI transfer.
