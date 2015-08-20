@@ -35,64 +35,6 @@
 extern "C" {
 #endif
 
-#if DEVICE_SEMIHOST
-
-/** Functions to control the mbed interface
- *
- * mbed Microcontrollers have a built-in interface to provide functionality such as
- * drag-n-drop download, reset, serial-over-usb, and access to the mbed local file
- * system. These functions provide means to control the interface suing semihost
- * calls it supports.
- */
-
-/** Determine whether the mbed interface is connected, based on whether debug is enabled
- *
- *  @returns
- *    1 if interface is connected,
- *    0 otherwise
- */
-int mbed_interface_connected(void);
-
-/** Instruct the mbed interface to reset, as if the reset button had been pressed
- *
- *  @returns
- *    1 if successful,
- *    0 otherwise (e.g. interface not present)
- */
-int mbed_interface_reset(void);
-
-/** This will disconnect the debug aspect of the interface, so semihosting will be disabled.
- * The interface will still support the USB serial aspect
- *
- *  @returns
- *    0 if successful,
- *   -1 otherwise (e.g. interface not present)
- */
-int mbed_interface_disconnect(void);
-
-/** This will disconnect the debug aspect of the interface, and if the USB cable is not
- * connected, also power down the interface. If the USB cable is connected, the interface
- * will remain powered up and visible to the host
- *
- *  @returns
- *    0 if successful,
- *   -1 otherwise (e.g. interface not present)
- */
-int mbed_interface_powerdown(void);
-
-/** This returns a string containing the 32-character UID of the mbed interface
- *  This is a weak function that can be overwritten if required
- *
- *  @param uid A 33-byte array to write the null terminated 32-byte string
- *
- *  @returns
- *    0 if successful,
- *   -1 otherwise (e.g. interface not present)
- */
-int mbed_interface_uid(char *uid);
-
-#endif
-
 /** This returns a unique 6-byte MAC address, based on the interface UID
  * If the interface is not present, it returns a default fixed MAC address (00:02:F7:F0:00:00)
  *
