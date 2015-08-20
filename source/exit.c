@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "semihost_api.h"
 #include "mbed_interface.h"
 #if DEVICE_STDIO_MESSAGES
 #include <stdio.h>
@@ -31,11 +30,6 @@ void exit(int return_code) {
     fflush(stderr);
 #endif
 
-#if DEVICE_SEMIHOST
-    if (mbed_interface_connected()) {
-        semihost_exit();
-    }
-#endif
     if (return_code) {
         mbed_die();
     }
