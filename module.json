@@ -1,6 +1,6 @@
 {
   "name": "mbed-drivers",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "description": "mbed SDK",
   "private": true,
   "keywords": [
