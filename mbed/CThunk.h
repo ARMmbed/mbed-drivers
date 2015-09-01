@@ -24,7 +24,7 @@
 
 #define CTHUNK_ADDRESS 1
 
-#if defined(__CORTEX_M3) || defined(__CORTEX_M4) || defined(__thumb2__)
+#if defined(TARGET_LIKE_CORTEX_M3) || defined(TARGET_LIKE_CORTEX_M4)
 #define CTHUNK_VARIABLES volatile uint32_t code[1]
 /**
 * CTHUNK disassembly for Cortex-M3/M4 (thumb2):
@@ -38,7 +38,7 @@
 */
 #define CTHUNK_ASSIGMENT m_thunk.code[0] = 0x8007E89F
 
-#elif defined(__CORTEX_M0PLUS) || defined(__CORTEX_M0)
+#elif defined(TARGET_LIKE_CORTEX_M0PLUS) || defined(TARGET_LIKE_CORTEX_M0)
 /*
 * CTHUNK disassembly for Cortex M0 (thumb):
 * * push {r0,r1,r2,r3,r4,lr} save touched registers and return address
@@ -122,7 +122,7 @@ class CThunk
         {
             m_thunk.context = context;
         }
-        
+
         inline uint32_t entry(void)
         {
             return (((uint32_t)&m_thunk)|CTHUNK_ADDRESS);
