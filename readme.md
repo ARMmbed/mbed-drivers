@@ -1,11 +1,11 @@
 ## Building with yotta
 
-The mbed OS's SDK is built using yotta. So first, install [yotta](http://github.com/ARMmbed/yotta), then:
+The mbed OS's drivers are built using yotta. So first, install [yotta](http://github.com/ARMmbed/yotta), then:
 
 ```bash
 # get the mbed-sdk source:
-git clone git@github.com:mbedmicro/mbed-sdk.git
-cd mbed-sdk
+git clone git@github.com:ARMmbed/mbed-drivers.git
+cd mbed-drivers
 
 # build for the frdm-k64f-gcc target:
 yotta target frdm-k64f-gcc

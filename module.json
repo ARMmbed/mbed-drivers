@@ -8,10 +8,10 @@
   ],
   "author": "Bogdan Marinescu <bogdan.marinescu@arm.com>",
   "repository": {
-    "url": "git@github.com:mbedmicro/mbed_private.git",
+    "url": "git@github.com:ARMmbed/mbed-drivers.git",
     "type": "git"
   },
-  "homepage": "https://github.com/mbedmicro/mbed_private",
+  "homepage": "https://github.com/ARMmbed/mbed-drivers",
   "licenses": [
     {
       "url": "https://spdx.org/licenses/Apache-2.0",
