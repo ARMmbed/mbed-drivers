@@ -16,7 +16,7 @@
 #include "Ticker.h"
 
 #include "TimerEvent.h"
-#include "FunctionPointer.h"
+#include "mbed-util/FunctionPointer.h"
 #include "ticker_api.h"
 
 namespace mbed {

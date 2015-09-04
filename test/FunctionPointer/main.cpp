@@ -16,7 +16,7 @@
 
 #include "mbed.h"
 #include "test_env.h"
-#include "FunctionPointer.h"
+#include "mbed-util/FunctionPointer.h"
 
 namespace {
 volatile int ebp_flag = 0;

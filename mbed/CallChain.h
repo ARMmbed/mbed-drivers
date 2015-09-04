@@ -16,7 +16,7 @@
 #ifndef MBED_CALLCHAIN_H
 #define MBED_CALLCHAIN_H
 
-#include "FunctionPointer.h"
+#include "mbed-util/FunctionPointer.h"
 #include <string.h>
 
 namespace mbed {
