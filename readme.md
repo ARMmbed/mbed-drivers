@@ -1,5 +1,6 @@
 ## Building with yotta
 
+
 The mbed OS's SDK is built using yotta. So first, install [yotta](http://github.com/ARMmbed/yotta), then:
 
 ```bash
@@ -22,4 +23,3 @@ yotta debug test/mbed-test-blinky
 > continue
 
 ```
-
