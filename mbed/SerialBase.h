@@ -219,9 +219,9 @@ protected:
     DMAUsage _rx_usage;
 #endif
 
-    serial_t        _serial;
-    FunctionPointer _irq[2];
-    int             _baud;
+    serial_t                    _serial;
+    mbed::util::FunctionPointer _irq[2];
+    int                         _baud;
 
 };
 
