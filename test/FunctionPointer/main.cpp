@@ -46,8 +46,8 @@ void runTest(void) {
     VTest test;
     printf("Testing mbed FunctionPointer...\r\n");
 
-    FunctionPointer ebp(bareprint);
-    FunctionPointer ecp(&test, &VTest::print);
+    mbed::util::FunctionPointer ebp(bareprint);
+    mbed::util::FunctionPointer ecp(&test, &VTest::print);
 
     size_t ebsize = sizeof(ebp);
     size_t ecsize = sizeof(ecp);
