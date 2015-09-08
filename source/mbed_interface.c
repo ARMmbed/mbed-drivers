@@ -19,9 +19,9 @@
 #include "gpio_api.h"
 #include "wait_api.h"
 #include "mbed_error.h"
-#include "toolchain.h"
+#include "compiler-polyfill/attributes.h"
 
-WEAK void mbed_mac_address(char *mac) {
+__weak void mbed_mac_address(char *mac) {
     mac[0] = 0x00;
     mac[1] = 0x02;
     mac[2] = 0xF7;

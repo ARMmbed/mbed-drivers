@@ -19,7 +19,6 @@
 #define MBED_LIBRARY_VERSION 91
 
 #include "platform.h"
-#include "toolchain.h"
 
 // Useful C libraries
 #include <math.h>
