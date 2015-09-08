@@ -106,7 +106,7 @@ public:
      *  @param Buffer the rx buffer
      *  @param int the event that triggered the calback
      */
-    typedef FunctionPointer3<void, Buffer, Buffer, int> event_callback_t;
+    typedef mbed::util::FunctionPointer3<void, Buffer, Buffer, int> event_callback_t;
 
     /** Start non-blocking SPI transfer.
      *

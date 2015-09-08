@@ -71,7 +71,7 @@ private:
     void compare_buffers(const uint8_t *src, const uint8_t *dest, uint32_t len) {
          for (uint32_t i = 0; i < len; i ++) {
             if (src[i] != dest[i]) {
-                printf("MISMATCH at position %u: expected %d, got %d\r\n", i, (int)src[i], (int)dest[i]);
+                printf("MISMATCH at position %u: expected %d, got %d\r\n", (unsigned)i, (int)src[i], (int)dest[i]);
             }
         }
     }
@@ -102,7 +102,7 @@ private:
 
 void app_start(int, char*[]) {
     static SPITest test;
-    Scheduler::postCallback(FunctionPointer0<void>(&test, &SPITest::start).bind());
+    Scheduler::postCallback(mbed::util::FunctionPointer0<void>(&test, &SPITest::start).bind());
 }
 
 #else

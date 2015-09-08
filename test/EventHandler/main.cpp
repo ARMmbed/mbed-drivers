@@ -18,6 +18,8 @@
 #include "mbed-util/Event.h"
 #include <stdio.h>
 
+using namespace mbed::util;
+
 /******************************************************************************
  * Generic helpers
  *****************************************************************************/
@@ -358,7 +360,7 @@ void runTest(void)
     printf ("\r\nTest Complete\r\n");
 }
 
-void app_start(int argc, char* argv[])
+void app_start(int, char* [])
 {
     minar::Scheduler::postCallback(&runTest);
 }

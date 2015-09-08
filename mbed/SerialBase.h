@@ -134,7 +134,7 @@ public:
      *  @param Buffer the transfer buffer
      *  @param int the event that triggered the calback
      */
-    typedef FunctionPointer2<void, Buffer, int> event_callback_t;
+    typedef mbed::util::FunctionPointer2<void, Buffer, int> event_callback_t;
 
     /** Begin asynchronous write using 8bit buffer. The completition invokes registered TX event callback
      *

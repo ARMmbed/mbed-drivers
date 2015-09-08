@@ -40,14 +40,14 @@ void led2_on() {
     led2 = !led2;
     printf("led2\n\r");
     fflush(stdout);
-    minar::Scheduler::postCallback(FunctionPointer(check_leds).bind());
+    minar::Scheduler::postCallback(mbed::util::FunctionPointer(check_leds).bind());
 }
 
 void app_start(int, char*[]) {
     MBED_HOSTTEST_TIMEOUT(10);
     MBED_HOSTTEST_SELECT(default_auto);
     MBED_HOSTTEST_DESCRIPTION(Sleep Timeout);
-    MBED_HOSTTEST_START("MBED_9"); 
+    MBED_HOSTTEST_START("MBED_9");
     led1 = 0;
     led2 = 0;
     led1_initial = led1;
