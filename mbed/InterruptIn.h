@@ -124,8 +124,8 @@ protected:
     gpio_t gpio;
     gpio_irq_t gpio_irq;
 
-    FunctionPointer _rise;
-    FunctionPointer _fall;
+    mbed::util::FunctionPointer _rise;
+    mbed::util::FunctionPointer _fall;
 };
 
 } // namespace mbed

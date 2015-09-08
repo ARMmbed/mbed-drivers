@@ -28,11 +28,11 @@ CallChain::~CallChain() {
 }
 
 pFunctionPointer_t CallChain::add(void (*function)(void)) {
-    return common_add(new FunctionPointer(function));
+    return common_add(new mbed::util::FunctionPointer(function));
 }
 
 pFunctionPointer_t CallChain::add_front(void (*function)(void)) {
-    return common_add_front(new FunctionPointer(function));
+    return common_add_front(new mbed::util::FunctionPointer(function));
 }
 
 int CallChain::size() const {
