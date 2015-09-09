@@ -25,7 +25,8 @@
     "cmsis-core": "~0.2.0",
     "ualloc": "~0.0.0",
     "minar": "~0.6.0",
-    "core-util": "~0.0.11"
+    "core-util": "~0.0.11",
+    "compiler-polyfill": "~1.0.0"
   },
   "targetDependencies": {},
   "scripts": {

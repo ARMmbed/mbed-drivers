@@ -16,13 +16,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include "device.h"
-#include "toolchain.h"
+#include "compiler-polyfill/attributes.h"
 #include "mbed_error.h"
 #if DEVICE_STDIO_MESSAGES
 #include <stdio.h>
 #endif
 
-WEAK void error(const char* format, ...) {
+__weak void error(const char* format, ...) {
 #if DEVICE_STDIO_MESSAGES
     va_list arg;
     va_start(arg, format);

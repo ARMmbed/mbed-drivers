@@ -18,7 +18,7 @@
 #include "FileSystemLike.h"
 #include "FilePath.h"
 #include "serial_api.h"
-#include "toolchain.h"
+#include "compiler-polyfill/attributes.h"
 #include "cmsis.h"
 #include <errno.h>
 #include "app.h"
@@ -411,8 +411,8 @@ namespace __gnu_cxx {
         error("Exception");
     }
 }
-extern "C" WEAK void __cxa_pure_virtual(void);
-extern "C" WEAK void __cxa_pure_virtual(void) {
+extern "C" __weak void __cxa_pure_virtual(void);
+extern "C" __weak void __cxa_pure_virtual(void) {
     exit(1);
 }
 
@@ -423,8 +423,8 @@ extern "C" WEAK void __cxa_pure_virtual(void) {
 // it is not meant for user code, but for HAL ports to perform initialization
 // before the scheduler is started
 
-extern "C" WEAK void mbed_sdk_init(void);
-extern "C" WEAK void mbed_sdk_init(void) {
+extern "C" __weak void mbed_sdk_init(void);
+extern "C" __weak void mbed_sdk_init(void) {
 }
 
 #if defined(TOOLCHAIN_ARM)
