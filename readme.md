@@ -1,9 +1,9 @@
 ## Building with yotta
 
-The mbed OS's drivers are built using yotta. So first, install [yotta](http://github.com/ARMmbed/yotta), then:
+mbed OS is built using yotta. So first, install [yotta](http://github.com/ARMmbed/yotta), then:
 
 ```bash
-# get the mbed-sdk source:
+# get the mbed OS drivers source code:
 git clone git@github.com:ARMmbed/mbed-drivers.git
 cd mbed-drivers
 
