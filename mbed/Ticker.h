@@ -17,7 +17,7 @@
 #define MBED_TICKER_H
 
 #include "TimerEvent.h"
-#include "FunctionPointer.h"
+#include "mbed-util/FunctionPointer.h"
 
 namespace mbed {
 
@@ -118,8 +118,8 @@ protected:
     virtual void handler();
 
 protected:
-    timestamp_t     _delay;     /**< Time delay (in microseconds) for re-setting the multi-shot callback. */
-    FunctionPointer _function;  /**< Callback. */
+    timestamp_t                _delay;     /**< Time delay (in microseconds) for re-setting the multi-shot callback. */
+    mbed::util::FunctionPointer _function;  /**< Callback. */
 };
 
 } // namespace mbed

@@ -17,7 +17,7 @@
 #define MBED_TRANSACTION_H
 
 #include "platform.h"
-#include "FunctionPointer.h"
+#include "mbed-util/FunctionPointer.h"
 #include "mbed/Buffer.h"
 
 namespace mbed {

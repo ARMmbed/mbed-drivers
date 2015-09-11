@@ -25,7 +25,7 @@
 #if DEVICE_I2C_ASYNCH
 #include "CThunk.h"
 #include "dma_api.h"
-#include "FunctionPointer.h"
+#include "mbed-util/FunctionPointer.h"
 #include "Transaction.h"
 #endif
 
@@ -142,7 +142,7 @@ public:
      *  @param Buffer the rx buffer
      *  @param int the event that triggered the calback
      */
-    typedef FunctionPointer3<void, Buffer, Buffer, int> event_callback_t;
+    typedef mbed::util::FunctionPointer3<void, Buffer, Buffer, int> event_callback_t;
 
     /** Start non-blocking I2C transfer.
      *

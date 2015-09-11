@@ -16,7 +16,7 @@
 #ifndef MBED_CALLCHAIN_H
 #define MBED_CALLCHAIN_H
 
-#include "FunctionPointer.h"
+#include "mbed-util/FunctionPointer.h"
 #include <string.h>
 
 namespace mbed {
@@ -57,7 +57,7 @@ namespace mbed {
  * @endcode
  */
 
-typedef FunctionPointer* pFunctionPointer_t;
+typedef mbed::util::FunctionPointer* pFunctionPointer_t;
 
 class CallChain {
 public:
@@ -87,7 +87,7 @@ public:
      */
     template<typename T>
     pFunctionPointer_t add(T *tptr, void (T::*mptr)(void)) {
-        return common_add(new FunctionPointer(tptr, mptr));
+        return common_add(new mbed::util::FunctionPointer(tptr, mptr));
     }
 
     /** Add a function at the beginning of the chain
@@ -109,7 +109,7 @@ public:
      */
     template<typename T>
     pFunctionPointer_t add_front(T *tptr, void (T::*mptr)(void)) {
-        return common_add_front(new FunctionPointer(tptr, mptr));
+        return common_add_front(new mbed::util::FunctionPointer(tptr, mptr));
     }
 
     /** Get the number of functions in the chain

@@ -21,7 +21,7 @@
 #if DEVICE_SERIAL
 
 #include "Stream.h"
-#include "FunctionPointer.h"
+#include "mbed-util/FunctionPointer.h"
 #include "serial_api.h"
 #include "Transaction.h"
 
@@ -134,7 +134,7 @@ public:
      *  @param Buffer the transfer buffer
      *  @param int the event that triggered the calback
      */
-    typedef FunctionPointer2<void, Buffer, int> event_callback_t;
+    typedef mbed::util::FunctionPointer2<void, Buffer, int> event_callback_t;
 
     /** Begin asynchronous write using 8bit buffer. The completition invokes registered TX event callback
      *
@@ -219,9 +219,9 @@ protected:
     DMAUsage _rx_usage;
 #endif
 
-    serial_t        _serial;
-    FunctionPointer _irq[2];
-    int             _baud;
+    serial_t                    _serial;
+    mbed::util::FunctionPointer _irq[2];
+    int                         _baud;
 
 };
 
