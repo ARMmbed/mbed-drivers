@@ -95,6 +95,7 @@ public:
      *    Response from the SPI slave
     */
     virtual int write(int value);
+
     class SPITransferAdder {
         friend SPI;
     private:
@@ -155,6 +156,10 @@ public:
      *  @return A SPITransferAdder object.  When either apply() is called or the
      *      SPITransferAdder goes out of scope, the transfer is queued.
      */
+    SPITransferAdder transfer();
+
+    /** Abort the on-going SPI transfer, and continue with transfer's in the queue if any.
+      */
     void abort_transfer();
 
     /** Clear the transaction buffer
@@ -165,7 +170,12 @@ public:
      */
     void abort_all_transfers();
 
-    SPITransferAdder transfer();
+    /** Configure DMA usage suggestion for non-blocking transfers
+     *
+     *  @param usage The usage DMA hint for peripheral
+     *  @return Zero if the usage was set, -1 if a transaction is on-going
+    */
+    int set_dma_usage(DMAUsage usage);
 
 protected:
     /** SPI IRQ handler
