@@ -22,11 +22,13 @@
 
 #include "spi_api.h"
 
+#if DEVICE_SPI_ASYNCH
 #include "CThunk.h"
 #include "dma_api.h"
 #include "CircularBuffer.h"
 #include "mbed-util/FunctionPointer.h"
 #include "Transaction.h"
+#endif
 
 namespace mbed {
 
@@ -39,6 +41,7 @@ namespace mbed {
  * can be controlled using <DigitalOut> pins
  */
 class SPI {
+#if DEVICE_SPI_ASYNCH
 public:
     /** SPI transfer callback
      *  @param Buffer the tx buffer
@@ -49,7 +52,7 @@ public:
 private:
     typedef TwoWayTransaction<event_callback_t> transaction_data_t;
     typedef Transaction<SPI, transaction_data_t> transaction_t;
-
+#endif
 public:
     /** Create a SPI master connected to the specified pins
      *
@@ -96,6 +99,7 @@ public:
     */
     virtual int write(int value);
 
+#if DEVICE_SPI_ASYNCH
     class SPITransferAdder {
         friend SPI;
     private:
@@ -211,6 +215,7 @@ protected:
      * @return the result of validating the transfer parameters
      */
     int transfer(const SPITransferAdder &xfer);
+#endif
 public:
     virtual ~SPI() {
     }
@@ -218,11 +223,14 @@ public:
 protected:
     spi_t _spi;
 
+#if DEVICE_SPI_ASYNCH
+#if TRANSACTION_QUEUE_SIZE_SPI
     static CircularBuffer<transaction_t, TRANSACTION_QUEUE_SIZE_SPI> _transaction_buffer;
+#endif
     CThunk<SPI> _irq;
     transaction_data_t _current_transaction;
     DMAUsage _usage;
-
+#endif
     void aquire(void);
     static SPI *_owner;
     int _bits;

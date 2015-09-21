@@ -20,12 +20,16 @@
 
 namespace mbed {
 
+#if DEVICE_SPI_ASYNCH && TRANSACTION_QUEUE_SIZE_SPI
 CircularBuffer<SPI::transaction_t, TRANSACTION_QUEUE_SIZE_SPI> SPI::_transaction_buffer;
+#endif
 
 SPI::SPI(PinName mosi, PinName miso, PinName sclk) :
         _spi(),
+#if DEVICE_SPI_ASYNCH
         _irq(this),
         _usage(DMA_USAGE_NEVER),
+#endif
         _bits(8),
         _mode(0),
         _order(SPI_MSB),
@@ -64,6 +68,8 @@ int SPI::write(int value) {
     aquire();
     return spi_master_write(&_spi, value);
 }
+
+#if DEVICE_SPI_ASYNCH
 int SPI::transfer(const SPI::SPITransferAdder &td) {
 
     if (spi_active(&_spi)) {
@@ -76,17 +82,13 @@ int SPI::transfer(const SPI::SPITransferAdder &td) {
 void SPI::abort_transfer()
 {
     spi_abort_asynch(&_spi);
-#if TRANSACTION_QUEUE_SIZE_SPI
     dequeue_transaction();
-#endif
 }
 
 
 void SPI::clear_transfer_buffer()
 {
-#if TRANSACTION_QUEUE_SIZE_SPI
     _transaction_buffer.reset();
-#endif
 }
 
 void SPI::abort_all_transfers()
@@ -202,6 +204,7 @@ SPI::SPITransferAdder SPI::transfer() {
     SPITransferAdder a(this);
     return a;
 }
+#endif
 
 
 } // namespace mbed
