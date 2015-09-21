@@ -26,7 +26,7 @@
 #include "CThunk.h"
 #include "dma_api.h"
 #include "CircularBuffer.h"
-#include "mbed-util/FunctionPointer.h"
+#include "core-util/FunctionPointer.h"
 #include "Transaction.h"
 #endif
 

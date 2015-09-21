@@ -21,7 +21,7 @@
 #if DEVICE_SERIAL
 
 #include "Stream.h"
-#include "mbed-util/FunctionPointer.h"
+#include "core-util/FunctionPointer.h"
 #include "serial_api.h"
 #include "Transaction.h"
 

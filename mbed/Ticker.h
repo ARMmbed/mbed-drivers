@@ -17,7 +17,7 @@
 #define MBED_TICKER_H
 
 #include "TimerEvent.h"
-#include "mbed-util/FunctionPointer.h"
+#include "core-util/FunctionPointer.h"
 
 namespace mbed {
 

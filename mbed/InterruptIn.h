@@ -22,7 +22,7 @@
 
 #include "gpio_api.h"
 #include "gpio_irq_api.h"
-#include "mbed-util/FunctionPointer.h"
+#include "core-util/FunctionPointer.h"
 
 namespace mbed {
 
