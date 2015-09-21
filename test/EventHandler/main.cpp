@@ -15,7 +15,7 @@
  */
 
 #include "mbed.h"
-#include "mbed-util/Event.h"
+#include "core-util/Event.h"
 #include <stdio.h>
 
 using namespace mbed::util;
