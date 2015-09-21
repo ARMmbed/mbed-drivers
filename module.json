@@ -23,9 +23,9 @@
   "dependencies": {
     "mbed-hal": "~0.6.0",
     "cmsis-core": "~0.2.0",
-    "ualloc": ">=0.1.0",
+    "ualloc": "~0.1.0",
     "minar": "~0.7.0",
-    "core-util": ">=0.1.0",
+    "core-util": "~0.1.0",
     "compiler-polyfill": "~1.0.0"
   },
   "targetDependencies": {},
