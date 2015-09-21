@@ -151,7 +151,11 @@ void SPI::irq_handler_asynch(void)
 
 SPI::SPITransferAdder::SPITransferAdder(SPI *owner) :
     _applied(false), _rc(0), _owner(owner)
-{}
+{
+    _td.tx_buffer.length = 0;
+    _td.rx_buffer.length = 0;
+    _td.callback = event_callback_t((void(*)(Buffer, Buffer, int))NULL);
+}
 const SPI::SPITransferAdder &
 SPI::SPITransferAdder::operator =(const SPI::SPITransferAdder & a) {
     _td = a._td;
@@ -164,18 +168,21 @@ SPI::SPITransferAdder::SPITransferAdder(const SPITransferAdder & a) {
 }
 SPI::SPITransferAdder &
 SPI::SPITransferAdder::tx(void * txBuf, size_t txSize) {
+    MBED_ASSERT(!_td.tx_buffer.length);
     _td.tx_buffer.buf    = txBuf;
     _td.tx_buffer.length = txSize;
     return *this;
 }
 SPI::SPITransferAdder &
 SPI::SPITransferAdder::rx(void * rxBuf, size_t rxSize) {
+    MBED_ASSERT(!_td.rx_buffer.length);
     _td.rx_buffer.buf    = rxBuf;
     _td.rx_buffer.length = rxSize;
     return *this;
 }
 SPI::SPITransferAdder &
 SPI::SPITransferAdder::callback( const event_callback_t & cb, int event) {
+    MBED_ASSERT(!_td.callback);
     _td.callback = cb;
     _td.event    = event;
     return *this;
