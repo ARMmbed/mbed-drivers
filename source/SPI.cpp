@@ -70,6 +70,7 @@ int SPI::write(int value) {
 }
 
 #if DEVICE_SPI_ASYNCH
+
 int SPI::transfer(const SPI::SPITransferAdder &td)
 {
     if (spi_active(&_spi)) {
@@ -78,30 +79,41 @@ int SPI::transfer(const SPI::SPITransferAdder &td)
     start_transfer(td._td);
     return 0;
 }
+
 void SPI::abort_transfer()
 {
     spi_abort_asynch(&_spi);
+#if TRANSACTION_QUEUE_SIZE_SPI
     dequeue_transaction();
+#endif
 }
+
+
 void SPI::clear_transfer_buffer()
 {
+#if TRANSACTION_QUEUE_SIZE_SPI
     _transaction_buffer.reset();
+#endif
 }
+
 void SPI::abort_all_transfers()
 {
     clear_transfer_buffer();
     abort_transfer();
 }
+
 int SPI::set_dma_usage(DMAUsage usage)
 {
     if (spi_active(&_spi)) {
         return -1;
     }
     _usage = usage;
-    return 0;
+    return  0;
 }
+
 int SPI::queue_transfer(const transaction_data_t &td)
 {
+#if TRANSACTION_QUEUE_SIZE_SPI
     transaction_t transaction(this, td);
     if (_transaction_buffer.full()) {
         return -1; // the buffer is full
@@ -109,6 +121,9 @@ int SPI::queue_transfer(const transaction_data_t &td)
         _transaction_buffer.push(transaction);
         return 0;
     }
+#else
+    return -1;
+#endif
 }
 
 void SPI::start_transfer(const transaction_data_t &td)
@@ -119,6 +134,8 @@ void SPI::start_transfer(const transaction_data_t &td)
     spi_master_transfer(&_spi, td.tx_buffer.buf, td.tx_buffer.length, td.rx_buffer.buf, td.rx_buffer.length,
             _irq.entry(), td.event, _usage);
 }
+
+#if TRANSACTION_QUEUE_SIZE_SPI
 
 void SPI::start_transaction(transaction_data_t *data)
 {
@@ -135,6 +152,8 @@ void SPI::dequeue_transaction()
     }
 }
 
+#endif
+
 void SPI::irq_handler_asynch(void)
 {
     int event = spi_irq_handler_asynch(&_spi);
@@ -143,10 +162,12 @@ void SPI::irq_handler_asynch(void)
                 _current_transaction.callback.bind(_current_transaction.tx_buffer, _current_transaction.rx_buffer,
                         event & SPI_EVENT_ALL));
     }
+#if TRANSACTION_QUEUE_SIZE_SPI
     if (event & (SPI_EVENT_ALL | SPI_EVENT_INTERNAL_TRANSFER_COMPLETE)) {
         // SPI peripheral is free (event happend), dequeue transaction
         dequeue_transaction();
     }
+#endif
 }
 
 SPI::SPITransferAdder::SPITransferAdder(SPI *owner) :
@@ -207,7 +228,6 @@ SPI::SPITransferAdder SPI::transfer()
     return a;
 }
 #endif
-
 
 } // namespace mbed
 
