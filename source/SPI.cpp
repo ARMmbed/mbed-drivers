@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "SPI.h"
+#include "mbed/SPI.h"
 #include "minar/minar.h"
 
 #if DEVICE_SPI
@@ -70,42 +70,38 @@ int SPI::write(int value) {
 }
 
 #if DEVICE_SPI_ASYNCH
-int SPI::transfer(const SPI::SPITransferAdder &td) {
-
+int SPI::transfer(const SPI::SPITransferAdder &td)
+{
     if (spi_active(&_spi)) {
         return queue_transfer(td._td);
     }
     start_transfer(td._td);
     return 0;
 }
-
 void SPI::abort_transfer()
 {
     spi_abort_asynch(&_spi);
     dequeue_transaction();
 }
-
-
 void SPI::clear_transfer_buffer()
 {
     _transaction_buffer.reset();
 }
-
 void SPI::abort_all_transfers()
 {
     clear_transfer_buffer();
     abort_transfer();
 }
-
 int SPI::set_dma_usage(DMAUsage usage)
 {
     if (spi_active(&_spi)) {
         return -1;
     }
     _usage = usage;
-    return  0;
+    return 0;
 }
-int SPI::queue_transfer(const transaction_data_t &td) {
+int SPI::queue_transfer(const transaction_data_t &td)
+{
     transaction_t transaction(this, td);
     if (_transaction_buffer.full()) {
         return -1; // the buffer is full
@@ -115,13 +111,13 @@ int SPI::queue_transfer(const transaction_data_t &td) {
     }
 }
 
-
-void SPI::start_transfer(const transaction_data_t &td) {
+void SPI::start_transfer(const transaction_data_t &td)
+{
     aquire();
     _current_transaction = td;
     _irq.callback(&SPI::irq_handler_asynch);
-    spi_master_transfer(&_spi, td.tx_buffer.buf, td.tx_buffer.length,
-        td.rx_buffer.buf, td.rx_buffer.length, _irq.entry(), td.event , _usage);
+    spi_master_transfer(&_spi, td.tx_buffer.buf, td.tx_buffer.length, td.rx_buffer.buf, td.rx_buffer.length,
+            _irq.entry(), td.event, _usage);
 }
 
 void SPI::start_transaction(transaction_data_t *data)
@@ -143,7 +139,9 @@ void SPI::irq_handler_asynch(void)
 {
     int event = spi_irq_handler_asynch(&_spi);
     if (_current_transaction.callback && (event & SPI_EVENT_ALL)) {
-        minar::Scheduler::postCallback(_current_transaction.callback.bind(_current_transaction.tx_buffer, _current_transaction.rx_buffer, event & SPI_EVENT_ALL));
+        minar::Scheduler::postCallback(
+                _current_transaction.callback.bind(_current_transaction.tx_buffer, _current_transaction.rx_buffer,
+                        event & SPI_EVENT_ALL));
     }
     if (event & (SPI_EVENT_ALL | SPI_EVENT_INTERNAL_TRANSFER_COMPLETE)) {
         // SPI peripheral is free (event happend), dequeue transaction
@@ -152,55 +150,59 @@ void SPI::irq_handler_asynch(void)
 }
 
 SPI::SPITransferAdder::SPITransferAdder(SPI *owner) :
-    _applied(false), _rc(0), _owner(owner)
+        _applied(false), _rc(0), _owner(owner)
 {
     _td.tx_buffer.length = 0;
     _td.rx_buffer.length = 0;
-    _td.callback = event_callback_t((void(*)(Buffer, Buffer, int))NULL);
+    _td.callback = event_callback_t((void (*)(Buffer, Buffer, int))NULL);
 }
-const SPI::SPITransferAdder &
-SPI::SPITransferAdder::operator =(const SPI::SPITransferAdder & a) {
+const SPI::SPITransferAdder & SPI::SPITransferAdder::operator =(const SPI::SPITransferAdder &a)
+{
     _td = a._td;
     _owner = a._owner;
     _applied = 0;
     return *this;
 }
-SPI::SPITransferAdder::SPITransferAdder(const SPITransferAdder & a) {
+SPI::SPITransferAdder::SPITransferAdder(const SPITransferAdder &a)
+{
     *this = a;
 }
-SPI::SPITransferAdder &
-SPI::SPITransferAdder::tx(void * txBuf, size_t txSize) {
+SPI::SPITransferAdder & SPI::SPITransferAdder::tx(void *txBuf, size_t txSize)
+{
     MBED_ASSERT(!_td.tx_buffer.length);
-    _td.tx_buffer.buf    = txBuf;
+    _td.tx_buffer.buf = txBuf;
     _td.tx_buffer.length = txSize;
     return *this;
 }
-SPI::SPITransferAdder &
-SPI::SPITransferAdder::rx(void * rxBuf, size_t rxSize) {
+SPI::SPITransferAdder & SPI::SPITransferAdder::rx(void *rxBuf, size_t rxSize)
+{
     MBED_ASSERT(!_td.rx_buffer.length);
-    _td.rx_buffer.buf    = rxBuf;
+    _td.rx_buffer.buf = rxBuf;
     _td.rx_buffer.length = rxSize;
     return *this;
 }
-SPI::SPITransferAdder &
-SPI::SPITransferAdder::callback( const event_callback_t & cb, int event) {
+SPI::SPITransferAdder & SPI::SPITransferAdder::callback(const event_callback_t &cb, int event)
+{
     MBED_ASSERT(!_td.callback);
     _td.callback = cb;
-    _td.event    = event;
+    _td.event = event;
     return *this;
 }
-int SPI::SPITransferAdder::apply() {
+int SPI::SPITransferAdder::apply()
+{
     if (!_applied) {
         _applied = true;
         _rc = _owner->transfer(*this);
     }
     return _rc;
 }
-SPI::SPITransferAdder::~SPITransferAdder() {
+SPI::SPITransferAdder::~SPITransferAdder()
+{
     apply();
 }
 
-SPI::SPITransferAdder SPI::transfer() {
+SPI::SPITransferAdder SPI::transfer()
+{
     SPITransferAdder a(this);
     return a;
 }

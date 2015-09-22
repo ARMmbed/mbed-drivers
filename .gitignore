@@ -16,6 +16,8 @@ build/
 .cproject
 .project
 .pydevproject
+.metadata/
+.settings/
 
 # C extensions
 *.so
@@ -72,3 +74,4 @@ yotta_modules
 yotta_targets
 upload.tar.gz
 build
+.yotta.json

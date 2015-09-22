@@ -103,9 +103,9 @@ public:
     class SPITransferAdder {
         friend SPI;
     private:
-        SPITransferAdder(SPI * owner);
-        const SPITransferAdder & operator =(const SPITransferAdder & a);
-        SPITransferAdder(const SPITransferAdder & a);
+        SPITransferAdder(SPI *owner);
+        const SPITransferAdder & operator =(const SPITransferAdder &a);
+        SPITransferAdder(const SPITransferAdder &a);
     public:
         /** Set the transmit buffer
          *  Sets the transmit buffer pointer and transmit size.
@@ -116,7 +116,7 @@ public:
          *  @param[in] txSize the size of the transmit buffer
          *  @return a reference to the SPITransferAdder
          */
-        SPITransferAdder & tx(void * txBuf, size_t txSize);
+        SPITransferAdder & tx(void *txBuf, size_t txSize);
         /** Set the receive buffer
          *  Sets the receive buffer pointer and receive size
          *
@@ -126,7 +126,7 @@ public:
          *  @param[in] rxSize the size of the receive buffer
          *  @return a reference to the SPITransferAdder
          */
-        SPITransferAdder & rx(void * rxBuf, size_t rxSize);
+        SPITransferAdder & rx(void *rxBuf, size_t rxSize);
         /** Set the SPI Event callback
          *  Sets the callback to invoke when an event occurs and the mask of
          *  which events should trigger it. The callback will be scheduled to
@@ -138,7 +138,7 @@ public:
          *  @param[in] event The event mask
          *  @return a reference to the SPITransferAdder
          */
-        SPITransferAdder & callback( const event_callback_t & cb, int event);
+        SPITransferAdder & callback(const event_callback_t &cb, int event);
         /** Initiate the transfer
          *  apply() allows the user to explicitly activate the transfer and obtain
          *  the return code from the validation of the transfer parameters.
@@ -191,13 +191,13 @@ protected:
      * @param data Transaction data
      * @return Zero if a transfer was added to the queue, or -1 if the queue is full
      */
-    int queue_transfer(const transaction_data_t & td);
+    int queue_transfer(const transaction_data_t &td);
 
     /** Configures a callback, spi peripheral and initiate a new transfer
      *
      * @param data Transaction data
      */
-    void start_transfer(const transaction_data_t & td);
+    void start_transfer(const transaction_data_t &td);
 
     /** Start a new transaction
      *
