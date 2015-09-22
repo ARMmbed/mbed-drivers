@@ -118,7 +118,8 @@ public:
      * @param rx_length The length of RX buffer
      * @param callback  The event callback function
      * @param event     The logical OR of SPI events to modify. Look at spi hal header file for SPI events.
-     * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
+     * @retval 0 if the transfer has started or has been queued
+     * @retval -1 if SPI peripheral is busy or the transfer could not be queued
      */
     int transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE);
 

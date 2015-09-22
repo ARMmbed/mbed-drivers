@@ -76,6 +76,9 @@ int SPI::transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length
 }
 
 int SPI::transfer(const Buffer& tx, const Buffer& rx, const event_callback_t& callback, int event) {
+    // the buffers must be valid, i.e. one of the buffers needs to be non-null in both pointer and length
+    MBED_ASSERT((tx.buf != NULL and tx.length != 0) or (rx.buf != NULL and rx.length != 0));
+
     if (spi_active(&_spi)) {
         return queue_transfer(tx, rx, callback, event);
     }
