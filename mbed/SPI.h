@@ -36,24 +36,24 @@ namespace mbed {
  *
  * The default format is set to 8-bits, mode 0, and a clock frequency of 1MHz
  *
+ * NOTE: This information will be deprecated soon.
  * Most SPI devices will also require Chip Select and Reset signals. These
  * can be controlled using <DigitalOut> pins
- *
- * Example:
- * @code
- * // Send a byte to a SPI slave, and record the response
- *
- * #include "mbed.h"
- *
- * SPI device(p5, p6, p7); // mosi, miso, sclk
- *
- * int main() {
- *     int response = device.write(0xFF);
- * }
- * @endcode
  */
 class SPI {
 
+#if DEVICE_SPI_ASYNCH
+public:
+    /** SPI transfer callback
+     *  @param Buffer the tx buffer
+     *  @param Buffer the rx buffer
+     *  @param int the event that triggered the calback
+     */
+    typedef mbed::util::FunctionPointer3<void, Buffer, Buffer, int> event_callback_t;
+private:
+    typedef TwoWayTransaction<event_callback_t> transaction_data_t;
+    typedef Transaction<SPI, transaction_data_t> transaction_t;
+#endif
 public:
     /** Create a SPI master connected to the specified pins
      *
@@ -101,39 +101,68 @@ public:
     virtual int write(int value);
 
 #if DEVICE_SPI_ASYNCH
-    /** SPI transfer callback
-     *  @param Buffer the tx buffer
-     *  @param Buffer the rx buffer
-     *  @param int the event that triggered the calback
+    class SPITransferAdder {
+        friend SPI;
+    private:
+        SPITransferAdder(SPI *owner);
+        const SPITransferAdder & operator =(const SPITransferAdder &a);
+        SPITransferAdder(const SPITransferAdder &a);
+    public:
+        /** Set the transmit buffer
+         *  Sets the transmit buffer pointer and transmit size.
+         *
+         *  NOTE: Repeated calls to tx() override buffer parameters.
+         *
+         *  @param[in] txBuf a pointer to the transmit buffer
+         *  @param[in] txSize the size of the transmit buffer
+         *  @return a reference to the SPITransferAdder
      */
-    typedef mbed::util::FunctionPointer3<void, Buffer, Buffer, int> event_callback_t;
-
-    /** Start non-blocking SPI transfer.
+        SPITransferAdder & tx(void *txBuf, size_t txSize);
+        /** Set the receive buffer
+         *  Sets the receive buffer pointer and receive size
      *
-     * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
-     *                  the default SPI value is sent
-     * @param tx_length The length of TX buffer
-     * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
-     *                  received data are ignored
-     * @param rx_length The length of RX buffer
-     * @param callback  The event callback function
-     * @param event     The logical OR of SPI events to modify. Look at spi hal header file for SPI events.
-     * @retval 0 if the transfer has started or has been queued
-     * @retval -1 if SPI peripheral is busy or the transfer could not be queued
+         *  NOTE: Repeated calls to rx() override buffer parameters.
+         *
+         *  @param[in] rxBuf a pointer to the receive buffer
+         *  @param[in] rxSize the size of the receive buffer
+         *  @return a reference to the SPITransferAdder
      */
-    int transfer(void *tx_buffer, int tx_length, void *rx_buffer, int rx_length, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE);
-
-     /** Start non-blocking SPI transfer.
+        SPITransferAdder & rx(void *rxBuf, size_t rxSize);
+        /** Set the SPI Event callback
+         *  Sets the callback to invoke when an event occurs and the mask of
+         *  which events should trigger it. The callback will be scheduled to
+         *  execute in main context, not invoked in interrupt context.
      *
-     * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
-     *                  the default SPI Avalue is sent
-     * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
-     *                  received data are ignored
-     * @param callback  The event callback function
-     * @param event     The logical OR of SPI events to modify. Look at spi hal header file for SPI events.
-     * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
+         *  NOTE: Repeated calls to callback() override callback parameters.
+         *
+         *  @param[in] cb The event callback function
+         *  @param[in] event     The logical OR of SPI events to modify. Look at spi hal header file for SPI events.
+         *  @return a reference to the SPITransferAdder
+         */
+        SPITransferAdder & callback(const event_callback_t &cb, int event);
+        /** Initiate the transfer
+         *  apply() allows the user to explicitly activate the transfer and obtain
+         *  the return code from the validation of the transfer parameters.
+         * @return Zero if the transfer has started, or -1 if SPI peripheral is busy
+         */
+        int apply();
+        ~SPITransferAdder();
+    private:
+        transaction_data_t _td;
+        bool _applied;
+        int _rc;
+        SPI * _owner;
+    };
+    /** Start an SPI transfer
+     *  The transfer() method returns a SPITransferAdder.  This class allows each
+     *  parameter to be set with a dedicated method.  This way, the many optional
+     *  parameters are easy to identify and set.
+     *
+     *
+     *  @return A SPITransferAdder object.  When either apply() is called or the
+     *      SPITransferAdder goes out of scope, the transfer is queued.
      */
-    int transfer(const Buffer& tx_buffer, const Buffer& rx_buffer, const event_callback_t& callback, int event = SPI_EVENT_COMPLETE);
+    SPITransferAdder transfer();
 
     /** Abort the on-going SPI transfer, and continue with transfer's in the queue if any.
      */
@@ -160,39 +189,17 @@ protected:
     */
     void irq_handler_asynch(void);
 
-   /**
-     *
-     * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
-     *                  the default SPI value is sent
-     * @param tx_length The length of TX buffer in bytes
-     * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
-     *                  received data are ignored
-     * @param rx_length The length of RX buffer in bytes
-     * @param bit_width The buffers element width
-     * @param callback  The event callback function
-     * @param event     The logical OR of events to modify
+    /** Add a transfer to the queue
+     * @param data Transaction data
      * @return Zero if a transfer was added to the queue, or -1 if the queue is full
     */
-    int queue_transfer(const Buffer& tx, const Buffer& rx, const event_callback_t& callback, int event);
+    int queue_transfer(const transaction_data_t &td);
 
     /** Configures a callback, spi peripheral and initiate a new transfer
      *
-     * @param tx_buffer The TX buffer with data to be transfered. If NULL is passed,
-     *                  the default SPI value is sent
-     * @param tx_length The length of TX buffer in bytes
-     * @param rx_buffer The RX buffer which is used for received data. If NULL is passed,
-     *                  received data are ignored
-     * @param rx_length The length of RX buffer in bytes
-     * @param bit_width The buffers element width
-     * @param callback  The event callback function
-     * @param event     The logical OR of events to modify
+     * @param data Transaction data
     */
-    void start_transfer(const Buffer& tx, const Buffer& rx, const event_callback_t& callback, int event);
-
-#if TRANSACTION_QUEUE_SIZE_SPI
-
-    typedef TwoWayTransaction<event_callback_t> transaction_data_t;
-    typedef Transaction<SPI, transaction_data_t> transaction_t;
+    void start_transfer(const transaction_data_t &td);
 
     /** Start a new transaction
      *
@@ -204,9 +211,12 @@ protected:
      *
     */
     void dequeue_transaction();
-    static CircularBuffer<transaction_t, TRANSACTION_QUEUE_SIZE_SPI> _transaction_buffer;
-#endif
 
+    /** Initiate a transfer
+     * @param xfer the SPITransferAdder object used to create the SPI transfer
+     * @return the result of validating the transfer parameters
+     */
+    int transfer(const SPITransferAdder &xfer);
 #endif
 
 public:
@@ -217,6 +227,9 @@ protected:
     spi_t _spi;
 
 #if DEVICE_SPI_ASYNCH
+#if TRANSACTION_QUEUE_SIZE_SPI
+    static CircularBuffer<transaction_t, TRANSACTION_QUEUE_SIZE_SPI> _transaction_buffer;
+#endif
     CThunk<SPI> _irq;
     transaction_data_t _current_transaction;
     DMAUsage _usage;
