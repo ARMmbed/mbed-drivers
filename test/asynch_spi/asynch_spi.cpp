@@ -19,7 +19,20 @@
 #include "minar/minar.h"
 #include "core-util/Event.h"
 
-#if DEVICE_SPI_ASYNCH
+// Note: this needs fix with config
+#if defined(TARGET_K64F)
+
+#define TARGET_SUPPORTED 1
+
+#define TEST_MOSI_PIN PTD2
+#define TEST_MISO_PIN PTD3
+#define TEST_SCLK_PIN PTD1
+#define TEST_CS_PIN   PTD0
+#else
+#define TARGET_SUPPORTED 0
+#endif
+
+#if (TARGET_SUPPORTED == 1)
 
 #define SHORT_XFR 3
 #define LONG_XFR 16
@@ -32,15 +45,6 @@
 
 #define TEST_BYTE_RX TEST_BYTE3
 #define TEST_BYTE_TX_BASE TEST_BYTE5
-
-#if defined(TARGET_K64F)
-#define TEST_MOSI_PIN PTD2
-#define TEST_MISO_PIN PTD3
-#define TEST_SCLK_PIN PTD1
-#define TEST_CS_PIN   PTD0
-#else
-#error Target not supported
-#endif
 
 using namespace minar;
 
