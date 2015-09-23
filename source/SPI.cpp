@@ -15,6 +15,7 @@
  */
 #include "mbed/SPI.h"
 #include "minar/minar.h"
+#include "mbed/mbed_assert.h"
 
 #if DEVICE_SPI
 
