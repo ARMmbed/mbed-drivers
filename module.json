@@ -21,12 +21,12 @@
     "mbed"
   ],
   "dependencies": {
-    "mbed-hal": "~0.6.0",
-    "cmsis-core": "~0.2.0",
+    "mbed-hal": "~0.8.0",
+    "cmsis-core": "~0.4.0",
     "ualloc": "~0.2.0",
-    "minar": "~0.8.0",
-    "core-util": "~0.2.0",
-    "compiler-polyfill": "~1.0.0"
+    "minar": "~0.9.0",
+    "core-util": "~0.3.0",
+    "compiler-polyfill": "~1.1.0"
   },
   "targetDependencies": {},
   "scripts": {
