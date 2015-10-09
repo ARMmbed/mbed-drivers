@@ -22,7 +22,7 @@ uint32_t count = 20;
 void blink() {
     if (count) {
     	if (count == 1) {
-    		printf("{{success}}\r\n");
+    		MBED_HOSTTEST_RESULT(true);
     	}
     	count--;
     }
