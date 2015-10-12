@@ -24,6 +24,7 @@
 #include "app.h"
 #include "minar/minar.h"
 #include "mbed-hal/init_api.h"
+#include "core_generic.h"
 
 #if defined(__ARMCC_VERSION)
 #   include <rt_sys.h>
