@@ -17,6 +17,7 @@
 #include "wait_api.h"
 #include "compiler-polyfill/attributes.h"
 #include "mbed_interface.h"
+#include "core_generic.h"
 
 __weak void mbed_die(void) {
 #ifndef NRF51_H
