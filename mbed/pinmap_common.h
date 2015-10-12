@@ -16,6 +16,7 @@
 #ifndef PINMAP_COMMON_H
 #define PINMAP_COMMON_H
 
+#include <stdint.h>
 #include "PinNames.h"
 
 #ifdef __cplusplus
