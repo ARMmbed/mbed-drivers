@@ -119,16 +119,17 @@ int SerialBase::write(const Buffer& buffer, const event_callback_t& callback, in
     if (serial_tx_active(&_serial)) {
         return -1; // transaction ongoing
     }
-    start_write(buffer, 8, callback, event);
+    start_write(buffer, 0, callback, event);
     return 0;
 }
 
 void SerialBase::start_write(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event)
 {
+    (void)buffer_width; // deprecated
     _current_tx_transaction.callback = callback;
     _current_tx_transaction.buffer = buffer;
     _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
-    serial_tx_asynch(&_serial, buffer.buf, buffer.length, buffer_width, _thunk_irq.entry(), event, _tx_usage);
+    serial_tx_asynch(&_serial, buffer.buf, buffer.length, 0, _thunk_irq.entry(), event, _tx_usage);
 }
 
 void SerialBase::abort_write(void)
@@ -168,17 +169,18 @@ int SerialBase::read(const Buffer& buffer, const event_callback_t& callback, int
     if (serial_rx_active(&_serial)) {
         return -1; // transaction ongoing
     }
-    start_read(buffer, 8, callback, event, char_match);
+    start_read(buffer, 0, callback, event, char_match);
     return 0;
 }
 
 
 void SerialBase::start_read(const Buffer& buffer, char buffer_width, const event_callback_t& callback, int event, unsigned char char_match)
 {
+    (void)buffer_width; // deprecated
     _current_rx_transaction.callback = callback;
     _current_tx_transaction.buffer = buffer;
     _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
-    serial_rx_asynch(&_serial, buffer.buf, buffer.length, buffer_width, _thunk_irq.entry(), event, char_match, _rx_usage);
+    serial_rx_asynch(&_serial, buffer.buf, buffer.length, 0, _thunk_irq.entry(), event, char_match, _rx_usage);
 }
 
 void SerialBase::interrupt_handler_asynch(void)
