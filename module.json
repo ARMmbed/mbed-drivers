@@ -3,7 +3,8 @@
   "version": "0.10.2",
   "description": "mbed SDK",
   "keywords": [
-    "mbed"
+    "mbed",
+    "mbed-official"
   ],
   "author": "Bogdan Marinescu <bogdan.marinescu@arm.com>",
   "repository": {
@@ -21,12 +22,12 @@
     "mbed"
   ],
   "dependencies": {
-    "mbed-hal": "~0.8.0",
-    "cmsis-core": "~0.4.0",
-    "ualloc": "~0.2.0",
-    "minar": "~0.9.0",
-    "core-util": "~0.3.0",
-    "compiler-polyfill": "~1.1.0"
+    "mbed-hal": "^1.0.0",
+    "cmsis-core": "^1.0.0",
+    "ualloc": "^1.0.0",
+    "minar": "^1.0.0",
+    "core-util": "^1.0.0",
+    "compiler-polyfill": "^1.1.0"
   },
   "targetDependencies": {},
   "scripts": {
