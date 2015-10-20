@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "Ticker.h"
+#include "mbed-drivers/Ticker.h"
 
-#include "TimerEvent.h"
+#include "mbed-drivers/TimerEvent.h"
 #include "core-util/FunctionPointer.h"
 #include "ticker_api.h"
 

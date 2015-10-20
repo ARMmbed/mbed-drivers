@@ -16,7 +16,7 @@
 #include "cmsis.h"
 #if defined(NVIC_NUM_VECTORS)
 
-#include "InterruptManager.h"
+#include "mbed-drivers/InterruptManager.h"
 #include <string.h>
 
 #define CHAIN_INITIAL_SIZE    4

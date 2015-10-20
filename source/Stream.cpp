@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "Stream.h"
+#include "mbed-drivers/Stream.h"
 
 #include <cstdarg>
 

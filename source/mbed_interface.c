@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 #include <stdio.h>
-#include "mbed_interface.h"
+#include "mbed-drivers/mbed_interface.h"
 
 #include "gpio_api.h"
-#include "wait_api.h"
-#include "mbed_error.h"
+#include "mbed-drivers/wait_api.h"
+#include "mbed-drivers/mbed_error.h"
 #include "compiler-polyfill/attributes.h"
 
 __weak void mbed_mac_address(char *mac) {

@@ -15,8 +15,8 @@
  */
 
 #include <utility>      // std::pair
-#include "mbed.h"
-#include "test_env.h"
+#include "mbed-drivers/mbed.h"
+#include "mbed-drivers/test_env.h"
 
 uint32_t test_64(uint64_t ticks) {
     ticks >>= 3; // divide by 8

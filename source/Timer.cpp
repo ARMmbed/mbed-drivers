@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "Timer.h"
+#include "mbed-drivers/Timer.h"
 #include "ticker_api.h"
 #include "us_ticker_api.h"
 

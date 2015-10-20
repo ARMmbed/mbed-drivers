@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "mbed.h"
-#include "test_env.h"
+#include "mbed-drivers/mbed.h"
+#include "mbed-drivers/test_env.h"
 
 class DevNull : public Stream {
 public:

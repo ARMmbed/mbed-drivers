@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 #include "gpio_api.h"
-#include "wait_api.h"
+#include "mbed-drivers/wait_api.h"
 #include "compiler-polyfill/attributes.h"
-#include "mbed_interface.h"
+#include "mbed-drivers/mbed_interface.h"
 #include "core_generic.h"
 
 __weak void mbed_die(void) {

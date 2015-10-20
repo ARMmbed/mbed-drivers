@@ -17,7 +17,7 @@
 #include <stdarg.h>
 #include "device.h"
 #include "compiler-polyfill/attributes.h"
-#include "mbed_error.h"
+#include "mbed-drivers/mbed_error.h"
 #if DEVICE_STDIO_MESSAGES
 #include <stdio.h>
 #endif

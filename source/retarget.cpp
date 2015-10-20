@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "platform.h"
-#include "FileHandle.h"
-#include "FileSystemLike.h"
-#include "FilePath.h"
+#include "mbed-drivers/platform.h"
+#include "mbed-drivers/FileHandle.h"
+#include "mbed-drivers/FileSystemLike.h"
+#include "mbed-drivers/FilePath.h"
 #include "serial_api.h"
 #include "compiler-polyfill/attributes.h"
 #include "cmsis.h"
 #include <errno.h>
-#include "app.h"
+#include "mbed-drivers/app.h"
 #include "minar/minar.h"
 #include "mbed-hal/init_api.h"
 #include "core_generic.h"
@@ -407,7 +407,7 @@ extern "C" int mkdir(const char *path, mode_t mode) {
 
 #if defined(TOOLCHAIN_GCC) || defined(TARGET_LIKE_CLANG)
 /* prevents the exception handling name demangling code getting pulled in */
-#include "mbed_error.h"
+#include "mbed-drivers/mbed_error.h"
 namespace __gnu_cxx {
     void __verbose_terminate_handler() {
         error("Exception");

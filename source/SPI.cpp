@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mbed/SPI.h"
+#include "mbed-drivers/SPI.h"
 #include "minar/minar.h"
-#include "mbed/mbed_assert.h"
+#include "mbed-drivers/mbed_assert.h"
 
 #if DEVICE_SPI
 

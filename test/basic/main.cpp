@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "test_env.h"
+#include "mbed-drivers/test_env.h"
 
 void runTest() {
     MBED_HOSTTEST_TIMEOUT(20);
