@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "test_env.h"
+#include "mbed-drivers/test_env.h"
 
 #define PATTERN_CHECK_VALUE  0xF0F0ADAD
 

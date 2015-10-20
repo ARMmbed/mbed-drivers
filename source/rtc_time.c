@@ -16,7 +16,7 @@
 #include "rtc_api.h"
 
 #include <time.h>
-#include "rtc_time.h"
+#include "mbed-drivers/rtc_time.h"
 #include "us_ticker_api.h"
 
 #ifdef __cplusplus

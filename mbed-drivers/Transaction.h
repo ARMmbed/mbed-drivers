@@ -18,7 +18,7 @@
 
 #include "platform.h"
 #include "core-util/FunctionPointer.h"
-#include "mbed/Buffer.h"
+#include "mbed-drivers/Buffer.h"
 
 namespace mbed {
 

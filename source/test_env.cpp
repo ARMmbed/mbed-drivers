@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "test_env.h"
+#include "mbed-drivers/test_env.h"
 
 // Const strings used in test_end
 const char* TEST_ENV_START = "start";

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "mbed.h"
-#include "test_env.h"
+#include "mbed-drivers/mbed.h"
+#include "mbed-drivers/test_env.h"
 
 /* This test purpose is to verify the behaviour when the program does not link
  * any symbol from the mbed library.

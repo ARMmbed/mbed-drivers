@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mbed_interface.h"
+#include "mbed-drivers/mbed_interface.h"
 #if DEVICE_STDIO_MESSAGES
 #include <stdio.h>
 #endif

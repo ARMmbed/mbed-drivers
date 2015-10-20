@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mbed_assert.h"
+#include "mbed-drivers/mbed_assert.h"
 #include "device.h"
 
 #if DEVICE_STDIO_MESSAGES
@@ -21,7 +21,7 @@
 #endif
 
 #include <stdlib.h>
-#include "mbed_interface.h"
+#include "mbed-drivers/mbed_interface.h"
 
 void mbed_assert_internal(const char *expr, const char *file, int line)
 {

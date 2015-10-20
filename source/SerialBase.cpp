@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "SerialBase.h"
-#include "wait_api.h"
+#include "mbed-drivers/SerialBase.h"
+#include "mbed-drivers/wait_api.h"
 #include "minar/minar.h"
 
 #if DEVICE_SERIAL
