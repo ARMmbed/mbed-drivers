@@ -4,7 +4,7 @@ mbed OS is built using yotta. So first, install [yotta](http://github.com/ARMmbe
 
 ```bash
 # get the mbed OS drivers source code:
-git clone git@github.com:ARMmbed/mbed-drivers.git
+git clone https://github.com/ARMmbed/mbed-drivers.git
 cd mbed-drivers
 
 # build for the frdm-k64f-gcc target:
