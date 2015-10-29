@@ -1,25 +1,11 @@
-## Building with yotta
 
-mbed OS is built using yotta. So first, install [yotta](http://github.com/ARMmbed/yotta), then:
+# mbed-drivers
 
-```bash
-# get the mbed OS drivers source code:
-git clone git@github.com:ARMmbed/mbed-drivers.git
-cd mbed-drivers
+This module is one of the main 'entry points' into mbed OS. It contains the definition and implementation of the
+high level (user facing) API for the MCU peripherals, as well as the implementation of the `main` function
+(mbed OS applications use `app_start` instead of `main`; check ["Writing applications for mbed OS"](https://docs.mbed.com/docs/getting-started-mbed-os/en/latest/Full_Guide/app_on_yotta/#writing-applications-for-mbed-os)
+for more details).
 
-# build for the frdm-k64f-gcc target:
-yotta target frdm-k64f-gcc
-
-# build
-yotta build
-...
-
-# fire up the debugger with the blinky test loaded
-yotta debug test/mbed-test-blinky
-...
-> mon reset
-> load
-> continue
-
-```
-
+Because of this, you'll always want to make `mbed-drivers` a dependency of your mbed OS application. Check
+[our "Getting started" guide](https://docs.mbed.com/docs/getting-started-mbed-os/) for more details about `mbed-drivers`
+and mbed OS in general.
