@@ -162,6 +162,7 @@ void SPI::dequeue_transaction()
     {
         CriticalSectionLock lock;
         dequeued = _transaction_buffer.pop(t);
+        _busy = dequeued;
     }
 
     if (dequeued) {
@@ -183,15 +184,7 @@ void SPI::irq_handler_asynch(void)
     }
 #if TRANSACTION_QUEUE_SIZE_SPI
     if (event & (SPI_EVENT_ALL | SPI_EVENT_INTERNAL_TRANSFER_COMPLETE)) {
-        bool dequeue;
-        {
-            CriticalSectionLock lock;
-            dequeue = !spi_active(&_spi);
-            _busy = dequeue;
-        }
-        if (dequeue) {
-            dequeue_transaction();
-        }
+        dequeue_transaction();
     }
 #endif
 }
