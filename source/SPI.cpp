@@ -16,10 +16,12 @@
 #include "mbed-drivers/SPI.h"
 #include "minar/minar.h"
 #include "mbed-drivers/mbed_assert.h"
+#include "core-util/CriticalSectionLock.h"
 
 #if DEVICE_SPI
-
 namespace mbed {
+
+using namespace util;
 
 #if DEVICE_SPI_ASYNCH && TRANSACTION_QUEUE_SIZE_SPI
 CircularBuffer<SPI::transaction_t, TRANSACTION_QUEUE_SIZE_SPI> SPI::_transaction_buffer;
@@ -75,10 +77,11 @@ int SPI::write(int value) {
 int SPI::transfer(const SPI::SPITransferAdder &td)
 {
     bool queue;
-    __disable_irq();
-    queue = _busy;
-    _busy = true;
-    __enable_irq();
+    {
+        CriticalSectionLock lock;
+        queue = _busy;
+        _busy = true;
+    }
     if (queue || spi_active(&_spi)) {
         return queue_transfer(td._td);
     }
@@ -120,13 +123,17 @@ int SPI::set_dma_usage(DMAUsage usage)
 int SPI::queue_transfer(const transaction_data_t &td)
 {
 #if TRANSACTION_QUEUE_SIZE_SPI
+    CriticalSectionLock lock;
+    int result;
+
     transaction_t transaction(this, td);
     if (_transaction_buffer.full()) {
-        return -1; // the buffer is full
+        result = -1;
     } else {
         _transaction_buffer.push(transaction);
-        return 0;
+        result = 0;
     }
+    return result;
 #else
     return -1;
 #endif
@@ -151,7 +158,13 @@ void SPI::start_transaction(transaction_data_t *data)
 void SPI::dequeue_transaction()
 {
     transaction_t t;
-    if (_transaction_buffer.pop(t)) {
+    bool dequeued;
+    {
+        CriticalSectionLock lock;
+        dequeued = _transaction_buffer.pop(t);
+    }
+
+    if (dequeued) {
         SPI* obj = t.get_object();
         transaction_data_t* data = t.get_transaction();
         obj->start_transaction(data);
@@ -170,10 +183,12 @@ void SPI::irq_handler_asynch(void)
     }
 #if TRANSACTION_QUEUE_SIZE_SPI
     if (event & (SPI_EVENT_ALL | SPI_EVENT_INTERNAL_TRANSFER_COMPLETE)) {
-        __disable_irq();
-        bool dequeue = !spi_active(&_spi);
-        _busy = dequeue;
-        __enable_irq();
+        bool dequeue;
+        {
+            CriticalSectionLock lock;
+            dequeue = !spi_active(&_spi);
+            _busy = dequeue;
+        }
         if (dequeue) {
             dequeue_transaction();
         }
