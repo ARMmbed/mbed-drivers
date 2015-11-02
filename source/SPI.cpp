@@ -74,7 +74,12 @@ int SPI::write(int value) {
 
 int SPI::transfer(const SPI::SPITransferAdder &td)
 {
-    if (spi_active(&_spi)) {
+    bool queue;
+    __disable_irq();
+    queue = _busy;
+    _busy = true;
+    __enable_irq();
+    if (queue || spi_active(&_spi)) {
         return queue_transfer(td._td);
     }
     start_transfer(td._td);
@@ -165,8 +170,13 @@ void SPI::irq_handler_asynch(void)
     }
 #if TRANSACTION_QUEUE_SIZE_SPI
     if (event & (SPI_EVENT_ALL | SPI_EVENT_INTERNAL_TRANSFER_COMPLETE)) {
-        // SPI peripheral is free (event happend), dequeue transaction
-        dequeue_transaction();
+        __disable_irq();
+        bool dequeue = !spi_active(&_spi);
+        _busy = dequeue;
+        __enable_irq();
+        if (dequeue) {
+            dequeue_transaction();
+        }
     }
 #endif
 }

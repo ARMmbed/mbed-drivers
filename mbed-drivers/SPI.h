@@ -241,6 +241,7 @@ protected:
     int _mode;
     spi_bitorder_t _order;
     int _hz;
+    bool _busy;
 };
 
 } // namespace mbed
