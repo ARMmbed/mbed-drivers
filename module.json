@@ -1,10 +1,9 @@
 {
   "name": "mbed-drivers",
   "version": "0.11.1",
-  "description": "mbed SDK",
+  "description": "mbed OS C++ drivers, with classes supporting SPI, I2C, UART, GPIO and ADC peripherals. This module is the core of mbed OS, on which most applications depend, and the successor to the classic mbed SDK.",
   "keywords": [
-    "mbed",
-    "mbed-official"
+    "mbed", "mbed-official", "drivers", "spi", "i2c", "uart", "gpio", "adc", "hardware", "abstraction"
   ],
   "author": "Bogdan Marinescu <bogdan.marinescu@arm.com>",
   "repository": {
