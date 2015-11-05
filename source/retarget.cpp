@@ -50,6 +50,11 @@
 #   define PREFIX(x)    x
 #endif
 
+#ifdef YOTTA_CFG_MBED_MAX_FILEHANDLES
+#   undef OPEN_MAX
+#   define OPEN_MAX YOTTA_CFG_MBED_MAX_FILEHANDLES
+#endif
+
 #ifndef pid_t
  typedef int pid_t;
 #endif
