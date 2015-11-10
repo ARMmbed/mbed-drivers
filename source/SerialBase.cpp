@@ -178,7 +178,7 @@ void SerialBase::start_read(const Buffer& buffer, char buffer_width, const event
 {
     (void)buffer_width; // deprecated
     _current_rx_transaction.callback = callback;
-    _current_tx_transaction.buffer = buffer;
+    _current_rx_transaction.buffer = buffer;
     _thunk_irq.callback(&SerialBase::interrupt_handler_asynch);
     serial_rx_asynch(&_serial, buffer.buf, buffer.length, 0, _thunk_irq.entry(), event, char_match, _rx_usage);
 }
