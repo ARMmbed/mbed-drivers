@@ -44,6 +44,10 @@ void notify_timeout(int timeout);
 void notify_test_id(const char *test_id);
 void notify_test_description(const char *description);
 
+// Code Coverage API
+void notify_coverage_start(const char *path);
+void notify_coverage_end();
+
 // Host test auto-detection API
 #define MBED_HOSTTEST_START(TESTID)      notify_test_id(TESTID); notify_start()
 #define MBED_HOSTTEST_SELECT(NAME)       notify_host_test_name(#NAME)
