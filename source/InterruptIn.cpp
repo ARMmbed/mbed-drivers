@@ -44,6 +44,7 @@ void InterruptIn::rise(void (*fptr)(void)) {
         _rise.attach(fptr);
         gpio_irq_set(&gpio_irq, IRQ_RISE, 1);
     } else {
+        _rise.clear();
         gpio_irq_set(&gpio_irq, IRQ_RISE, 0);
     }
 }
@@ -53,6 +54,7 @@ void InterruptIn::fall(void (*fptr)(void)) {
         _fall.attach(fptr);
         gpio_irq_set(&gpio_irq, IRQ_FALL, 1);
     } else {
+        _fall.clear();
         gpio_irq_set(&gpio_irq, IRQ_FALL, 0);
     }
 }
@@ -60,9 +62,18 @@ void InterruptIn::fall(void (*fptr)(void)) {
 void InterruptIn::_irq_handler(uint32_t id, gpio_irq_event event) {
     InterruptIn *handler = (InterruptIn*)id;
     switch (event) {
-        case IRQ_RISE: handler->_rise.call(); break;
-        case IRQ_FALL: handler->_fall.call(); break;
-        case IRQ_NONE: break;
+        case IRQ_RISE:
+            if (handler->_rise) {
+                handler->_rise.call();
+            }
+            break;
+        case IRQ_FALL: 
+            if (handler->_fall) {
+                handler->_fall.call();
+            }
+            break;
+        case IRQ_NONE:
+            break;
     }
 }
 
