@@ -75,3 +75,6 @@ yotta_targets
 upload.tar.gz
 build
 .yotta.json
+
+# doxygen output
+docs
