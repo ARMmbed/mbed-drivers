@@ -57,6 +57,13 @@
  typedef char * caddr_t;
 #endif
 
+#ifndef YOTTA_CFG_MBED_OS_STDIO_DEFAULT_BAUD
+#define YOTTA_CFG_MBED_OS_STDIO_DEFAULT_BAUD 115200
+#endif
+
+#define STDIO_DEFAULT_BAUD YOTTA_CFG_MBED_OS_STDIO_DEFAULT_BAUD
+
+
 using namespace mbed;
 
 #if defined(__MICROLIB) && (__ARMCC_VERSION>5030000)
@@ -96,6 +103,7 @@ static void init_serial() {
 #if DEVICE_SERIAL
     if (stdio_uart_inited) return;
     serial_init(&stdio_uart, STDIO_UART_TX, STDIO_UART_RX);
+    serial_baud(&stdio_uart, STDIO_DEFAULT_BAUD);
 #endif
 }
 
