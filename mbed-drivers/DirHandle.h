@@ -26,8 +26,10 @@ typedef int mode_t;
 
 #include "FileHandle.h"
 
+/** The directory entry
+ */
 struct dirent {
-    char d_name[NAME_MAX+1];
+    char d_name[NAME_MAX+1]; /**< The directory name */
 };
 
 namespace mbed {

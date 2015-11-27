@@ -23,17 +23,64 @@
 extern "C" {
 #endif
 
+/** Pin mapping structure */
 typedef struct {
-    PinName pin;
-    int peripheral;
-    int function;
+    PinName pin;    /**< Pin name */
+    int peripheral; /**< Target specific peripheral field */
+    int function;   /**< Target specific functionality field */
 } PinMap;
 
+/** Get the peripheral value in the map for the pin name
+ *
+ *  @param[in] pin The pin name
+ *  @param[in] map The pin map
+ *  @return
+ *      The peripheral value for the pin name
+ */
 uint32_t pinmap_peripheral(PinName pin, const PinMap* map);
+
+/** Find the function value in the map for the pin name
+ *
+ *  @param[in] pin The pin name
+ *  @param[in] map The pin map
+ *  @return
+ *      The function value for the pin name
+ */
 uint32_t pinmap_function(PinName pin, const PinMap* map);
+
+/** Validates two pin map values. They are valid if they are equal, or one of them is
+ *  not connected. If they are not valid, error() is invoked
+ *
+ *  @param[in] a The pin map value a
+ *  @param[in] b The pin map value b
+ *  @return
+ *      One of the pin map values, if the values are valid
+ */
 uint32_t pinmap_merge(uint32_t a, uint32_t b);
-void     pinmap_pinout(PinName pin, const PinMap *map);
+
+/** Set pin functionality and mode
+ *
+ *  @param[in] pin The pin name
+ *  @param[in] map The pin map pointer
+ */
+void pinmap_pinout(PinName pin, const PinMap *map);
+
+/** Get peripheral value from the pin map
+ *
+ *  @param[in] pin The pin name
+ *  @param[in] map The pin map pointer
+ *  @return
+ *      The pin peripheral value
+ */
 uint32_t pinmap_find_peripheral(PinName pin, const PinMap* map);
+
+/** Get peripheral function from the pin map
+ *
+ *  @param[in] pin The pin name
+ *  @param[in] map The pin map pointer
+ *  @return
+ *      The pin function value
+ */
 uint32_t pinmap_find_function(PinName pin, const PinMap* map);
 
 #ifdef __cplusplus
