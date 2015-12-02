@@ -29,7 +29,6 @@
 #if defined(__ARMCC_VERSION)
 #   include <rt_sys.h>
 #   define PREFIX(x)    _sys##x
-#   define OPEN_MAX     _SYS_OPEN
 #   ifdef __MICROLIB
 #       pragma import(__use_full_stdio)
 #   endif
@@ -37,7 +36,6 @@
 #elif defined(__ICCARM__)
 #   include <yfuns.h>
 #   define PREFIX(x)        _##x
-#   define OPEN_MAX         16
 
 #   define STDIN_FILENO     0
 #   define STDOUT_FILENO    1
@@ -48,6 +46,10 @@
 #   include <sys/unistd.h>
 #   include <sys/syslimits.h>
 #   define PREFIX(x)    x
+#endif
+
+#ifndef YOTTA_CFG_MBED_MAX_FILEHANDLES
+#   define YOTTA_CFG_MBED_MAX_FILEHANDLES 16
 #endif
 
 #ifndef pid_t
@@ -83,7 +85,7 @@ extern const char __stderr_name[] = "/stderr";
  * put it in a filehandles array and return the index into that array
  * (or rather index+3, as filehandles 0-2 are stdin/out/err).
  */
-static FileHandle *filehandles[OPEN_MAX];
+static FileHandle *filehandles[YOTTA_CFG_MBED_MAX_FILEHANDLES];
 
 FileHandle::~FileHandle() {
     /* Remove all open filehandles for this */
