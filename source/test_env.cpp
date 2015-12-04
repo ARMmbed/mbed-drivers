@@ -23,6 +23,12 @@ const char* TEST_ENV_FAILURE = "failure";
 const char* TEST_ENV_MEASURE = "measure";
 const char* TEST_ENV_END = "end";
 
+/* prototype */
+extern "C"
+void gcov_exit(void);
+#ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
+bool coverage_report = false;
+#endif
 
 static void led_blink(PinName led, float delay)
 {
@@ -58,7 +64,13 @@ void notify_performance_coefficient(const char* measurement_name, const double v
 
 void notify_completion(bool success)
 {
-    printf("{{%s}}" NL "{{%s}}" NL, success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE, TEST_ENV_END);
+    printf("{{%s}}" NL, success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE);
+#ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
+    coverage_report = true;
+    gcov_exit();
+    coverage_report = false;
+#endif
+    printf("{{%s}}" NL, TEST_ENV_END);
     led_blink(LED1, success ? 1.0 : 0.1);
 }
 
@@ -95,6 +107,14 @@ void notify_test_description(const char *description) {
     }
 }
 
+#ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
+void notify_coverage_start(const char *path) {
+    printf("{{coverage_start;%s}}" NL, path);
+}
+void notify_coverage_end() {
+    printf("{{coverage_end}}" NL);
+}
+#endif
 
 // -DMBED_BUILD_TIMESTAMP=1406208182.13
 unsigned int testenv_randseed()
