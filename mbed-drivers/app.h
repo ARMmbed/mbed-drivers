@@ -17,29 +17,7 @@
 #ifndef __MBED_CORE_MBED_APP_H__
 #define __MBED_CORE_MBED_APP_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif // #ifdef __cplusplus
-
-/** app_start is used to set up the user's application. It should not block.
- *
- * Use this function to schedule the first code that your app will execute, and
- * perform non-blocking initialisation.
- *
- * @code
- * using namespace mbed::minar;
- * void app_start(int argc, char *argv[]){
- *     Scheduler::postCallback(&doSomething);
- *     Scheduler::postCallback(&doSomethingElse).delay(milliseconds(100)).period(milliseconds(200));
- * }
- * @endcode
- */
-
-void app_start(int argc, char *argv[]);
-
-#ifdef __cplusplus
-} // extern "C"
-#endif // #ifdef __cplusplus
+#warning You don't need to include 'app.h' anymore. This header is obsolete and will be removed.
 
 #endif // ndef __MBED_CORE_MBED_APP_H__
 
