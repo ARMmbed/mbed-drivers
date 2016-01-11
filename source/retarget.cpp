@@ -24,6 +24,7 @@
 #include "mbed-drivers/app.h"
 #include "minar/minar.h"
 #include "mbed-hal/init_api.h"
+#include "mbed-hal/serial_api.h"
 #include "core_generic.h"
 
 #if defined(__ARMCC_VERSION)
@@ -102,8 +103,8 @@ FileHandle::~FileHandle() {
 }
 
 #if DEVICE_SERIAL
-extern int stdio_uart_inited;
-extern serial_t stdio_uart;
+static int stdio_uart_inited;
+static serial_t stdio_uart;
 #endif
 
 static void init_serial() {
