@@ -24,8 +24,6 @@
 #include <math.h>
 #include <time.h>
 
-// declare app_start:
-#include "app.h"
 // pull in definition of the mbed scheduler:
 #include "minar/minar.h"
 

@@ -21,7 +21,6 @@
 #include "compiler-polyfill/attributes.h"
 #include "cmsis.h"
 #include <errno.h>
-#include "mbed-drivers/app.h"
 #include "minar/minar.h"
 #include "mbed-hal/init_api.h"
 #include "core_generic.h"
@@ -490,6 +489,7 @@ extern "C" void __iar_argc_argv() {
 #endif
 
 // the user should set up their application in app_start
+extern void app_start(int, char**);
 extern "C" int main(void) {
     minar::Scheduler::postCallback(
         mbed::util::FunctionPointer2<void, int, char**>(&app_start).bind(0, NULL)
