@@ -112,6 +112,7 @@ static void init_serial() {
     if (stdio_uart_inited) return;
     serial_init(&stdio_uart, STDIO_UART_TX, STDIO_UART_RX);
     serial_baud(&stdio_uart, STDIO_DEFAULT_BAUD);
+    stdio_uart_inited = 1;
 #endif
 }
 
