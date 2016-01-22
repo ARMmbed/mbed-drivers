@@ -102,16 +102,29 @@ FileHandle::~FileHandle() {
 }
 
 #if DEVICE_SERIAL
+
+#include "mbed-drivers/Serial.h"
+
 static int stdio_uart_inited;
-static serial_t stdio_uart;
+
+namespace mbed {
+
+Serial& get_stdio_serial() 
+{
+    static Serial stdio_serial(STDIO_UART_TX, STDIO_UART_RX);
+    if (stdio_uart_inited == 0) {
+        stdio_serial.baud(STDIO_DEFAULT_BAUD);
+        stdio_uart_inited = 1;
+    }
+    return stdio_serial;
+}
+
+}
 #endif
 
 static void init_serial() {
 #if DEVICE_SERIAL
-    if (stdio_uart_inited) return;
-    serial_init(&stdio_uart, STDIO_UART_TX, STDIO_UART_RX);
-    serial_baud(&stdio_uart, STDIO_DEFAULT_BAUD);
-    stdio_uart_inited = 1;
+    get_stdio_serial();
 #endif
 }
 
@@ -243,9 +256,8 @@ extern "C" int PREFIX(_write)(FILEHANDLE fh, const unsigned char *buffer, unsign
     int n; // n is the number of bytes written
     if (fh < 3) {
 #if DEVICE_SERIAL
-        if (!stdio_uart_inited) init_serial();
         for (unsigned int i = 0; i < length; i++) {
-            serial_putc(&stdio_uart, buffer[i]);
+            get_stdio_serial().putc(buffer[i]);
         }
 #endif
         n = length;
@@ -281,8 +293,7 @@ extern "C" int PREFIX(_read)(FILEHANDLE fh, unsigned char *buffer, unsigned int 
     if (fh < 3) {
         // only read a character at a time from stdin
 #if DEVICE_SERIAL
-        if (!stdio_uart_inited) init_serial();
-        *buffer = serial_getc(&stdio_uart);
+        *buffer = get_stdio_serial().getc();
 #endif
         n = 1;
     } else {
@@ -493,8 +504,6 @@ extern "C" void __iar_argc_argv() {
 // the user should set up their application in app_start
 extern void app_start(int, char**);
 extern "C" int main(void) {
-    // init serial if it has not been invoked prior main
-    init_serial();
     minar::Scheduler::postCallback(
         mbed::util::FunctionPointer2<void, int, char**>(&app_start).bind(0, NULL)
     );

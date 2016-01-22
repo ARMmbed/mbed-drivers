@@ -67,6 +67,12 @@ protected:
     virtual int _putc(int c);
 };
 
+/** Get the stdio Serial object, which is lazy instantiated.
+ *
+ *  @returns stdio object 
+ */
+Serial& get_stdio_serial();
+
 } // namespace mbed
 
 #endif
