@@ -20,7 +20,7 @@
 DigitalOut led1(LED1);
 DigitalOut led2(LED2);
 
-Serial computer(USBTX, USBRX);
+Serial& computer = get_stdio_serial();
 
 // This function is called when a character goes into the TX buffer.
 void txCallback() {
@@ -38,7 +38,6 @@ void app_start(int, char*[]) {
     MBED_HOSTTEST_SELECT(echo);
     MBED_HOSTTEST_DESCRIPTION(serial interrupt test);
     MBED_HOSTTEST_START("MBED_14");
-    computer.baud(115200);
     computer.attach(&txCallback, Serial::TxIrq);
     computer.attach(&rxCallback, Serial::RxIrq);
 }
