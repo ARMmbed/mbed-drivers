@@ -38,6 +38,7 @@ void app_start(int, char*[]) {
     MBED_HOSTTEST_SELECT(echo);
     MBED_HOSTTEST_DESCRIPTION(serial interrupt test);
     MBED_HOSTTEST_START("MBED_14");
+    computer.baud(115200);
     computer.attach(&txCallback, Serial::TxIrq);
     computer.attach(&rxCallback, Serial::RxIrq);
 }
