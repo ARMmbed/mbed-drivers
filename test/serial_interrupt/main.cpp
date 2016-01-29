@@ -20,7 +20,7 @@
 DigitalOut led1(LED1);
 DigitalOut led2(LED2);
 
-Serial computer(USBTX, USBRX);
+Serial& computer = get_stdio_serial();
 
 // This function is called when a character goes into the TX buffer.
 void txCallback() {
