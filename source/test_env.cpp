@@ -126,3 +126,35 @@ unsigned int testenv_randseed()
 #endif /* MBED_BUILD_TIMESTAMP */
     return seed;
 }
+
+/** \brief Notifies test case start
+  * \param Test Case ID name
+  *
+  * This function notifies test environment abort test case execution start.
+  *
+  */
+void notify_testcase_start(const char *testcase_id)
+{
+    printf("{{testcase_start;%s}}" NL, testcase_id);
+}
+
+/** \brief Return partial (test case) result from test suite
+  * \param Test Case ID name
+  * \param Success code, 0 - success, >0 failure reason, <0 inconclusive
+  *
+  * This function passes partial test suite's test case result to test
+  * environment.
+  * Each test suite (in many cases one binary with tests) can return
+  * multiple partial results used to track test case results.
+  *
+  * Test designers can use success code to return test case:
+  * success == 0 - PASS, test case execution was successful.
+  * success > 0  - FAILure, e.g. success == 404 can be used to
+  *                pass "Server not found".
+  * success < 0  - Inconclusive test case execution, e.g.
+  *
+  */
+void notify_testcase_completion(const char *testcase_id, const int success)
+{
+    printf("{{testcase_finish;%s;%d}}" NL, testcase_id, success);
+}
