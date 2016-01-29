@@ -23,85 +23,47 @@
 #define NL "\n"
 #define RCNL "\r\n"
 
-// Const strings used in test_end
+// Generic test suite transport protocol keys
 extern const char* TEST_ENV_START;
+extern const char* TEST_ENV_END;
+extern const char* TEST_ENV_EXIT;
+extern const char* TEST_ENV_SYNC;
+extern const char* TEST_ENV_TIMEOUT;
+extern const char* TEST_ENV_HOST_TEST_NAME;
+// Test suite success code strings
 extern const char* TEST_ENV_SUCCESS;
 extern const char* TEST_ENV_FAILURE;
-extern const char* TEST_ENV_MEASURE;
-extern const char* TEST_ENV_END;
+// Test case transport protocol start/finish keys
+extern const char* TEST_ENV_TESTCASE_START;
+extern const char* TEST_ENV_TESTCASE_FINISH;
+// Code Coverage (LCOV)  transport protocol keys
+extern const char* TEST_ENV_LCOV_START;
+extern const char* TEST_ENV_LCOV_END;
 
-// Test result related notification functions
+// Test suite result related notification API
+void notify_kv(const char *, const char *);
+void notify_kv(const char *, const int);
 void notify_start();
-void notify_completion(bool success);
-bool notify_completion_str(bool success, char* buffer);
-void notify_performance_coefficient(const char* measurement_name, const int value);
-void notify_performance_coefficient(const char* measurement_name, const unsigned int value);
-void notify_performance_coefficient(const char* measurement_name, const double value);
+void notify_timeout(const int);
+void notify_completion(const int);
+void notify_testcase_start(const char *);
+void notify_testcase_finish(const char *, const int);
 
-// Host test auto-detection API
-void notify_host_test_name(const char *host_test);
-void notify_timeout(int timeout);
-void notify_test_id(const char *test_id);
-void notify_test_description(const char *description);
 
-// test case partial result notifications
-void notify_testcase_start(const char *testcase_id);
-void notify_testcase_completion(const char *testcase_id, const int success);
-
+#ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
 // Code Coverage API
 void notify_coverage_start(const char *path);
 void notify_coverage_end();
-
-// Host test auto-detection API
-#define MBED_HOSTTEST_START(TESTID)      notify_test_id(TESTID); notify_start()
-#define MBED_HOSTTEST_SELECT(NAME)       notify_host_test_name(#NAME)
-#define MBED_HOSTTEST_TIMEOUT(SECONDS)   notify_timeout(SECONDS)
-#define MBED_HOSTTEST_DESCRIPTION(DESC)  notify_test_description(#DESC)
-#define MBED_HOSTTEST_RESULT(RESULT)     notify_completion(RESULT)
-#define MBED_HOSTTEST_TESTCASE_START(TESTCASE)  notify_testcase_start(#TESTCASE)
-#define MBED_HOSTTEST_TESTCASE_FINISH(TESTCASE,SUCCESS)   notify_testcase_completion(#TESTCASE,SUCCESS)
-#define MBED_HOSTTEST_ASSERT(cond)       \
-    do {                                 \
-        if (!(cond)) {                   \
-            printf("HOSTTEST ASSERTION FAILED: '%s' in %s, line %d\r\n", #cond, __FILE__, __LINE__); \
-            notify_completion(false);    \
-        }                                \
-    } while(false)
-
-/**
-    Test auto-detection preamble example:
-    main() {
-        MBED_HOSTTEST_TIMEOUT(10);
-        MBED_HOSTTEST_SELECT( host_test );
-        MBED_HOSTTEST_DESCRIPTION(Hello World);
-        MBED_HOSTTEST_START("MBED_10");
-        // Proper 'host_test.py' should take over supervising of this test
-
-        // Test code
-        bool result = ...;
-
-        MBED_HOSTTEST_RESULT(result);
-    }
-*/
-
-
-// Test functionality useful during testing
-unsigned int testenv_randseed();
-
-// Macros, unit test like to provide basic comparisons
-#define TESTENV_STRCMP(GIVEN,EXPECTED) (strcmp(GIVEN,EXPECTED) == 0)
-
-// macros passed via test suite
-#ifndef TEST_SUITE_TARGET_NAME
-#define TEST_SUITE_TARGET_NAME "Unknown"
 #endif
 
-#ifndef TEST_SUITE_TEST_ID
-#define TEST_SUITE_TEST_ID "Unknown"
-#endif
 
-#ifndef TEST_SUITE_UUID
-#define TEST_SUITE_UUID "Unknown"
-#endif
+// Test suite Host Test auto-detection macros
+
+#define GREENTEA_START()                            notify_start();
+#define GREENTEA_TIMEOUT(TIMEOUT)                   notify_timeout(TIMEOUT);
+#define GREENTEA_TSUITE_RESULT(RESULT)              notify_completion(RESULT);
+
+#define GREENTEA_TCASE_START(TESTCASE_UD)           notify_testcase_start(TESTCASE_UD);
+#define GREENTEA_TCASE_FINISH(TESTCASE_UD,SUCCESS)  notify_testcase_finish(TESTCASE_UD,SUCCESS)
 
 #endif

@@ -16,116 +16,86 @@
 
 #include "mbed-drivers/test_env.h"
 
-// Const strings used in test_end
+// Generic test suite transport protocol keys
 const char* TEST_ENV_START = "start";
+const char* TEST_ENV_END = "end";
+const char* TEST_ENV_EXIT = "exit";
+const char* TEST_ENV_SYNC = "sync";
+const char* TEST_ENV_TIMEOUT = "timeout";
+const char* TEST_ENV_HOST_TEST_NAME = "host_test_name";
+// Test suite success code strings
 const char* TEST_ENV_SUCCESS = "success";
 const char* TEST_ENV_FAILURE = "failure";
-const char* TEST_ENV_MEASURE = "measure";
-const char* TEST_ENV_END = "end";
+// Test case transport protocol start/finish keys
+const char* TEST_ENV_TESTCASE_START = "testcase_start";
+const char* TEST_ENV_TESTCASE_FINISH = "testcase_finish";
+// Code Coverage (LCOV)  transport protocol keys
+const char* TEST_ENV_LCOV_START = "coverage_start";
+const char* TEST_ENV_LCOV_END = "coverage_end";
 
-/* prototype */
+// LCOV support
 extern "C"
 void gcov_exit(void);
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
 bool coverage_report = false;
+
+void notify_coverage_start(const char *path) {
+    notify_kv(TEST_ENV_LCOV_START, path);
+}
+
+void notify_coverage_end() {
+    notify_kv(TEST_ENV_LCOV_END, 0);
+}
 #endif
 
-static void led_blink(PinName led, float delay)
-{
-    if (led != NC) {
-        DigitalOut myled(led);
-        while (1) {
-            myled = !myled;
-            wait(delay);
-        }
+void notify_kv(const char *key, const char *val) {
+    if (key && val) {
+        printf("{{%s;%s}}" NL, key, val);
     }
-    while(1);
 }
 
-void notify_start()
-{
-    printf("{{%s}}" NL, TEST_ENV_START);
+void notify_kv(const char *key, const int val) {
+    if (key) {
+        printf("{{%s;%d}}" NL, key, val);
+    }
 }
 
-void notify_performance_coefficient(const char* measurement_name, const int value)
-{
-    printf("{{%s;%s;%d}}" RCNL, TEST_ENV_MEASURE, measurement_name, value);
+void notify_kv(const char *key, const char *val, const int success) {
+    if (key) {
+        printf("{{%s;%s;%d}}" NL, key, val, success);
+    }
 }
 
-void notify_performance_coefficient(const char* measurement_name, const unsigned int value)
-{
-    printf("{{%s;%s;%u}}" RCNL, TEST_ENV_MEASURE, measurement_name, value);
+void notify_kv(const char *key) {
+    if (key) {
+        printf("{{%s;%d}}" NL, key, 0);
+    }
 }
 
-void notify_performance_coefficient(const char* measurement_name, const double value)
-{
-    printf("{{%s;%s;%f}}" RCNL, TEST_ENV_MEASURE, measurement_name, value);
+void notify_start() {
+    // Sync preamble: "{{sync;0dad4a9d-59a3-4aec-810d-d5fb09d852c1}}"
+    // Example value of sync_uuid == "0dad4a9d-59a3-4aec-810d-d5fb09d852c1"
+    static char sync_uuid[48] = {0};
+    scanf("{{sync;%47s}}", sync_uuid);  // Note: '47' in %s formatting!
+    notify_kv(TEST_ENV_SYNC, sync_uuid);
 }
 
-void notify_completion(bool success)
-{
-    printf("{{%s}}" NL, success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE);
+void notify_timeout(const int timeout) {
+    notify_kv(TEST_ENV_TIMEOUT, timeout);
+}
+
+void notify_completion(const int success) {
+    const char *val = success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE;
+    notify_kv(TEST_ENV_END, val);
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
     coverage_report = true;
     gcov_exit();
     coverage_report = false;
 #endif
-    printf("{{%s}}" NL, TEST_ENV_END);
-    led_blink(LED1, success ? 1.0 : 0.1);
+    notify_kv(TEST_ENV_EXIT, !success);
 }
 
-bool notify_completion_str(bool success, char* buffer)
-{
-    bool result = false;
-    if (buffer) {
-        sprintf(buffer, "{{%s}}" NL "{{%s}}" NL, success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE, TEST_ENV_END);
-        result = true;
-    }
-    return result;
-}
-
-// Host test auto-detection API
-void notify_host_test_name(const char *host_test) {
-    if (host_test) {
-        printf("{{host_test_name;%s}}" NL, host_test);
-    }
-}
-
-void notify_timeout(int timeout) {
-    printf("{{timeout;%d}}" NL, timeout);
-}
-
-void notify_test_id(const char *test_id) {
-    if (test_id) {
-        printf("{{test_id;%s}}" NL, test_id);
-    }
-}
-
-void notify_test_description(const char *description) {
-    if (description) {
-        printf("{{description;%s}}" NL, description);
-    }
-}
-
-#ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
-void notify_coverage_start(const char *path) {
-    printf("{{coverage_start;%s}}" NL, path);
-}
-void notify_coverage_end() {
-    printf("{{coverage_end}}" NL);
-}
-#endif
-
-// -DMBED_BUILD_TIMESTAMP=1406208182.13
-unsigned int testenv_randseed()
-{
-    unsigned int seed = 0;
-#ifdef MBED_BUILD_TIMESTAMP
-    long long_seed = static_cast<long>(MBED_BUILD_TIMESTAMP);
-    seed = long_seed & 0xFFFFFFFF;
-#endif /* MBED_BUILD_TIMESTAMP */
-    return seed;
-}
+// Test Case support
 
 /** \brief Notifies test case start
   * \param Test Case ID name
@@ -133,9 +103,8 @@ unsigned int testenv_randseed()
   * This function notifies test environment abort test case execution start.
   *
   */
-void notify_testcase_start(const char *testcase_id)
-{
-    printf("{{testcase_start;%s}}" NL, testcase_id);
+void notify_testcase_start(const char *testcase_id) {
+    notify_kv(TEST_ENV_TESTCASE_START, testcase_id);
 }
 
 /** \brief Return partial (test case) result from test suite
@@ -154,7 +123,6 @@ void notify_testcase_start(const char *testcase_id)
   * success < 0  - Inconclusive test case execution, e.g.
   *
   */
-void notify_testcase_completion(const char *testcase_id, const int success)
-{
-    printf("{{testcase_finish;%s;%d}}" NL, testcase_id, success);
+void notify_testcase_finish(const char *testcase_id, const int success) {
+    notify_kv(TEST_ENV_TESTCASE_FINISH, testcase_id, success);
 }
