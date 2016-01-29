@@ -10,7 +10,7 @@ Because of this, you'll always want to make `mbed-drivers` a dependency of your 
 [our "Getting started" guide](https://docs.mbed.com/docs/getting-started-mbed-os/) for more details about `mbed-drivers`
 and mbed OS in general.
 
-### STDIO retartgeting
+### STDIO retargeting
 
 The mbed-drivers defines retargeting of stdin, stdout and stderr to UART. The default baudrate for STDIO UART peripheral is set via ```YOTTA_CFG_MBED_OS_STDIO_DEFAULT_BAUD```. If this yotta config is not defined, the default value is 115200.
 
