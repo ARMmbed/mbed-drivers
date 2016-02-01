@@ -78,7 +78,7 @@ void runTest(void) {
     char c;
     bool result = false;
     GREENTEA_START();
-    GREENTEA_SETUP(10, "default_auto");
+    GREENTEA_SETUP(5, "default_auto");
 
     initial_stack_p = &c;
 
