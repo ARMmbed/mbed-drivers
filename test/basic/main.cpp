@@ -19,8 +19,7 @@
 
 void runTest() {
     GREENTEA_START();
-    GREENTEA_TIMEOUT(5);
-    GREENTEA_HOSTTEST("default_auto");
+    GREENTEA_SETUP(5, "default_auto");
     GREENTEA_TSUITE_RESULT(true);
 }
 

@@ -32,7 +32,6 @@ void blink() {
 
 void app_start(int, char*[]) {
     GREENTEA_START();
-    GREENTEA_HOSTTEST("default_auto");
-    GREENTEA_TIMEOUT(10);
+    GREENTEA_SETUP(10, "default_auto");
     minar::Scheduler::postCallback(&blink).period(minar::milliseconds(150));
 }

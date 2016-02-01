@@ -23,20 +23,20 @@ namespace {
     const int MS_INTERVALS = 1000;
 }
 
-void print_char(char c = '*')
-{
-    printf("%c", c);
-    fflush(stdout);
+void print_char() {
+    static int count = 0;
+    if (count < 10) {
+        GREENTEA_SEND_KV("tick", count);
+    } else if (count == 10) {
+        GREENTEA_TSUITE_RESULT(true);
+    }
+    count++;
 }
-
 
 void app_start(int, char*[]) {
     // !!! FIXME: make this asynchronous
-
-    MBED_HOSTTEST_TIMEOUT(15);
-    MBED_HOSTTEST_SELECT(wait_us_auto);
-    MBED_HOSTTEST_DESCRIPTION(Time us);
-    MBED_HOSTTEST_START("MBED_25");
+    GREENTEA_START();
+    GREENTEA_SETUP(15, "wait_us_auto");
 
     while (true) {
         for (int i = 0; i < MS_INTERVALS; i++) {

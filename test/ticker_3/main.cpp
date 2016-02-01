@@ -24,10 +24,14 @@ DigitalOut led0(LED1);
 DigitalOut led1(LED2);
 Ticker ticker;
 
-void print_char(char c = '*')
-{
-    printf("%c", c);
-    fflush(stdout);
+void print_char() {
+    static int count = 0;
+    if (count < 10) {
+        GREENTEA_SEND_KV("tick", count);
+    } else if (count == 10) {
+        GREENTEA_TSUITE_RESULT(true);
+    }
+    count++;
 }
 
 void ticker_callback_2(void)
@@ -48,10 +52,8 @@ void ticker_callback_1(void)
 
 void app_start(int, char*[])
 {
-    MBED_HOSTTEST_TIMEOUT(15);
-    MBED_HOSTTEST_SELECT(wait_us_auto);
-    MBED_HOSTTEST_DESCRIPTION(Ticker Two callbacks);
-    MBED_HOSTTEST_START("MBED_34");
+    GREENTEA_START();
+    GREENTEA_SETUP(15, "wait_us_auto");
 
     ticker.attach(ticker_callback_1, 1.0);
 }

@@ -17,12 +17,10 @@
 #include "mbed-drivers/mbed.h"
 #include "mbed-drivers/test_env.h"
 
-void print_char(char c = '*')
-{
+void print_char() {
     static int count = 0;
     if (count < 10) {
-        printf("{{tick;%d}}", count);
-        fflush(stdout);
+        GREENTEA_SEND_KV("tick", count);
     } else if (count == 10) {
         GREENTEA_TSUITE_RESULT(true);
     }
@@ -56,8 +54,7 @@ void flip_2() {
 
 void app_start(int, char*[]) {
     GREENTEA_START();
-    GREENTEA_TIMEOUT(15);
-    GREENTEA_HOSTTEST("wait_us_auto");
+    GREENTEA_SETUP(15, "wait_us_auto");
 
     led1 = 0;
     led2 = 0;
