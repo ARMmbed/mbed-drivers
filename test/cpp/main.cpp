@@ -70,10 +70,8 @@ Heap::hello
 Heap::destroy
 *******************/
 void runTest (void) {
-    MBED_HOSTTEST_TIMEOUT(10);
-    MBED_HOSTTEST_SELECT(default_auto);
-    MBED_HOSTTEST_DESCRIPTION(C++);
-    MBED_HOSTTEST_START("MBED_12");
+    GREENTEA_START();
+    GREENTEA_SETUP(10, "default_auto");
 
     bool result = true;
     for (;;)
@@ -98,7 +96,7 @@ void runTest (void) {
         break;
     }
 
-    MBED_HOSTTEST_RESULT(result);
+    GREENTEA_TSUITE_RESULT(result);
 }
 
 void app_start(int, char*[]) {
