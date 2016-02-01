@@ -16,16 +16,15 @@
 
 #include "mbed-drivers/test_env.h"
 
+
 void runTest() {
-    MBED_HOSTTEST_TIMEOUT(20);
-    MBED_HOSTTEST_SELECT(default_auto);
-    MBED_HOSTTEST_DESCRIPTION(Basic);
-    MBED_HOSTTEST_START("MBED_A1");
-    MBED_HOSTTEST_RESULT(true);
+    GREENTEA_START();
+    GREENTEA_TIMEOUT(5);
+    GREENTEA_HOSTTEST("default_auto");
+    GREENTEA_TSUITE_RESULT(true);
 }
+
 
 void app_start(int, char*[]) {
     minar::Scheduler::postCallback(&runTest);
 }
-
-

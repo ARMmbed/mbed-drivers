@@ -16,13 +16,14 @@
 #include "mbed-drivers/mbed.h"
 #include "mbed-drivers/test_env.h"
 
+
 DigitalOut myled(LED1);
 uint32_t count = 20;
 
 void blink() {
     if (count) {
     	if (count == 1) {
-    		MBED_HOSTTEST_RESULT(true);
+            GREENTEA_TSUITE_RESULT(true);
     	}
     	count--;
     }
@@ -30,9 +31,8 @@ void blink() {
 }
 
 void app_start(int, char*[]) {
-    MBED_HOSTTEST_TIMEOUT(20);
-    MBED_HOSTTEST_SELECT(default_auto);
-    MBED_HOSTTEST_DESCRIPTION(Blinky);
-    MBED_HOSTTEST_START("MBED_BLINKY");
-    minar::Scheduler::postCallback(&blink).period(minar::milliseconds(200));
+    GREENTEA_START();
+    GREENTEA_HOSTTEST("default_auto");
+    GREENTEA_TIMEOUT(10);
+    minar::Scheduler::postCallback(&blink).period(minar::milliseconds(150));
 }
