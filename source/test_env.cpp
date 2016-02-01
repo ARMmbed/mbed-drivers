@@ -31,7 +31,6 @@ const char* TEST_ENV_TESTCASE_START = "testcase_start";
 const char* TEST_ENV_TESTCASE_FINISH = "testcase_finish";
 // Code Coverage (LCOV)  transport protocol keys
 const char* TEST_ENV_LCOV_START = "coverage_start";
-const char* TEST_ENV_LCOV_END = "coverage_end";
 
 // LCOV support
 extern "C"
@@ -40,12 +39,16 @@ void gcov_exit(void);
 bool coverage_report = false;
 
 void notify_coverage_start(const char *path) {
-    notify_kv(TEST_ENV_LCOV_START, path);
+    printf("{{%s;%s;", TEST_ENV_LCOV_START, path);
 }
 
 void notify_coverage_end() {
-    notify_kv(TEST_ENV_LCOV_END, 0);
+    printf("}}" NL);
 }
+
+// notify_coverage_start() PAYLOAD notify_coverage_end()
+// ((coverage_start;path;PAYLOAD}}
+
 #endif
 
 void notify_kv(const char *key, const char *val) {
@@ -82,6 +85,10 @@ void notify_start() {
 
 void notify_timeout(const int timeout) {
     notify_kv(TEST_ENV_TIMEOUT, timeout);
+}
+
+void notify_hosttest(const char *host_test_name) {
+    notify_kv(TEST_ENV_HOST_TEST_NAME, host_test_name);
 }
 
 void notify_completion(const int success) {

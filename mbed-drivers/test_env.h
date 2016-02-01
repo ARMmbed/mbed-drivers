@@ -45,6 +45,7 @@ void notify_kv(const char *, const char *);
 void notify_kv(const char *, const int);
 void notify_start();
 void notify_timeout(const int);
+void notify_hosttest(const char *);
 void notify_completion(const int);
 void notify_testcase_start(const char *);
 void notify_testcase_finish(const char *, const int);
@@ -61,8 +62,8 @@ void notify_coverage_end();
 
 #define GREENTEA_START()                            notify_start();
 #define GREENTEA_TIMEOUT(TIMEOUT)                   notify_timeout(TIMEOUT);
+#define GREENTEA_HOSTTEST(HOST_TEST_NAME)           notify_hosttest(HOST_TEST_NAME);
 #define GREENTEA_TSUITE_RESULT(RESULT)              notify_completion(RESULT);
-
 #define GREENTEA_TCASE_START(TESTCASE_UD)           notify_testcase_start(TESTCASE_UD);
 #define GREENTEA_TCASE_FINISH(TESTCASE_UD,SUCCESS)  notify_testcase_finish(TESTCASE_UD,SUCCESS)
 
