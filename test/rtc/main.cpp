@@ -21,18 +21,22 @@
 
 void app_start(int, char*[]) {
     // !!! FIXME: make this asynchronous
-
-    MBED_HOSTTEST_TIMEOUT(20);
-    MBED_HOSTTEST_SELECT(rtc_auto);
-    MBED_HOSTTEST_DESCRIPTION(RTC);
-    MBED_HOSTTEST_START("MBED_16");
+    GREENTEA_START();
+    GREENTEA_SETUP(15, "rtc_auto");
+    GREENTEA_SEND_KV("timestamp", CUSTOM_TIME);
 
     char buffer[32] = {0};
+    char kv_buff[64] = {};
     set_time(CUSTOM_TIME);  // Set RTC time to Wed, 28 Oct 2009 11:35:37
-    while(1) {
+
+    for (int i=0; i<10; ++i) {
         time_t seconds = time(NULL);
-        strftime(buffer, 32, "%Y-%m-%d %H:%M:%S %p", localtime(&seconds));
-        printf("MBED: [%ld] [%s]\r\n", seconds, buffer);
+        sprintf(kv_buff, "[%ld] ", seconds);
+        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S %p", localtime(&seconds));
+        strcat(kv_buff, buffer);
+        GREENTEA_SEND_KV("rtc", kv_buff);
         wait(1);
     }
+
+    GREENTEA_TSUITE_RESULT(true);
 }
