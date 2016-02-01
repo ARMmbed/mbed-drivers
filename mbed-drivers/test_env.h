@@ -61,8 +61,9 @@ void notify_coverage_end();
 // Test suite Host Test auto-detection macros
 
 #define GREENTEA_START()                            notify_start();
-#define GREENTEA_TIMEOUT(TIMEOUT)                   notify_timeout(TIMEOUT);
-#define GREENTEA_HOSTTEST(HOST_TEST_NAME)           notify_hosttest(HOST_TEST_NAME);
+#define GREENTEA_SETUP(TIMEOUT, HOST_TEST_NAME)     notify_timeout(TIMEOUT); notify_hosttest(HOST_TEST_NAME);
+#define GREENTEA_SEND_KV(KEY,VALUE)                 notify_kv(KEY,VALUE);
+
 #define GREENTEA_TSUITE_RESULT(RESULT)              notify_completion(RESULT);
 #define GREENTEA_TCASE_START(TESTCASE_UD)           notify_testcase_start(TESTCASE_UD);
 #define GREENTEA_TCASE_FINISH(TESTCASE_UD,SUCCESS)  notify_testcase_finish(TESTCASE_UD,SUCCESS)
