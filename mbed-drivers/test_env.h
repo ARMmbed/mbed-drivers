@@ -66,6 +66,6 @@ void notify_coverage_end();
 
 #define GREENTEA_TSUITE_RESULT(RESULT)              notify_completion(RESULT);
 #define GREENTEA_TCASE_START(TESTCASE_UD)           notify_testcase_start(TESTCASE_UD);
-#define GREENTEA_TCASE_FINISH(TESTCASE_UD,SUCCESS)  notify_testcase_finish(TESTCASE_UD,SUCCESS)
+#define GREENTEA_TCASE_FINISH(TESTCASE_UD,SUCCESS)  notify_testcase_finish(TESTCASE_UD,SUCCESS);
 
 #endif
