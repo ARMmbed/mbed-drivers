@@ -17,10 +17,14 @@
 #include "mbed-drivers/mbed.h"
 #include "mbed-drivers/test_env.h"
 
-void print_char(char c = '*')
-{
-    printf("%c", c);
-    fflush(stdout);
+void print_char() {
+    static int count = 0;
+    if (count < 10) {
+        GREENTEA_SEND_KV("tick", count);
+    } else if (count == 10) {
+        GREENTEA_TSUITE_RESULT(true);
+    }
+    count++;
 }
 
 Ticker flipper_1;
@@ -49,10 +53,8 @@ void flip_2() {
 }
 
 void app_start(int, char*[]) {
-    MBED_HOSTTEST_TIMEOUT(15);
-    MBED_HOSTTEST_SELECT(wait_us_auto);
-    MBED_HOSTTEST_DESCRIPTION(Ticker Int);
-    MBED_HOSTTEST_START("MBED_11");
+    GREENTEA_START();
+    GREENTEA_SETUP(15, "wait_us_auto");
 
     led1 = 0;
     led2 = 0;

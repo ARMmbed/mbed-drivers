@@ -17,14 +17,13 @@
 #include "mbed-drivers/test_env.h"
 
 void sayHello(){
-    printf("Hello World\r\n");
+    GREENTEA_SEND_KV("hello_world", "Hello World")
+    GREENTEA_TSUITE_RESULT(true);
 }
 
 void app_start(int, char*[]) {
-    MBED_HOSTTEST_TIMEOUT(5);
-    MBED_HOSTTEST_SELECT(hello_auto);
-    MBED_HOSTTEST_DESCRIPTION(Hello World);
-    MBED_HOSTTEST_START("MBED_10");
+    GREENTEA_START();
+    GREENTEA_SETUP(5, "hello_auto");
 
     minar::Scheduler::postCallback(&sayHello);
 }

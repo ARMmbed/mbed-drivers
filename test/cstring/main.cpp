@@ -31,61 +31,72 @@ void runTest()
     bool result = true;
     bool cmp_result;
 
-    MBED_HOSTTEST_TIMEOUT(10);
-    MBED_HOSTTEST_SELECT(default_auto);
-    MBED_HOSTTEST_DESCRIPTION(C string operations);
-    MBED_HOSTTEST_START("MBED_33");
+    GREENTEA_START();
+    GREENTEA_SETUP(10, "default_auto");
+
     {
+        GREENTEA_TCASE_START("STRINGS001");
         CLEAN_BUFFER(buffer);
         sprintf(buffer, "%i %d %i %d %i %d %i %d %i %d %i %i", NEGATIVE_INTEGERS);
-        cmp_result = TESTENV_STRCMP(buffer, "-32768 -3214 -999 -100 -1 0 -1 -4231 -999 -4123 -32760 -99999");
-        printf("[%s] %s\r\n", cmp_result ? "OK" : "FAIL", buffer);
+        cmp_result = strcmp(buffer, "-32768 -3214 -999 -100 -1 0 -1 -4231 -999 -4123 -32760 -99999");
+        printf("%s\n", buffer);
         result = result && cmp_result;
+        GREENTEA_TCASE_FINISH("STRINGS001", cmp_result);
     }
 
     {
+        GREENTEA_TCASE_START("STRINGS002");
         CLEAN_BUFFER(buffer);
         sprintf(buffer, "%u %d %u %d %u %d %u %d %u %d %u %d", POSITIVE_INTEGERS);
-        cmp_result = TESTENV_STRCMP(buffer, "32768 3214 999 100 1 0 1 4231 999 4123 32760 99999");
-        printf("[%s] %s\r\n", cmp_result ? "OK" : "FAIL", buffer);
+        cmp_result = strcmp(buffer, "32768 3214 999 100 1 0 1 4231 999 4123 32760 99999");
+        printf("%s\n", buffer);
         result = result && cmp_result;
+        GREENTEA_TCASE_FINISH("STRINGS002", cmp_result);
     }
 
     {
+        GREENTEA_TCASE_START("STRINGS003");
         CLEAN_BUFFER(buffer);
         sprintf(buffer, "%x %X %x %X %x %X %x %X %x %X %x %X", POSITIVE_INTEGERS);
-        cmp_result = TESTENV_STRCMP(buffer, "8000 C8E 3e7 64 1 0 1 1087 3e7 101B 7ff8 1869F");
-        printf("[%s] %s\r\n", cmp_result ? "OK" : "FAIL", buffer);
+        cmp_result = strcmp(buffer, "8000 C8E 3e7 64 1 0 1 1087 3e7 101B 7ff8 1869F");
+        printf("%s\n", buffer);
         result = result && cmp_result;
+        GREENTEA_TCASE_FINISH("STRINGS003", cmp_result);
     }
 
     {
+        GREENTEA_TCASE_START("STRINGS004");
         CLEAN_BUFFER(buffer);
         sprintf(buffer, "%f %f %f %f %f %f %f %f %f %f", FLOATS);
-        cmp_result = TESTENV_STRCMP(buffer, "0.002000 0.924300 15.913200 791.773680 6208.200000 25719.495200 426815.982588 6429271.046000 42468024.930000 212006462.910000");
-        printf("[%s] %s\r\n", cmp_result ? "OK" : "FAIL", buffer);
+        cmp_result = strcmp(buffer, "0.002000 0.924300 15.913200 791.773680 6208.200000 25719.495200 426815.982588 6429271.046000 42468024.930000 212006462.910000");
+        printf("%s\n", buffer);
         result = result && cmp_result;
+        GREENTEA_TCASE_FINISH("STRINGS004", cmp_result);
     }
 
     {
+        GREENTEA_TCASE_START("STRINGS005");
         CLEAN_BUFFER(buffer);
         sprintf(buffer, "%g %g %g %g %g %g %g %g %g %g", FLOATS);
-        cmp_result = TESTENV_STRCMP(buffer, "0.002 0.9243 15.9132 791.774 6208.2 25719.5 426816 6.42927e+006 4.2468e+007 2.12006e+008");
-        cmp_result = cmp_result || TESTENV_STRCMP(buffer, "0.002 0.9243 15.9132 791.774 6208.2 25719.5 426816 6.42927e+06 4.2468e+07 2.12006e+08");
-        printf("[%s] %s\r\n", cmp_result ? "OK" : "FAIL", buffer);
+        cmp_result = strcmp(buffer, "0.002 0.9243 15.9132 791.774 6208.2 25719.5 426816 6.42927e+006 4.2468e+007 2.12006e+008");
+        cmp_result = cmp_result || strcmp(buffer, "0.002 0.9243 15.9132 791.774 6208.2 25719.5 426816 6.42927e+06 4.2468e+07 2.12006e+08");
+        printf("%s\n", buffer);
         result = result && cmp_result;
+        GREENTEA_TCASE_FINISH("STRINGS005", cmp_result);
     }
 
     {
+        GREENTEA_TCASE_START("STRINGS006");
         CLEAN_BUFFER(buffer);
         sprintf(buffer, "%e %E %e %E %e %E %e %E %e %E", FLOATS);
-        cmp_result = TESTENV_STRCMP(buffer, "2.000000e-003 9.243000E-001 1.591320e+001 7.917737E+002 6.208200e+003 2.571950E+004 4.268160e+005 6.429271E+006 4.246802e+007 2.120065E+008");
-        cmp_result = cmp_result || TESTENV_STRCMP(buffer, "2.000000e-03 9.243000E-01 1.591320e+01 7.917737E+02 6.208200e+03 2.571950E+04 4.268160e+05 6.429271E+06 4.246802e+07 2.120065E+08");
-        printf("[%s] %s\r\n", cmp_result ? "OK" : "FAIL", buffer);
-        result = result && cmp_result;
+        cmp_result = strcmp(buffer, "2.000000e-003 9.243000E-001 1.591320e+001 7.917737E+002 6.208200e+003 2.571950E+004 4.268160e+005 6.429271E+006 4.246802e+007 2.120065E+008");
+        cmp_result = cmp_result || strcmp(buffer, "2.000000e-03 9.243000E-01 1.591320e+01 7.917737E+02 6.208200e+03 2.571950E+04 4.268160e+05 6.429271E+06 4.246802e+07 2.120065E+08");
+        printf("%s\n", buffer);
+        GREENTEA_TCASE_FINISH("STRINGS006", cmp_result);
     }
 
     {
+        GREENTEA_TCASE_START("STRINGS007");
         CLEAN_BUFFER(buffer);
         char str[] ="- This, a sample string.";
         char * pch = strtok (str," ,.-");
@@ -93,12 +104,13 @@ void runTest()
             strcat(buffer, pch);
             pch = strtok (NULL, " ,.-");
         }
-        cmp_result = TESTENV_STRCMP(buffer, "Thisasamplestring");
-        printf("[%s] %s\r\n", cmp_result ? "OK" : "FAIL", buffer);
-        result = result && cmp_result;
+        cmp_result = strcmp(buffer, "Thisasamplestring");
+        printf("%s\n", buffer);
+        GREENTEA_TCASE_FINISH("STRINGS007", cmp_result);
     }
 
     {
+        GREENTEA_TCASE_START("STRINGS008");
         CLEAN_BUFFER(buffer);
         char str[] = "This is a sample string";
         char key[] = "aeiou";
@@ -109,13 +121,12 @@ void runTest()
             strcat(buffer, buf);
             pch = strpbrk(pch + 1,key);
         }
-        cmp_result = TESTENV_STRCMP(buffer, "iiaaei");
-        printf("[%s] %s\r\n", cmp_result ? "OK" : "FAIL", buffer);
-        result = result && cmp_result;
+        cmp_result = strcmp(buffer, "iiaaei");
+        printf("%s\n", buffer);
+        GREENTEA_TCASE_FINISH("STRINGS008", cmp_result);
     }
 
-    MBED_HOSTTEST_RESULT(result);
-    return;
+    GREENTEA_TSUITE_RESULT(true);
 }
 
 void app_start(int, char*[]) {

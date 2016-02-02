@@ -14,115 +14,265 @@
  * limitations under the License.
  */
 
+#include <cctype>
+#include <cstdio>
 #include "mbed-drivers/test_env.h"
 
-// Const strings used in test_end
+// Generic test suite transport protocol keys
 const char* TEST_ENV_START = "start";
+const char* TEST_ENV_END = "end";
+const char* TEST_ENV_EXIT = "exit";
+const char* TEST_ENV_SYNC = "sync";
+const char* TEST_ENV_TIMEOUT = "timeout";
+const char* TEST_ENV_HOST_TEST_NAME = "host_test_name";
+// Test suite success code strings
 const char* TEST_ENV_SUCCESS = "success";
 const char* TEST_ENV_FAILURE = "failure";
-const char* TEST_ENV_MEASURE = "measure";
-const char* TEST_ENV_END = "end";
+// Test case transport protocol start/finish keys
+const char* TEST_ENV_TESTCASE_START = "testcase_start";
+const char* TEST_ENV_TESTCASE_FINISH = "testcase_finish";
+// Code Coverage (LCOV)  transport protocol keys
+const char* TEST_ENV_LCOV_START = "coverage_start";
 
-/* prototype */
+// LCOV support
 extern "C"
 void gcov_exit(void);
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
 bool coverage_report = false;
+
+void notify_coverage_start(const char *path) {
+    printf("{{%s;%s;", TEST_ENV_LCOV_START, path);
+}
+
+void notify_coverage_end() {
+    printf("}}" NL);
+}
+
+// notify_coverage_start() PAYLOAD notify_coverage_end()
+// ((coverage_start;path;PAYLOAD}}
+
 #endif
 
-static void led_blink(PinName led, float delay)
-{
-    if (led != NC) {
-        DigitalOut myled(led);
-        while (1) {
-            myled = !myled;
-            wait(delay);
-        }
+void notify_kv(const char *key, const char *val) {
+    if (key && val) {
+        printf("{{%s;%s}}" NL, key, val);
     }
-    while(1);
 }
 
-void notify_start()
-{
-    printf("{{%s}}" NL, TEST_ENV_START);
+void notify_kv(const char *key, const int val) {
+    if (key) {
+        printf("{{%s;%d}}" NL, key, val);
+    }
 }
 
-void notify_performance_coefficient(const char* measurement_name, const int value)
-{
-    printf("{{%s;%s;%d}}" RCNL, TEST_ENV_MEASURE, measurement_name, value);
+void notify_kv(const char *key, const char *val, const int success) {
+    if (key) {
+        printf("{{%s;%s;%d}}" NL, key, val, success);
+    }
 }
 
-void notify_performance_coefficient(const char* measurement_name, const unsigned int value)
-{
-    printf("{{%s;%s;%u}}" RCNL, TEST_ENV_MEASURE, measurement_name, value);
+void notify_kv(const char *key) {
+    if (key) {
+        printf("{{%s;%d}}" NL, key, 0);
+    }
 }
 
-void notify_performance_coefficient(const char* measurement_name, const double value)
-{
-    printf("{{%s;%s;%f}}" RCNL, TEST_ENV_MEASURE, measurement_name, value);
+void notify_start() {
+    // Sync preamble: "{{sync;0dad4a9d-59a3-4aec-810d-d5fb09d852c1}}"
+    // Example value of sync_uuid == "0dad4a9d-59a3-4aec-810d-d5fb09d852c1"
+	char _key[5] = {0};
+	char _value[48] = {0};
+	greentea_parse_kv(_key, _value, sizeof(_key), sizeof(_value));
+    notify_kv(_key, _value);
 }
 
-void notify_completion(bool success)
-{
-    printf("{{%s}}" NL, success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE);
+void notify_timeout(const int timeout) {
+    notify_kv(TEST_ENV_TIMEOUT, timeout);
+}
+
+void notify_hosttest(const char *host_test_name) {
+    notify_kv(TEST_ENV_HOST_TEST_NAME, host_test_name);
+}
+
+void notify_completion(const int success) {
+    const char *val = success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE;
+    notify_kv(TEST_ENV_END, val);
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
     coverage_report = true;
     gcov_exit();
     coverage_report = false;
 #endif
-    printf("{{%s}}" NL, TEST_ENV_END);
-    led_blink(LED1, success ? 1.0 : 0.1);
+    notify_kv(TEST_ENV_EXIT, !success);
 }
 
-bool notify_completion_str(bool success, char* buffer)
-{
-    bool result = false;
-    if (buffer) {
-        sprintf(buffer, "{{%s}}" NL "{{%s}}" NL, success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE, TEST_ENV_END);
-        result = true;
+// Test Case support
+
+/** \brief Notifies test case start
+  * \param Test Case ID name
+  *
+  * This function notifies test environment abort test case execution start.
+  *
+  */
+void notify_testcase_start(const char *testcase_id) {
+    notify_kv(TEST_ENV_TESTCASE_START, testcase_id);
+}
+
+/** \brief Return partial (test case) result from test suite
+  * \param Test Case ID name
+  * \param Success code, 0 - success, >0 failure reason, <0 inconclusive
+  *
+  * This function passes partial test suite's test case result to test
+  * environment.
+  * Each test suite (in many cases one binary with tests) can return
+  * multiple partial results used to track test case results.
+  *
+  * Test designers can use success code to return test case:
+  * success == 0 - PASS, test case execution was successful.
+  * success > 0  - FAILure, e.g. success == 404 can be used to
+  *                pass "Server not found".
+  * success < 0  - Inconclusive test case execution, e.g.
+  *
+  */
+void notify_testcase_finish(const char *testcase_id, const int success) {
+    notify_kv(TEST_ENV_TESTCASE_FINISH, testcase_id, success);
+}
+
+/**
+ *  Parse engine for KV values which replaces scanf
+ *  Example usage:
+ *
+ *  char key[10];
+ *  char value[48];
+ *
+ *  greentea_parse_kv(key, value, 10, 48);
+ *  greentea_parse_kv(key, value, 10, 48);
+ *
+ */
+
+
+static int gettok(char *, const int);
+static int getNextToken(char *, const int);
+static int HandleKV(char *,  char *,  const int,  const int);
+static int isstring(int);
+static int _get_char();
+
+static int CurTok = 0;
+
+
+enum Token {
+    tok_eof = -1,
+    tok_open = -2,          // "{{"
+    tok_close = -3,         // "}}"
+    tok_semicolon = -4,     // ;
+    tok_string = -5         // [a-zA-Z0-9_- ]+
+};
+
+static int _get_char() {
+    return getchar();
+}
+
+// This function is NOT thread-safe (like we have threads...)
+int greentea_parse_kv(char *_key,
+                       char *_value,
+                       const int _key_size,
+                       const int _value_size) {
+    while (1) {
+        switch (CurTok) {
+        case tok_eof:
+            return 0;
+
+        case tok_open:
+            if (HandleKV(_key, _value, _key_size, _value_size)) {
+                // We've found {{ KEY ; VALUE }} expression
+                return 1;
+            }
+            break;
+
+        default:
+            getNextToken(0, 0);
+            break;
+        }
     }
-    return result;
+    return 0;
 }
 
-// Host test auto-detection API
-void notify_host_test_name(const char *host_test) {
-    if (host_test) {
-        printf("{{host_test_name;%s}}" NL, host_test);
+static int getNextToken(char *str, const int str_size) {
+    return CurTok = gettok(str, str_size);
+}
+
+static int isstring(int c) {
+    return (isalpha(c) ||
+        isdigit(c) ||
+        isspace(c) ||
+        c == '_' ||
+        c == '-');
+}
+
+static int gettok(char *str, const int str_size) {
+    static int LastChar = '!';
+    static int str_idx = 0;
+
+    while (isspace(LastChar)) {
+        LastChar = _get_char();
     }
-}
 
-void notify_timeout(int timeout) {
-    printf("{{timeout;%d}}" NL, timeout);
-}
+    if (isstring(LastChar)) {
+        str_idx = 0;
+        if (str && str_idx < str_size - 1) {
+            str[str_idx++] = LastChar;
+        }
 
-void notify_test_id(const char *test_id) {
-    if (test_id) {
-        printf("{{test_id;%s}}" NL, test_id);
+        while (isstring((LastChar = _get_char())))
+            if (str && str_idx < str_size - 1) {
+                str[str_idx++] = LastChar;
+            }
+        if (str && str_idx < str_size) {
+            str[str_idx] = '\0';
+        }
+        return tok_string;
     }
-}
 
-void notify_test_description(const char *description) {
-    if (description) {
-        printf("{{description;%s}}" NL, description);
+    if (LastChar == ';') {
+        LastChar = _get_char();
+        return tok_semicolon;
     }
+
+    if (LastChar == '{') {
+        LastChar = _get_char();
+        if (LastChar == '{') {
+            LastChar = _get_char();
+            return tok_open;
+        }
+    }
+
+    if (LastChar == '}') {
+        LastChar = _get_char();
+        return tok_close;
+    }
+
+    if (LastChar == EOF)
+        return tok_eof;
+
+    // Otherwise, just return the character as its ascii value.
+    int ThisChar = LastChar;
+    LastChar = _get_char();
+    return ThisChar;
 }
 
-#ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
-void notify_coverage_start(const char *path) {
-    printf("{{coverage_start;%s}}" NL, path);
-}
-void notify_coverage_end() {
-    printf("{{coverage_end}}" NL);
-}
-#endif
-
-// -DMBED_BUILD_TIMESTAMP=1406208182.13
-unsigned int testenv_randseed()
-{
-    unsigned int seed = 0;
-#ifdef MBED_BUILD_TIMESTAMP
-    long long_seed = static_cast<long>(MBED_BUILD_TIMESTAMP);
-    seed = long_seed & 0xFFFFFFFF;
-#endif /* MBED_BUILD_TIMESTAMP */
-    return seed;
+int HandleKV(char *_key,
+             char *_value,
+             const int _key_size,
+             const int _value_size) {
+    if (getNextToken(_key, _key_size) == tok_string) {
+        if (getNextToken(0, 0) == tok_semicolon) {
+            if (getNextToken(_value, _value_size) == tok_string) {
+                if (getNextToken(0, 0) == tok_close) {
+                    // Found {{ KEY ; VALUE }} expression
+                    return 1;
+                }
+            }
+        }
+    }
+    getNextToken(0, 0);
+    return 0;
 }

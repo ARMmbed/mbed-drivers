@@ -33,16 +33,19 @@ protected:
 DevNull null("null");
 
 void runTest() {
-    MBED_HOSTTEST_TIMEOUT(20);
-    MBED_HOSTTEST_SELECT(dev_null_auto);
-    MBED_HOSTTEST_DESCRIPTION(stdout redirected to dev null);
-    MBED_HOSTTEST_START("EXAMPLE_1");
-    
-    printf("MBED: re-routing stdout to /null\r\n");
+    GREENTEA_START();
+    GREENTEA_SETUP(5, "dev_null_auto");
+
+    printf("MBED: before re-routing stdout to /null\n");   // This shouldn't appear
+    GREENTEA_SEND_KV("to_stdout", "re-routing stdout to /null")
+
     freopen("/null", "w", stdout);
-    printf("MBED: printf redirected to /null\r\n");   // This shouldn't appear
+
+    // This shouldn't appear on serial
+    GREENTEA_SEND_KV("to_null", "printf redirected to /null")
+    printf("MBED: this printf is already redirected to /null\n");
     // If failure message can be seen test should fail :)
-    MBED_HOSTTEST_RESULT(false);   // This is 'false' on purpose
+    GREENTEA_TSUITE_RESULT(false);
 }
 
 void app_start(int, char*[]) {

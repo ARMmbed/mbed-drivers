@@ -35,7 +35,8 @@ void report_iterations(void) {
 #endif
 }
 
-void stack_test(char *latest_heap_pointer) {
+bool stack_test(char *latest_heap_pointer) {
+    bool result = true;
     char stack_line[256];
     iterations++;
 
@@ -54,7 +55,7 @@ void stack_test(char *latest_heap_pointer) {
             puts("\n[SUCCESS] Stack/Heap collision detected");
             report_iterations();
         }
-        return;
+        return false;
     } else {
         heap_pointer += 0x100;
         sprintf(line, "heap pointer: %p", heap_pointer);
@@ -65,34 +66,39 @@ void stack_test(char *latest_heap_pointer) {
         stack_test(heap_pointer);
     } else {
         puts("\n[WARNING] The Stack/Heap collision was not detected");
+        result = false;
         report_iterations();
     }
+
+    return result;
 }
 
 
 void runTest(void) {
     char c;
-    MBED_HOSTTEST_TIMEOUT(10);
-    MBED_HOSTTEST_SELECT(default_auto);
-    MBED_HOSTTEST_DESCRIPTION(Heap & Stack);
-    MBED_HOSTTEST_START("MBED_13");
+    bool result = false;
+    GREENTEA_START();
+    GREENTEA_SETUP(5, "default_auto");
 
     initial_stack_p = &c;
 
-    initial_heap_p = (char*)malloc(1);
-    if (initial_heap_p == NULL) {
-        printf("Unable to malloc a single byte\n");
-        notify_completion(false);
+    {
+        GREENTEA_TCASE_START("_HEAP0001");
+        initial_heap_p = (char*)malloc(1);
+        if (initial_heap_p) {
+            printf("Initial stack/heap geometry:\n");
+            printf("   stack pointer:V %p\n", initial_stack_p);
+            printf("   heap pointer :^ %p\n", initial_heap_p);
+            initial_heap_p++;
+            result = stack_test(initial_heap_p);
+        } else {
+            printf("Unable to malloc a single byte\n");
+            result = false;
+        }
+        GREENTEA_TCASE_FINISH("_HEAP0001", !result);
     }
 
-    printf("Initial stack/heap geometry:\n");
-    printf("   stack pointer:V %p\n", initial_stack_p);
-    printf("   heap pointer :^ %p\n", initial_heap_p);
-
-    initial_heap_p++;
-    stack_test(initial_heap_p);
-
-    MBED_HOSTTEST_RESULT(true);
+    GREENTEA_TSUITE_RESULT(true);
 }
 
 void app_start(int, char*[]) {
