@@ -18,6 +18,7 @@
 
 void sayHello(){
     GREENTEA_SEND_KV("hello_world", "Hello World")
+    GREENTEA_TSUITE_RESULT(true);
 }
 
 void app_start(int, char*[]) {
