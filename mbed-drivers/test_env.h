@@ -50,6 +50,9 @@ void notify_completion(const int);
 void notify_testcase_start(const char *);
 void notify_testcase_finish(const char *, const int);
 
+// scanf replacement tokenizer and simple KV grammar parser
+int greentea_parse_kv(char *, char *, const int, const int);
+
 
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
 // Code Coverage API

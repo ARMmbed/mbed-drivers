@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <cctype>
+#include <cstdio>
 #include "mbed-drivers/test_env.h"
 
 // Generic test suite transport protocol keys
@@ -78,9 +80,10 @@ void notify_kv(const char *key) {
 void notify_start() {
     // Sync preamble: "{{sync;0dad4a9d-59a3-4aec-810d-d5fb09d852c1}}"
     // Example value of sync_uuid == "0dad4a9d-59a3-4aec-810d-d5fb09d852c1"
-    static char sync_uuid[48] = {0};
-    scanf("{{sync;%47s}}", sync_uuid);  // Note: '47' in %s formatting!
-    notify_kv(TEST_ENV_SYNC, sync_uuid);
+	char _key[5] = {0};
+	char _value[48] = {0};
+	greentea_parse_kv(_key, _value, sizeof(_key), sizeof(_value));
+    notify_kv(_key, _value);
 }
 
 void notify_timeout(const int timeout) {
@@ -132,4 +135,147 @@ void notify_testcase_start(const char *testcase_id) {
   */
 void notify_testcase_finish(const char *testcase_id, const int success) {
     notify_kv(TEST_ENV_TESTCASE_FINISH, testcase_id, success);
+}
+
+/**
+ *  Parse engine for KV values which replaces scanf
+ *  Example usage:
+ *
+ *  char key[10];
+ *  char value[48];
+ *
+ *  greentea_parse_kv(key, value, 10, 48);
+ *  greentea_parse_kv(key, value, 10, 48);
+ *
+ */
+
+
+static int gettok(char *, const int);
+static int getNextToken(char *, const int);
+static int HandleKV(char *,  char *,  const int,  const int);
+static int isstring(int);
+static int _get_char();
+
+static int CurTok = 0;
+
+
+enum Token {
+    tok_eof = -1,
+    tok_open = -2,          // "{{"
+    tok_close = -3,         // "}}"
+    tok_semicolon = -4,     // ;
+    tok_string = -5         // [a-zA-Z0-9_- ]+
+};
+
+static int _get_char() {
+    return getchar();
+}
+
+// This function is NOT thread-safe (like we have threads...)
+int greentea_parse_kv(char *_key,
+                       char *_value,
+                       const int _key_size,
+                       const int _value_size) {
+    while (1) {
+        switch (CurTok) {
+        case tok_eof:
+            return 0;
+
+        case tok_open:
+            if (HandleKV(_key, _value, _key_size, _value_size)) {
+                // We've found {{ KEY ; VALUE }} expression
+                return 1;
+            }
+            break;
+
+        default:
+            getNextToken(0, 0);
+            break;
+        }
+    }
+    return 0;
+}
+
+static int getNextToken(char *str, const int str_size) {
+    return CurTok = gettok(str, str_size);
+}
+
+static int isstring(int c) {
+    return (isalpha(c) ||
+        isdigit(c) ||
+        isspace(c) ||
+        c == '_' ||
+        c == '-');
+}
+
+static int gettok(char *str, const int str_size) {
+    static int LastChar = '!';
+    static int str_idx = 0;
+
+    while (isspace(LastChar)) {
+        LastChar = _get_char();
+    }
+
+    if (isstring(LastChar)) {
+        str_idx = 0;
+        if (str && str_idx < str_size - 1) {
+            str[str_idx++] = LastChar;
+        }
+
+        while (isstring((LastChar = _get_char())))
+            if (str && str_idx < str_size - 1) {
+                str[str_idx++] = LastChar;
+            }
+        if (str && str_idx < str_size) {
+            str[str_idx] = '\0';
+        }
+        return tok_string;
+    }
+
+    if (LastChar == ';') {
+        LastChar = _get_char();
+        return tok_semicolon;
+    }
+
+    if (LastChar == '{') {
+        LastChar = _get_char();
+        if (LastChar == '{') {
+            LastChar = _get_char();
+            return tok_open;
+        }
+    }
+
+    if (LastChar == '}') {
+        LastChar = _get_char();
+        if (LastChar == '}') {
+            LastChar = _get_char();
+            return tok_close;
+        }
+    }
+
+    if (LastChar == EOF)
+        return tok_eof;
+
+    // Otherwise, just return the character as its ascii value.
+    int ThisChar = LastChar;
+    LastChar = _get_char();
+    return ThisChar;
+}
+
+int HandleKV(char *_key,
+             char *_value,
+             const int _key_size,
+             const int _value_size) {
+    if (getNextToken(_key, _key_size) == tok_string) {
+        if (getNextToken(0, 0) == tok_semicolon) {
+            if (getNextToken(_value, _value_size) == tok_string) {
+                if (getNextToken(0, 0) == tok_close) {
+                    // Found {{ KEY ; VALUE }} expression
+                    return 1;
+                }
+            }
+        }
+    }
+    getNextToken(0, 0);
+    return 0;
 }
