@@ -17,28 +17,25 @@
 #include "mbed-drivers/mbed.h"
 #include "mbed-drivers/test_env.h"
 
-#define TXPIN     USBTX
-#define RXPIN     USBRX
+#include <cctype>
+#include <cstdio>
 
 
 namespace {
-    const int BUFFER_SIZE = 48;
-    char buffer[BUFFER_SIZE] = {0};
+    char _key[8] = {0};
+    char _value[128] = {0};
 }
 
 void app_start(int, char*[]) {
     // !!! FIXME: make this asynchronous!
 
-    MBED_HOSTTEST_TIMEOUT(20);
-    MBED_HOSTTEST_SELECT(echo);
-    MBED_HOSTTEST_DESCRIPTION(Serial Echo at 115200);
-    MBED_HOSTTEST_START("MBED_A9");
+    GREENTEA_START();
+    GREENTEA_SETUP(15, "echo");
 
-    Serial pc(TXPIN, RXPIN);
-    pc.baud(115200);
-
-    while (1) {
-        pc.gets(buffer, BUFFER_SIZE - 1);
-        pc.printf("%s", buffer);
+    for (int i = 0 ; i< 10; ++i) {
+        greentea_parse_kv(_key, _value, sizeof(_key), sizeof(_value));
+        notify_kv(_key, _value);
     }
+
+    GREENTEA_TSUITE_RESULT(true);
 }
