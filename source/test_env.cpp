@@ -247,10 +247,7 @@ static int gettok(char *str, const int str_size) {
 
     if (LastChar == '}') {
         LastChar = _get_char();
-        if (LastChar == '}') {
-            LastChar = _get_char();
-            return tok_close;
-        }
+        return tok_close;
     }
 
     if (LastChar == EOF)
