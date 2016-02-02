@@ -25,29 +25,28 @@ volatile int led1_initial;
 volatile int led2_initial;
 
 void check_leds() {
-    bool result = 1;
+    bool result = true;
+    GREENTEA_TCASE_START("_SLEEP001");
     result = result && ((int)led1 != led1_initial);
     result = result && ((int)led2 != led2_initial);
-    MBED_HOSTTEST_RESULT(result);
+    GREENTEA_TCASE_FINISH("_SLEEP001", !result);
+
+    GREENTEA_TSUITE_RESULT(true);
 }
 
 void led1_on() {
     led1 = !led1;
-    printf("led1\n\r");
-    fflush(stdout);
 }
+
 void led2_on() {
     led2 = !led2;
-    printf("led2\n\r");
-    fflush(stdout);
     minar::Scheduler::postCallback(mbed::util::FunctionPointer(check_leds).bind());
 }
 
 void app_start(int, char*[]) {
-    MBED_HOSTTEST_TIMEOUT(10);
-    MBED_HOSTTEST_SELECT(default_auto);
-    MBED_HOSTTEST_DESCRIPTION(Sleep Timeout);
-    MBED_HOSTTEST_START("MBED_9");
+    GREENTEA_START();
+    GREENTEA_SETUP(5, "default_auto");
+
     led1 = 0;
     led2 = 0;
     led1_initial = led1;
