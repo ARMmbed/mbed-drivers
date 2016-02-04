@@ -34,7 +34,7 @@ void app_start(int, char*[]) {
 
     for (int i = 0 ; i< 10; ++i) {
         greentea_parse_kv(_key, _value, sizeof(_key), sizeof(_value));
-        notify_kv(_key, _value);
+        greentea_send_kv(_key, _value);
     }
 
     GREENTEA_TSUITE_RESULT(true);

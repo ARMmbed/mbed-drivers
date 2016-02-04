@@ -19,20 +19,19 @@
 #include "mbed-drivers/test_env.h"
 
 // Generic test suite transport protocol keys
-const char* TEST_ENV_START = "start";
 const char* TEST_ENV_END = "end";
-const char* TEST_ENV_EXIT = "exit";
-const char* TEST_ENV_SYNC = "sync";
-const char* TEST_ENV_TIMEOUT = "timeout";
-const char* TEST_ENV_HOST_TEST_NAME = "host_test_name";
+const char* TEST_ENV_EXIT = "__exit";
+const char* TEST_ENV_SYNC = "__sync";
+const char* TEST_ENV_TIMEOUT = "__timeout";
+const char* TEST_ENV_HOST_TEST_NAME = "__host_test_name";
 // Test suite success code strings
 const char* TEST_ENV_SUCCESS = "success";
 const char* TEST_ENV_FAILURE = "failure";
 // Test case transport protocol start/finish keys
-const char* TEST_ENV_TESTCASE_START = "testcase_start";
-const char* TEST_ENV_TESTCASE_FINISH = "testcase_finish";
+const char* TEST_ENV_TESTCASE_START = "__testcase_start";
+const char* TEST_ENV_TESTCASE_FINISH = "__testcase_finish";
 // Code Coverage (LCOV)  transport protocol keys
-const char* TEST_ENV_LCOV_START = "coverage_start";
+const char* TEST_ENV_LCOV_START = "__coverage_start";
 
 // LCOV support
 extern "C"
@@ -53,56 +52,56 @@ void notify_coverage_end() {
 
 #endif
 
-void notify_kv(const char *key, const char *val) {
+void greentea_send_kv(const char *key, const char *val) {
     if (key && val) {
         printf("{{%s;%s}}" NL, key, val);
     }
 }
 
-void notify_kv(const char *key, const int val) {
+void greentea_send_kv(const char *key, const int val) {
     if (key) {
         printf("{{%s;%d}}" NL, key, val);
     }
 }
 
-void notify_kv(const char *key, const char *val, const int success) {
+void greentea_send_kv(const char *key, const char *val, const int success) {
     if (key) {
         printf("{{%s;%s;%d}}" NL, key, val, success);
     }
 }
 
-void notify_kv(const char *key) {
+void greentea_send_kv(const char *key) {
     if (key) {
         printf("{{%s;%d}}" NL, key, 0);
     }
 }
 
 void notify_start() {
-    // Sync preamble: "{{sync;0dad4a9d-59a3-4aec-810d-d5fb09d852c1}}"
+    // Sync preamble: "{{__sync;0dad4a9d-59a3-4aec-810d-d5fb09d852c1}}"
     // Example value of sync_uuid == "0dad4a9d-59a3-4aec-810d-d5fb09d852c1"
-	char _key[5] = {0};
+	char _key[8] = {0};
 	char _value[48] = {0};
 	greentea_parse_kv(_key, _value, sizeof(_key), sizeof(_value));
-    notify_kv(_key, _value);
+    greentea_send_kv(_key, _value);
 }
 
 void notify_timeout(const int timeout) {
-    notify_kv(TEST_ENV_TIMEOUT, timeout);
+    greentea_send_kv(TEST_ENV_TIMEOUT, timeout);
 }
 
 void notify_hosttest(const char *host_test_name) {
-    notify_kv(TEST_ENV_HOST_TEST_NAME, host_test_name);
+    greentea_send_kv(TEST_ENV_HOST_TEST_NAME, host_test_name);
 }
 
 void notify_completion(const int success) {
     const char *val = success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE;
-    notify_kv(TEST_ENV_END, val);
+    greentea_send_kv(TEST_ENV_END, val);
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
     coverage_report = true;
     gcov_exit();
     coverage_report = false;
 #endif
-    notify_kv(TEST_ENV_EXIT, !success);
+    greentea_send_kv(TEST_ENV_EXIT, !success);
 }
 
 // Test Case support
@@ -114,7 +113,7 @@ void notify_completion(const int success) {
   *
   */
 void notify_testcase_start(const char *testcase_id) {
-    notify_kv(TEST_ENV_TESTCASE_START, testcase_id);
+    greentea_send_kv(TEST_ENV_TESTCASE_START, testcase_id);
 }
 
 /** \brief Return partial (test case) result from test suite
@@ -134,7 +133,7 @@ void notify_testcase_start(const char *testcase_id) {
   *
   */
 void notify_testcase_finish(const char *testcase_id, const int success) {
-    notify_kv(TEST_ENV_TESTCASE_FINISH, testcase_id, success);
+    greentea_send_kv(TEST_ENV_TESTCASE_FINISH, testcase_id, success);
 }
 
 /**

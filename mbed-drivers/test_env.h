@@ -24,7 +24,6 @@
 #define RCNL "\r\n"
 
 // Generic test suite transport protocol keys
-extern const char* TEST_ENV_START;
 extern const char* TEST_ENV_END;
 extern const char* TEST_ENV_EXIT;
 extern const char* TEST_ENV_SYNC;
@@ -41,8 +40,8 @@ extern const char* TEST_ENV_LCOV_START;
 extern const char* TEST_ENV_LCOV_END;
 
 // Test suite result related notification API
-void notify_kv(const char *, const char *);
-void notify_kv(const char *, const int);
+void greentea_send_kv(const char *, const char *);
+void greentea_send_kv(const char *, const int);
 void notify_start();
 void notify_timeout(const int);
 void notify_hosttest(const char *);
@@ -65,7 +64,7 @@ void notify_coverage_end();
 
 #define GREENTEA_START()                            notify_start();
 #define GREENTEA_SETUP(TIMEOUT, HOST_TEST_NAME)     notify_timeout(TIMEOUT); notify_hosttest(HOST_TEST_NAME);
-#define GREENTEA_SEND_KV(KEY,VALUE)                 notify_kv(KEY,VALUE);
+#define GREENTEA_SEND_KV(KEY,VALUE)                 greentea_send_kv(KEY,VALUE);
 
 #define GREENTEA_TSUITE_RESULT(RESULT)              notify_completion(RESULT);
 #define GREENTEA_TCASE_START(TESTCASE_UD)           notify_testcase_start(TESTCASE_UD);
