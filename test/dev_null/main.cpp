@@ -34,17 +34,17 @@ DevNull null("null");
 
 void runTest() {
     GREENTEA_START();
-    GREENTEA_SETUP(5, "dev_null_auto");
+    GREENTEA_SETUP(2, "dev_null_auto");
 
     printf("MBED: before re-routing stdout to /null\n");   // This shouldn't appear
-    GREENTEA_SEND_KV("to_stdout", "re-routing stdout to /null")
+    GREENTEA_SEND_KV("to_stdout", "re-routing stdout to /null");
 
-    freopen("/null", "w", stdout);
-
-    // This shouldn't appear on serial
-    GREENTEA_SEND_KV("to_null", "printf redirected to /null")
-    printf("MBED: this printf is already redirected to /null\n");
-    // If failure message can be seen test should fail :)
+    if (freopen("/null", "w", stdout)) {
+        // This shouldn't appear on serial
+        // We should use pure printf here to send KV
+        printf("{{to_null;printf redirected to /null}}\n");
+        printf("MBED: this printf is already redirected to /null\n");
+    }
     GREENTEA_TSUITE_RESULT(false);
 }
 

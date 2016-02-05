@@ -34,24 +34,21 @@ void print_char() {
     count++;
 }
 
-void ticker_callback_2(void)
-{
+void ticker_callback_2(void) {
     ticker.detach();
     ticker.attach(ticker_callback_1, 1.0);
     led1 = !led1;
     print_char();
 }
 
-void ticker_callback_1(void)
-{
+void ticker_callback_1(void) {
     ticker.detach();
     ticker.attach(ticker_callback_2, 1.0);
     led0 = !led0;
     print_char();
 }
 
-void app_start(int, char*[])
-{
+void app_start(int, char*[]) {
     GREENTEA_START();
     GREENTEA_SETUP(15, "wait_us_auto");
 
