@@ -49,7 +49,7 @@ void runTest() {
     }
 
     {   // 0xFFFFFFFF * 24 = 0x17ffffffe8
-        GREENTEA_TCASE_START("_DIV0002");
+        GREENTEA_TCASE_START("_DIV002");
         std::pair<uint32_t, uint64_t> values = std::make_pair(0xFFFFFFFF, 0x17FFFFFFE8);
         uint32_t test_ret = test_64(values.second);
         bool test_res = values.first == test_ret;
