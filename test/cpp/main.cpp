@@ -96,7 +96,7 @@ void runTest (void) {
         break;
     }
 
-    GREENTEA_TSUITE_RESULT(result);
+    GREENTEA_TESTSUITE_RESULT(result);
 }
 
 void app_start(int, char*[]) {

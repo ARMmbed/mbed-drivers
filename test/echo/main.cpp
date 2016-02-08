@@ -37,5 +37,5 @@ void app_start(int, char*[]) {
         greentea_send_kv(_key, _value);
     }
 
-    GREENTEA_TSUITE_RESULT(true);
+    GREENTEA_TESTSUITE_RESULT(true);
 }

@@ -82,19 +82,19 @@ void runTest() {
 
     // Test case STL001
     {
-        GREENTEA_TCASE_START("STL001");   // New macro
+        GREENTEA_TESTCASE_START("STL001");   // New macro
         std::vector<int> v_pints(p_integers, p_integers + TABLE_SIZE(p_integers));
         bool equal_result = std::equal(v_pints.begin(), v_pints.end(), p_integers);
-        GREENTEA_TCASE_FINISH("STL001", !equal_result); // New macro
+        GREENTEA_TESTCASE_FINISH("STL001", !equal_result); // New macro
     }
 
     {
-        GREENTEA_TCASE_START("STL002");   // New macro
+        GREENTEA_TESTCASE_START("STL002");   // New macro
         const char* floats_str[] = {FLOATS_STR};
         float floats_transform[TABLE_SIZE(floats_str)] = {0.0};
         std::transform(floats_str, floats_str + TABLE_SIZE(floats_str), floats_transform, atof);
         bool equal_result = std::equal(floats_transform, floats_transform + TABLE_SIZE(floats_transform), floats);
-        GREENTEA_TCASE_FINISH("STL002", !equal_result); // New macro
+        GREENTEA_TESTCASE_FINISH("STL002", !equal_result); // New macro
 
         std::for_each(floats_str, floats_str + TABLE_SIZE(floats_str), printString());
         printf("\r\n");
@@ -106,11 +106,11 @@ void runTest() {
         std::vector<int> v_nints_1(n_integers, n_integers + TABLE_SIZE(n_integers));
         std::vector<int> v_nints_2(n_integers, n_integers + TABLE_SIZE(n_integers));
         {
-            GREENTEA_TCASE_START("STL003");
+            GREENTEA_TESTCASE_START("STL003");
             BubbleSort(v_nints_1, v_nints_1.size(), std::greater<int>());
             std::sort(v_nints_2.begin(), v_nints_2.end(), std::greater<int>());
             bool equal_result = std::equal(v_nints_1.begin(), v_nints_1.end(), v_nints_2.begin());
-            GREENTEA_TCASE_FINISH("STL003", !equal_result);
+            GREENTEA_TESTCASE_FINISH("STL003", !equal_result);
             std::for_each(v_nints_1.begin(), v_nints_1.end(), printInt());
             printf("\r\n");
             std::for_each(v_nints_2.begin(), v_nints_2.end(), printInt());
@@ -118,11 +118,11 @@ void runTest() {
         }
 
         {
-            GREENTEA_TCASE_START("STL004");
+            GREENTEA_TESTCASE_START("STL004");
             BubbleSort(v_nints_1, v_nints_1.size(), greaterAbs());
             std::sort(v_nints_2.begin(), v_nints_2.end(), greaterAbs());
             bool equal_result = std::equal(v_nints_1.begin(), v_nints_1.end(), v_nints_2.begin());
-            GREENTEA_TCASE_FINISH("STL004", !equal_result);
+            GREENTEA_TESTCASE_FINISH("STL004", !equal_result);
 
             std::for_each(v_nints_1.begin(), v_nints_1.end(), printInt());
             printf("\r\n");
@@ -131,7 +131,7 @@ void runTest() {
         }
     }
 
-    GREENTEA_TSUITE_RESULT(true);
+    GREENTEA_TESTSUITE_RESULT(true);
 }
 
 void app_start(int, char*[]) {

@@ -17,8 +17,8 @@
 #include "mbed-drivers/test_env.h"
 
 void sayHello(){
-    GREENTEA_SEND_KV("hello_world", "Hello World")
-    GREENTEA_TSUITE_RESULT(true);
+    greentea_send_kv("hello_world", "Hello World");
+    GREENTEA_TESTSUITE_RESULT(true);
 }
 
 void app_start(int, char*[]) {

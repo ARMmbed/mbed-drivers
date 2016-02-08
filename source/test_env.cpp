@@ -33,25 +33,97 @@ const char* TEST_ENV_TESTCASE_FINISH = "__testcase_finish";
 // Code Coverage (LCOV)  transport protocol keys
 const char* TEST_ENV_LCOV_START = "__coverage_start";
 
-// LCOV support
+// Auxilary functions
+static void notify_timeout(const int);
+static void notify_hosttest(const char *);
+static void notify_completion(const int);
+static void notify_testcase_start(const char *);
+static void notify_testcase_finish(const char *, const int);
+
+
+/** \brief Key-value protocol handshake function. Waits for {{__sync;...}} message
+ *  \details This function is blocking
+ */
+void GREENTEA_START() {
+    // Sync preamble: "{{__sync;0dad4a9d-59a3-4aec-810d-d5fb09d852c1}}"
+    // Example value of sync_uuid == "0dad4a9d-59a3-4aec-810d-d5fb09d852c1"
+	char _key[8] = {0};
+	char _value[48] = {0};
+	while (1) {
+        greentea_parse_kv(_key, _value, sizeof(_key), sizeof(_value));
+        if (strcmp(_key, TEST_ENV_SYNC) == 0) {
+            // Found correct __sunc message
+            greentea_send_kv(_key, _value);
+            break;
+        }
+    }
+}
+
+/** \brief Send timeout and host test name to master
+ *  \details This function will send preamble to master.
+ *           After host test name is received master will invoke host test script
+ *           and add hos test's callback handlers to main event loop
+ */
+void GREENTEA_SETUP(const int timeout, const char *host_test_name) {
+    notify_timeout(timeout);
+    notify_hosttest(host_test_name);
+}
+
+/** \brief Notify host (__exit message) side that test suite execution was complete
+ *  \result Test suite result
+ *  \details If __exit is not received by host side we will assume TIMEOUT
+ */
+void GREENTEA_TESTSUITE_RESULT(const int result) {
+    notify_completion(result);
+}
+
+/** \brief Notify host side that test case started
+ *  \details test_case_name Test case name
+ */
+void GREENTEA_TESTCASE_START(const char *test_case_name) {
+    notify_testcase_start(test_case_name);
+}
+
+/** \brief Notify host side that test case finished
+ *  \details test_case_name Test case name
+ *  \details result Test case result (0 -OK, non zero...)
+ */
+void GREENTEA_TESTCASE_FINISH(const char *test_case_name, const int result) {
+    notify_testcase_finish(test_case_name, result);
+}
+
+/**
+ *  Auxilary functions and key-value protocol support
+ */
+
+
+/**
+ *   LCOV support
+ */
 extern "C"
 void gcov_exit(void);
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
 bool coverage_report = false;
 
+/** \brief Send code coverage (LCOV) notification to master
+  * \details notify_coverage_start() PAYLOAD notify_coverage_end()
+  *
+ */
 void notify_coverage_start(const char *path) {
     printf("{{%s;%s;", TEST_ENV_LCOV_START, path);
 }
 
+/** \brief Sufix for code coverage messgae to master
+ */
 void notify_coverage_end() {
     printf("}}" NL);
 }
 
-// notify_coverage_start() PAYLOAD notify_coverage_end()
-// ((coverage_start;path;PAYLOAD}}
-
 #endif
 
+/**
+ *  Key-value protocol support
+ */
 
 /** \brief Send key-value (string;string) message to master
   * \param key
@@ -65,8 +137,8 @@ void greentea_send_kv(const char *key, const char *val) {
 }
 
 /** \brief Send key-value (string;integer) message to master
-  * \param key
-  * \param value Integer value
+  * \param key Message key
+  * \param value Message payload, integer value
   *
   */
 void greentea_send_kv(const char *key, const int val) {
@@ -76,48 +148,46 @@ void greentea_send_kv(const char *key, const int val) {
 }
 
 /** \brief Send key-value with packed success code (string;string;integer) message to master
-  * \param key
-  * \param value Integer value
+  * \param key Message key
+  * \param value Message payload, integer value
+  * \param result Send additional integer formatted data
   *
   */
-void greentea_send_kv(const char *key, const char *val, const int success) {
+static void greentea_send_kv(const char *key, const char *val, const int result) {
     if (key) {
-        printf("{{%s;%s;%d}}" NL, key, val, success);
+        printf("{{%s;%s;%d}}" NL, key, val, result);
     }
 }
 
-void greentea_send_kv(const char *key) {
-    if (key) {
-        printf("{{%s;%d}}" NL, key, 0);
-    }
-}
-
-void notify_start() {
-    // Sync preamble: "{{__sync;0dad4a9d-59a3-4aec-810d-d5fb09d852c1}}"
-    // Example value of sync_uuid == "0dad4a9d-59a3-4aec-810d-d5fb09d852c1"
-	char _key[8] = {0};
-	char _value[48] = {0};
-	greentea_parse_kv(_key, _value, sizeof(_key), sizeof(_value));
-    greentea_send_kv(_key, _value);
-}
-
-void notify_timeout(const int timeout) {
+/** \brief Send message with timeout to master
+  * \param timeout Test suite timeout in seconds
+  *
+  */
+static void notify_timeout(const int timeout) {
     greentea_send_kv(TEST_ENV_TIMEOUT, timeout);
 }
 
-void notify_hosttest(const char *host_test_name) {
+/** \brief Send host test name to master
+  * \param host_test_name Host test name, host test will be loaded by mbedhtrun
+  *
+  */
+static void notify_hosttest(const char *host_test_name) {
     greentea_send_kv(TEST_ENV_HOST_TEST_NAME, host_test_name);
 }
 
-void notify_completion(const int success) {
-    const char *val = success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE;
+/** \brief Send to master information that test suite finished its execution
+  * \param result TEst suite result from DUT
+  *
+  */
+static void notify_completion(const int result) {
+    const char *val = result ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE;
     greentea_send_kv(TEST_ENV_END, val);
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
     coverage_report = true;
     gcov_exit();
     coverage_report = false;
 #endif
-    greentea_send_kv(TEST_ENV_EXIT, !success);
+    greentea_send_kv(TEST_ENV_EXIT, !result);
 }
 
 /**
@@ -130,7 +200,7 @@ void notify_completion(const int success) {
   * This function notifies test environment abort test case execution start.
   *
   */
-void notify_testcase_start(const char *testcase_id) {
+static void notify_testcase_start(const char *testcase_id) {
     greentea_send_kv(TEST_ENV_TESTCASE_START, testcase_id);
 }
 
@@ -150,7 +220,7 @@ void notify_testcase_start(const char *testcase_id) {
   * success < 0  - Inconclusive test case execution, e.g.
   *
   */
-void notify_testcase_finish(const char *testcase_id, const int success) {
+static void notify_testcase_finish(const char *testcase_id, const int success) {
     greentea_send_kv(TEST_ENV_TESTCASE_FINISH, testcase_id, success);
 }
 
@@ -175,7 +245,7 @@ static int _get_char();
 
 static int CurTok = 0;
 
-
+// Token defined by KiVi parser
 enum Token {
     tok_eof = -1,
     tok_open = -2,          // "{{"
@@ -184,6 +254,7 @@ enum Token {
     tok_string = -5         // [a-zA-Z0-9_- ]+
 };
 
+// Closure for default "get character" function
 static int _get_char() {
     return getchar();
 }
@@ -203,9 +274,10 @@ static int _get_char() {
   *
   */
 int greentea_parse_kv(char *out_key,
-                       char *out_value,
-                       const int out_key_size,
-                       const int out_value_size) {
+                      char *out_value,
+                      const int out_key_size,
+                      const int out_value_size) {
+
     while (1) {
         switch (CurTok) {
         case tok_eof:
@@ -219,6 +291,7 @@ int greentea_parse_kv(char *out_key,
             break;
 
         default:
+            // Load next token and pray...
             getNextToken(0, 0);
             break;
         }
@@ -230,43 +303,59 @@ static int getNextToken(char *str, const int str_size) {
     return CurTok = gettok(str, str_size);
 }
 
-static int isstring(int c) {
-    return (isalpha(c) ||
-        isdigit(c) ||
-        isspace(c) ||
-        c == '_' ||
-        c == '-');
+//tokenizer auxilary function, subset of punctuation characters
+static int ispunctuation(int c) {
+    static const char punctuation[] = "_-!@#$%^&*()=+:<>,./?\\\"'";  // No ";{}"
+    for (size_t i=0; i< sizeof(punctuation); ++i) {
+        if (c == punctuation[i]) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
-static int gettok(char *str, const int str_size) {
+// KEY, VALUE tokenizer auxiliary function
+static int isstring(int c) {
+    return (isalpha(c) ||
+            isdigit(c) ||
+            isspace(c) ||
+            ispunctuation(c));
+}
+
+static int gettok(char *out_str, const int str_size) {
     static int LastChar = '!';
     static int str_idx = 0;
 
+    // whitespace ::=
     while (isspace(LastChar)) {
         LastChar = _get_char();
     }
 
+    // string ::= [a-zA-Z0-9_-!@#$%^&*()]+
     if (isstring(LastChar)) {
         str_idx = 0;
-        if (str && str_idx < str_size - 1) {
-            str[str_idx++] = LastChar;
+        if (out_str && str_idx < str_size - 1) {
+            out_str[str_idx++] = LastChar;
         }
 
         while (isstring((LastChar = _get_char())))
-            if (str && str_idx < str_size - 1) {
-                str[str_idx++] = LastChar;
+            if (out_str && str_idx < str_size - 1) {
+                out_str[str_idx++] = LastChar;
             }
-        if (str && str_idx < str_size) {
-            str[str_idx] = '\0';
+        if (out_str && str_idx < str_size) {
+            out_str[str_idx] = '\0';
         }
+
         return tok_string;
     }
 
+    // semicolon ::= ';'
     if (LastChar == ';') {
         LastChar = _get_char();
         return tok_semicolon;
     }
 
+    // open ::= '{{'
     if (LastChar == '{') {
         LastChar = _get_char();
         if (LastChar == '{') {
@@ -275,6 +364,7 @@ static int gettok(char *str, const int str_size) {
         }
     }
 
+    // close ::= '}'
     if (LastChar == '}') {
         LastChar = _get_char();
         return tok_close;
@@ -289,15 +379,19 @@ static int gettok(char *str, const int str_size) {
     return ThisChar;
 }
 
-int HandleKV(char *_key,
-             char *_value,
-             const int _key_size,
-             const int _value_size) {
-    if (getNextToken(_key, _key_size) == tok_string) {
+// KiVi parser, searches for <open> <string> <semicolon> <string> <close>
+int HandleKV(char *out_key,
+             char *out_value,
+             const int out_key_size,
+             const int out_value_size) {
+    // We already started with <open>
+    printf("<HandleKV>\n");
+    if (getNextToken(out_key, out_key_size) == tok_string) {
         if (getNextToken(0, 0) == tok_semicolon) {
-            if (getNextToken(_value, _value_size) == tok_string) {
+            if (getNextToken(out_value, out_value_size) == tok_string) {
                 if (getNextToken(0, 0) == tok_close) {
-                    // Found {{ KEY ; VALUE }} expression
+                    // <open> <string> <semicolon> <string> <close>
+                    // Found "{{KEY;VALUE}}" expression
                     return 1;
                 }
             }

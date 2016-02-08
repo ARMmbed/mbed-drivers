@@ -37,7 +37,7 @@ void runTest() {
     GREENTEA_SETUP(5, "default_auto");
 
     {   // 0xFFFFFFFF *  8 =  0x7fffffff8
-        GREENTEA_TCASE_START("_DIV001");
+        GREENTEA_TESTCASE_START("_DIV001");
         std::pair<uint32_t, uint64_t> values = std::make_pair(0x55555555, 0x7FFFFFFF8);
         uint32_t test_ret = test_64(values.second);
         bool test_res = values.first == test_ret;
@@ -45,11 +45,11 @@ void runTest() {
             values.first,
             test_ret,
             result_str(test_res));
-        GREENTEA_TCASE_FINISH("_DIV001", !test_res);
+        GREENTEA_TESTCASE_FINISH("_DIV001", !test_res);
     }
 
     {   // 0xFFFFFFFF * 24 = 0x17ffffffe8
-        GREENTEA_TCASE_START("_DIV002");
+        GREENTEA_TESTCASE_START("_DIV002");
         std::pair<uint32_t, uint64_t> values = std::make_pair(0xFFFFFFFF, 0x17FFFFFFE8);
         uint32_t test_ret = test_64(values.second);
         bool test_res = values.first == test_ret;
@@ -57,10 +57,10 @@ void runTest() {
             values.first,
             test_ret,
             result_str(test_res));
-        GREENTEA_TCASE_FINISH("_DIV002", !test_res);
+        GREENTEA_TESTCASE_FINISH("_DIV002", !test_res);
     }
 
-    GREENTEA_TSUITE_RESULT(true);
+    GREENTEA_TESTSUITE_RESULT(true);
 }
 
 void app_start(int, char*[]) {

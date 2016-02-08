@@ -23,7 +23,7 @@ void app_start(int, char*[]) {
     // !!! FIXME: make this asynchronous
     GREENTEA_START();
     GREENTEA_SETUP(15, "rtc_auto");
-    GREENTEA_SEND_KV("timestamp", CUSTOM_TIME);
+    greentea_send_kv("timestamp", CUSTOM_TIME);
 
     char buffer[32] = {0};
     char kv_buff[64] = {};
@@ -34,9 +34,9 @@ void app_start(int, char*[]) {
         sprintf(kv_buff, "[%ld] ", seconds);
         strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S %p", localtime(&seconds));
         strcat(kv_buff, buffer);
-        GREENTEA_SEND_KV("rtc", kv_buff);
+        greentea_send_kv("rtc", kv_buff);
         wait(1);
     }
 
-    GREENTEA_TSUITE_RESULT(true);
+    GREENTEA_TESTSUITE_RESULT(true);
 }

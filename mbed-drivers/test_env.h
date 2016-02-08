@@ -39,35 +39,27 @@ extern const char* TEST_ENV_TESTCASE_FINISH;
 extern const char* TEST_ENV_LCOV_START;
 extern const char* TEST_ENV_LCOV_END;
 
-// Test suite result related notification API
+/**
+ *  Greentea-client related API for communication with host side
+ */
+
+void GREENTEA_START();
+void GREENTEA_SETUP(const int, const char *);
+void GREENTEA_TESTSUITE_RESULT(const int);
+void GREENTEA_TESTCASE_START(const char *);
+void GREENTEA_TESTCASE_FINISH(const char *, const int);
+
+/**
+ * Test suite result related notification API
+ */
 void greentea_send_kv(const char *, const char *);
 void greentea_send_kv(const char *, const int);
-void notify_start();
-void notify_timeout(const int);
-void notify_hosttest(const char *);
-void notify_completion(const int);
-void notify_testcase_start(const char *);
-void notify_testcase_finish(const char *, const int);
-
-// scanf replacement tokenizer and simple KV grammar parser
 int greentea_parse_kv(char *, char *, const int, const int);
-
 
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
 // Code Coverage API
 void notify_coverage_start(const char *path);
 void notify_coverage_end();
 #endif
-
-
-// Test suite Host Test auto-detection macros
-
-#define GREENTEA_START()                            notify_start();
-#define GREENTEA_SETUP(TIMEOUT, HOST_TEST_NAME)     notify_timeout(TIMEOUT); notify_hosttest(HOST_TEST_NAME);
-#define GREENTEA_SEND_KV(KEY,VALUE)                 greentea_send_kv(KEY,VALUE);
-
-#define GREENTEA_TSUITE_RESULT(RESULT)              notify_completion(RESULT);
-#define GREENTEA_TCASE_START(TESTCASE_UD)           notify_testcase_start(TESTCASE_UD);
-#define GREENTEA_TCASE_FINISH(TESTCASE_UD,SUCCESS)  notify_testcase_finish(TESTCASE_UD,SUCCESS);
 
 #endif

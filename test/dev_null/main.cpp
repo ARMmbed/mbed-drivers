@@ -37,7 +37,7 @@ void runTest() {
     GREENTEA_SETUP(2, "dev_null_auto");
 
     printf("MBED: before re-routing stdout to /null\n");   // This shouldn't appear
-    GREENTEA_SEND_KV("to_stdout", "re-routing stdout to /null");
+    greentea_send_kv("to_stdout", "re-routing stdout to /null");
 
     if (freopen("/null", "w", stdout)) {
         // This shouldn't appear on serial
@@ -45,7 +45,7 @@ void runTest() {
         printf("{{to_null;printf redirected to /null}}\n");
         printf("MBED: this printf is already redirected to /null\n");
     }
-    GREENTEA_TSUITE_RESULT(false);
+    GREENTEA_TESTSUITE_RESULT(false);
 }
 
 void app_start(int, char*[]) {

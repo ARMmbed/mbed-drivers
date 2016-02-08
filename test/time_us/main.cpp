@@ -26,9 +26,9 @@ namespace {
 void print_char() {
     static int count = 0;
     if (count < 10) {
-        GREENTEA_SEND_KV("tick", count);
+        greentea_send_kv("tick", count);
     } else if (count == 10) {
-        GREENTEA_TSUITE_RESULT(true);
+        GREENTEA_TESTSUITE_RESULT(true);
     }
     count++;
 }
