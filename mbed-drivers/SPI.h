@@ -29,6 +29,15 @@
 #include "CircularBuffer.h"
 #include "core-util/FunctionPointer.h"
 #include "Transaction.h"
+
+#ifndef YOTTA_CFG_MBED_DRIVERS_SPI_TRANSACTION_QUEUE
+#   define YOTTA_CFG_MBED_DRIVERS_SPI_TRANSACTION_QUEUE 16
+#endif
+// backwards compatible guard for definition in `mbed-hal-<chip>/target_config.h`
+#ifndef TRANSACTION_QUEUE_SIZE_SPI
+#   define TRANSACTION_QUEUE_SIZE_SPI     YOTTA_CFG_MBED_DRIVERS_SPI_TRANSACTION_QUEUE
+#endif
+
 #endif
 
 namespace mbed {
