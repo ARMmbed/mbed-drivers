@@ -52,18 +52,34 @@ void notify_coverage_end() {
 
 #endif
 
+
+/** \brief Send key-value (string;string) message to master
+  * \param key
+  * \param value String value
+  *
+  */
 void greentea_send_kv(const char *key, const char *val) {
     if (key && val) {
         printf("{{%s;%s}}" NL, key, val);
     }
 }
 
+/** \brief Send key-value (string;integer) message to master
+  * \param key
+  * \param value Integer value
+  *
+  */
 void greentea_send_kv(const char *key, const int val) {
     if (key) {
         printf("{{%s;%d}}" NL, key, val);
     }
 }
 
+/** \brief Send key-value with packed success code (string;string;integer) message to master
+  * \param key
+  * \param value Integer value
+  *
+  */
 void greentea_send_kv(const char *key, const char *val, const int success) {
     if (key) {
         printf("{{%s;%s;%d}}" NL, key, val, success);
@@ -104,7 +120,9 @@ void notify_completion(const int success) {
     greentea_send_kv(TEST_ENV_EXIT, !success);
 }
 
-// Test Case support
+/**
+ *  Test Case support
+ */
 
 /** \brief Notifies test case start
   * \param Test Case ID name
@@ -170,18 +188,31 @@ static int _get_char() {
     return getchar();
 }
 
-// This function is NOT thread-safe (like we have threads...)
-int greentea_parse_kv(char *_key,
-                       char *_value,
-                       const int _key_size,
-                       const int _value_size) {
+/** \brief parse input string for key-value pairs: {{key;value}}
+  * \param out_key Ouput data with key
+  * \param out_value Ouput data with value
+  * \param out_key_size out_key total size
+  * \param out_value_size out_value total data
+  *
+  * \detail This function should replace scanf used to
+            check for incoming messages from master. All data
+            parsed and rejected is discarded.
+  *
+  * success != 0 when key-value pair was found
+  * success == 0 when end of the stream was found
+  *
+  */
+int greentea_parse_kv(char *out_key,
+                       char *out_value,
+                       const int out_key_size,
+                       const int out_value_size) {
     while (1) {
         switch (CurTok) {
         case tok_eof:
             return 0;
 
         case tok_open:
-            if (HandleKV(_key, _value, _key_size, _value_size)) {
+            if (HandleKV(out_key, out_value, out_key_size, out_value_size)) {
                 // We've found {{ KEY ; VALUE }} expression
                 return 1;
             }
