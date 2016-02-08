@@ -277,7 +277,7 @@ int greentea_parse_kv(char *out_key,
                       char *out_value,
                       const int out_key_size,
                       const int out_value_size) {
-
+    getNextToken(0, 0);
     while (1) {
         switch (CurTok) {
         case tok_eof:
@@ -365,10 +365,13 @@ static int gettok(char *out_str, const int str_size) {
     }
 
     // close ::= '}'
-    if (LastChar == '}') {
-        LastChar = _get_char();
-        return tok_close;
-    }
+	if (LastChar == '}') {
+		LastChar = _get_char();
+		if (LastChar == '}') {
+			//LastChar = _get_char();
+			return tok_close;
+		}
+	}
 
     if (LastChar == EOF)
         return tok_eof;
@@ -385,7 +388,6 @@ int HandleKV(char *out_key,
              const int out_key_size,
              const int out_value_size) {
     // We already started with <open>
-    printf("<HandleKV>\n");
     if (getNextToken(out_key, out_key_size) == tok_string) {
         if (getNextToken(0, 0) == tok_semicolon) {
             if (getNextToken(out_value, out_value_size) == tok_string) {
