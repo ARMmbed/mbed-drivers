@@ -36,6 +36,7 @@ extern const char* TEST_ENV_FAILURE;
 extern const char* TEST_ENV_TESTCASE_COUNT;
 extern const char* TEST_ENV_TESTCASE_START;
 extern const char* TEST_ENV_TESTCASE_FINISH;
+extern const char* TEST_ENV_TESTCASE_SUMMARY;
 // Code Coverage (LCOV)  transport protocol keys
 extern const char* TEST_ENV_LCOV_START;
 extern const char* TEST_ENV_LCOV_END;
@@ -55,6 +56,7 @@ void GREENTEA_TESTCASE_FINISH(const char *, const int);
  */
 void greentea_send_kv(const char *, const char *);
 void greentea_send_kv(const char *, const int);
+void greentea_send_kv(const char *, const int, const int);
 void greentea_send_kv(const char *, const char *, const int);
 void greentea_send_kv(const char *, const char *, const int, const int);
 int greentea_parse_kv(char *, char *, const int, const int);

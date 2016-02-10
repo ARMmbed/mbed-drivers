@@ -174,6 +174,19 @@ void greentea_send_kv(const char *key, const char *val, const int passes, const 
     }
 }
 
+/** \brief Send key-value with packed success code (string;string;integer) message to master
+  * \param key Message key
+  * \param value Message payload, integer value
+  * \param passes Send additional integer formatted data
+  * \param failures Send additional integer formatted data
+  *
+  */
+void greentea_send_kv(const char *key, const int passes, const int failures) {
+    if (key) {
+        printf("{{%s;%d;%d}}" NL, key, passes, failures);
+    }
+}
+
 /** \brief Send message with timeout to master
   * \param timeout Test suite timeout in seconds
   *
