@@ -33,6 +33,7 @@ extern const char* TEST_ENV_HOST_TEST_NAME;
 extern const char* TEST_ENV_SUCCESS;
 extern const char* TEST_ENV_FAILURE;
 // Test case transport protocol start/finish keys
+extern const char* TEST_ENV_TESTCASE_COUNT;
 extern const char* TEST_ENV_TESTCASE_START;
 extern const char* TEST_ENV_TESTCASE_FINISH;
 // Code Coverage (LCOV)  transport protocol keys
@@ -54,6 +55,8 @@ void GREENTEA_TESTCASE_FINISH(const char *, const int);
  */
 void greentea_send_kv(const char *, const char *);
 void greentea_send_kv(const char *, const int);
+void greentea_send_kv(const char *, const char *, const int);
+void greentea_send_kv(const char *, const char *, const int, const int);
 int greentea_parse_kv(char *, char *, const int, const int);
 
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE

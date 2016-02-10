@@ -28,8 +28,10 @@ const char* TEST_ENV_HOST_TEST_NAME = "__host_test_name";
 const char* TEST_ENV_SUCCESS = "success";
 const char* TEST_ENV_FAILURE = "failure";
 // Test case transport protocol start/finish keys
+const char* TEST_ENV_TESTCASE_COUNT = "__testcase_count";
 const char* TEST_ENV_TESTCASE_START = "__testcase_start";
 const char* TEST_ENV_TESTCASE_FINISH = "__testcase_finish";
+const char* TEST_ENV_TESTCASE_SUMMARY = "__testcase_summary";
 // Code Coverage (LCOV)  transport protocol keys
 const char* TEST_ENV_LCOV_START = "__coverage_start";
 
@@ -153,9 +155,22 @@ void greentea_send_kv(const char *key, const int val) {
   * \param result Send additional integer formatted data
   *
   */
-static void greentea_send_kv(const char *key, const char *val, const int result) {
+void greentea_send_kv(const char *key, const char *val, const int result) {
     if (key) {
         printf("{{%s;%s;%d}}" NL, key, val, result);
+    }
+}
+
+/** \brief Send key-value with packed success code (string;string;integer) message to master
+  * \param key Message key
+  * \param value Message payload, integer value
+  * \param passes Send additional integer formatted data
+  * \param failures Send additional integer formatted data
+  *
+  */
+void greentea_send_kv(const char *key, const char *val, const int passes, const int failures) {
+    if (key) {
+        printf("{{%s;%s;%d;%d}}" NL, key, val, passes, failures);
     }
 }
 
