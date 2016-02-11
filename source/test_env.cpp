@@ -215,7 +215,7 @@ static void notify_completion(const int result) {
     gcov_exit();
     coverage_report = false;
 #endif
-    greentea_send_kv(TEST_ENV_EXIT, !result);
+    greentea_send_kv(TEST_ENV_EXIT, 0);
 }
 
 /**
