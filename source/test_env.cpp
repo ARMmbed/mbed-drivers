@@ -43,10 +43,14 @@ static void notify_testcase_start(const char *);
 static void notify_testcase_finish(const char *, const int);
 
 
-/** \brief Key-value protocol handshake function. Waits for {{__sync;...}} message
- *  \details This function is blocking
+/** \brief Handshake with host and send setup data (timeout and host test name)
+ *  \details This function will send preamble to master.
+ *           After host test name is received master will invoke host test script
+ *           and add hos test's callback handlers to main event loop
+ *           This function is blocking.
  */
-void GREENTEA_START() {
+void GREENTEA_SETUP(const int timeout, const char *host_test_name) {
+    // Key-value protocol handshake function. Waits for {{__sync;...}} message
     // Sync preamble: "{{__sync;0dad4a9d-59a3-4aec-810d-d5fb09d852c1}}"
     // Example value of sync_uuid == "0dad4a9d-59a3-4aec-810d-d5fb09d852c1"
 	char _key[8] = {0};
@@ -59,14 +63,7 @@ void GREENTEA_START() {
             break;
         }
     }
-}
 
-/** \brief Send timeout and host test name to master
- *  \details This function will send preamble to master.
- *           After host test name is received master will invoke host test script
- *           and add hos test's callback handlers to main event loop
- */
-void GREENTEA_SETUP(const int timeout, const char *host_test_name) {
     notify_timeout(timeout);
     notify_hosttest(host_test_name);
 }
@@ -95,12 +92,16 @@ void GREENTEA_TESTCASE_FINISH(const char *test_case_name, const int result) {
 }
 
 /**
+ *  #################################################
  *  Auxilary functions and key-value protocol support
+ *  #################################################
  */
 
 
 /**
- *   LCOV support
+ *  ############
+ *  LCOV support
+ *  ############
  */
 extern "C"
 void gcov_exit(void);
@@ -108,7 +109,7 @@ void gcov_exit(void);
 bool coverage_report = false;
 
 /** \brief Send code coverage (LCOV) notification to master
-  * \details notify_coverage_start() PAYLOAD notify_coverage_end()
+  * \param notify_coverage_start() PAYLOAD notify_coverage_end()
   *
  */
 void notify_coverage_start(const char *path) {
@@ -124,7 +125,9 @@ void notify_coverage_end() {
 #endif
 
 /**
+ *  ##########################
  *  Key-value protocol support
+ *  ##########################
  */
 
 /** \brief Send key-value (string;string) message to master

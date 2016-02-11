@@ -45,11 +45,8 @@ extern const char* TEST_ENV_LCOV_END;
  *  Greentea-client related API for communication with host side
  */
 
-void GREENTEA_START();
 void GREENTEA_SETUP(const int, const char *);
 void GREENTEA_TESTSUITE_RESULT(const int);
-void GREENTEA_TESTCASE_START(const char *);
-void GREENTEA_TESTCASE_FINISH(const char *, const int);
 
 /**
  * Test suite result related notification API
