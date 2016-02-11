@@ -33,7 +33,6 @@ protected:
 DevNull null("null");
 
 void runTest() {
-    GREENTEA_START();
     GREENTEA_SETUP(2, "dev_null_auto");
 
     printf("MBED: before re-routing stdout to /null\n");   // This shouldn't appear

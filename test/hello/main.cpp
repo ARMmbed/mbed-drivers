@@ -22,7 +22,6 @@ void sayHello(){
 }
 
 void app_start(int, char*[]) {
-    GREENTEA_START();
     GREENTEA_SETUP(5, "hello_auto");
 
     minar::Scheduler::postCallback(&sayHello);

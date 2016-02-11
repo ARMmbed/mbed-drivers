@@ -70,7 +70,6 @@ Heap::hello
 Heap::destroy
 *******************/
 void runTest (void) {
-    GREENTEA_START();
     GREENTEA_SETUP(10, "default_auto");
 
     bool result = true;

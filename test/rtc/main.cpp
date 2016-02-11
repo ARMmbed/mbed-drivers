@@ -21,7 +21,6 @@
 
 void app_start(int, char*[]) {
     // !!! FIXME: make this asynchronous
-    GREENTEA_START();
     GREENTEA_SETUP(15, "rtc_auto");
     greentea_send_kv("timestamp", CUSTOM_TIME);
 

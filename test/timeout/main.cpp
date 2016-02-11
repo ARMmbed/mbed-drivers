@@ -52,7 +52,6 @@ void toggleOff(void) {
 }
 
 void app_start(int, char*[]) {
-    GREENTEA_START();
     GREENTEA_SETUP(15, "wait_us_auto");
 
     toggleOn();

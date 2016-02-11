@@ -47,7 +47,6 @@ void togglePin(void)
 
 void app_start(int, char*[])
 {
-    GREENTEA_START();
     GREENTEA_SETUP(15, "wait_us_auto");
 
     tick.attach_us(togglePin, 1000);

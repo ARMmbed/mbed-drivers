@@ -53,7 +53,6 @@ void flip_2() {
 }
 
 void app_start(int, char*[]) {
-    GREENTEA_START();
     GREENTEA_SETUP(15, "wait_us_auto");
 
     led1 = 0;

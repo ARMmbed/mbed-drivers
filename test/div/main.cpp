@@ -33,34 +33,33 @@ const char *result_str(bool result) {
 }
 
 void runTest() {
-    GREENTEA_START();
     GREENTEA_SETUP(5, "default_auto");
 
+    bool result = true;
+
     {   // 0xFFFFFFFF *  8 =  0x7fffffff8
-        GREENTEA_TESTCASE_START("_DIV001");
         std::pair<uint32_t, uint64_t> values = std::make_pair(0x55555555, 0x7FFFFFFF8);
         uint32_t test_ret = test_64(values.second);
         bool test_res = values.first == test_ret;
+        result = result && test_res;
         printf("64bit: 0x7FFFFFFF8: expected 0x%lX got 0x%lX ... %s\n",
             values.first,
             test_ret,
             result_str(test_res));
-        GREENTEA_TESTCASE_FINISH("_DIV001", !test_res);
     }
 
     {   // 0xFFFFFFFF * 24 = 0x17ffffffe8
-        GREENTEA_TESTCASE_START("_DIV002");
         std::pair<uint32_t, uint64_t> values = std::make_pair(0xFFFFFFFF, 0x17FFFFFFE8);
         uint32_t test_ret = test_64(values.second);
         bool test_res = values.first == test_ret;
+        result = result && test_res;
         printf("64bit: 0x17FFFFFFE8: expected 0x%lX got 0x%lX ... %s\n",
             values.first,
             test_ret,
             result_str(test_res));
-        GREENTEA_TESTCASE_FINISH("_DIV002", !test_res);
     }
 
-    GREENTEA_TESTSUITE_RESULT(true);
+    GREENTEA_TESTSUITE_RESULT(result);
 }
 
 void app_start(int, char*[]) {

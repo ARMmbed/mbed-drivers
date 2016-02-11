@@ -26,12 +26,11 @@ volatile int led2_initial;
 
 void check_leds() {
     bool result = true;
-    GREENTEA_TESTCASE_START("_SLEEP001");
+
     result = result && ((int)led1 != led1_initial);
     result = result && ((int)led2 != led2_initial);
-    GREENTEA_TESTCASE_FINISH("_SLEEP001", !result);
 
-    GREENTEA_TESTSUITE_RESULT(true);
+    GREENTEA_TESTSUITE_RESULT(result);
 }
 
 void led1_on() {
@@ -44,7 +43,6 @@ void led2_on() {
 }
 
 void app_start(int, char*[]) {
-    GREENTEA_START();
     GREENTEA_SETUP(5, "default_auto");
 
     led1 = 0;

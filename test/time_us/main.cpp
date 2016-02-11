@@ -35,7 +35,6 @@ void print_char() {
 
 void app_start(int, char*[]) {
     // !!! FIXME: make this asynchronous
-    GREENTEA_START();
     GREENTEA_SETUP(15, "wait_us_auto");
 
     while (true) {

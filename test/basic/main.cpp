@@ -18,7 +18,6 @@
 
 
 void runTest() {
-    GREENTEA_START();
     GREENTEA_SETUP(5, "default_auto");
     GREENTEA_TESTSUITE_RESULT(true);
 }

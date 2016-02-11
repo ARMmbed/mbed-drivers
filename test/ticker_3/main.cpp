@@ -49,7 +49,6 @@ void ticker_callback_1(void) {
 }
 
 void app_start(int, char*[]) {
-    GREENTEA_START();
     GREENTEA_SETUP(15, "wait_us_auto");
 
     ticker.attach(ticker_callback_1, 1.0);

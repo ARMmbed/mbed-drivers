@@ -77,13 +77,12 @@ bool stack_test(char *latest_heap_pointer) {
 void runTest(void) {
     char c;
     bool result = false;
-    GREENTEA_START();
+
     GREENTEA_SETUP(5, "default_auto");
 
     initial_stack_p = &c;
 
     {
-        GREENTEA_TESTCASE_START("_HEAP0001");
         initial_heap_p = (char*)malloc(1);
         if (initial_heap_p) {
             printf("Initial stack/heap geometry:\n");
@@ -95,10 +94,9 @@ void runTest(void) {
             printf("Unable to malloc a single byte\n");
             result = false;
         }
-        GREENTEA_TESTCASE_FINISH("_HEAP0001", !result);
     }
 
-    GREENTEA_TESTSUITE_RESULT(true);
+    GREENTEA_TESTSUITE_RESULT(result);
 }
 
 void app_start(int, char*[]) {

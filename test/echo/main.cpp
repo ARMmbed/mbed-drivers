@@ -29,7 +29,6 @@ namespace {
 void app_start(int, char*[]) {
     // !!! FIXME: make this asynchronous!
 
-    GREENTEA_START();
     GREENTEA_SETUP(15, "echo");
 
     for (int i = 0 ; i< 10; ++i) {
