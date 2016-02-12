@@ -68,7 +68,7 @@
 
 using namespace mbed;
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
-#include "mbed-drivers/test_env.h"
+#include "greentea-client/test_env.h"
 extern bool coverage_report;
 #endif
 

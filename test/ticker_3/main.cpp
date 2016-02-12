@@ -15,7 +15,7 @@
  */
 
 #include "mbed-drivers/mbed.h"
-#include "mbed-drivers/test_env.h"
+#include "greentea-client/test_env.h"
 
 void ticker_callback_1(void);
 void ticker_callback_2(void);

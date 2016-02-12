@@ -15,7 +15,7 @@
  */
 
 #include "mbed-drivers/mbed.h"
-#include "mbed-drivers/test_env.h"
+#include "greentea-client/test_env.h"
 
 Timeout timer;
 DigitalOut led(LED1);

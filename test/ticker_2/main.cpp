@@ -15,7 +15,7 @@
  */
 
 #include "mbed-drivers/mbed.h"
-#include "mbed-drivers/test_env.h"
+#include "greentea-client/test_env.h"
 
 Ticker tick;
 DigitalOut led(LED1);

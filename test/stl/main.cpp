@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mbed-drivers/test_env.h"
+#include "mbed-drivers/mbed.h"
+#include "greentea-client/test_env.h"
 
 #include <algorithm>
 #include <string>
