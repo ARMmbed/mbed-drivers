@@ -36,6 +36,10 @@
     "minar": "^1.0.0",
     "core-util": "^1.0.0",
     "compiler-polyfill": "^1.1.0"
+    "greentea-client": "^0.1.2"
+  },
+  "testDependencies": {
+    "greentea-client": "^0.1.2"
   },
   "targetDependencies": {},
   "scripts": {
