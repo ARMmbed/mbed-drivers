@@ -1,19 +1,19 @@
-/* mbed Microcontroller Library
- * Copyright (c) 2013-2014 ARM Limited
+/*
+ * Copyright (c) 2013-2016, ARM Limited, All Rights Reserved
+ * SPDX-License-Identifier: Apache-2.0
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #ifndef TEST_ENV_H_
 #define TEST_ENV_H_
 
@@ -44,10 +44,6 @@ void notify_timeout(int timeout);
 void notify_test_id(const char *test_id);
 void notify_test_description(const char *description);
 
-// test case partial result notifications
-void notify_testcase_start(const char *testcase_id);
-void notify_testcase_completion(const char *testcase_id, const int success);
-
 // Code Coverage API
 void notify_coverage_start(const char *path);
 void notify_coverage_end();
@@ -58,8 +54,6 @@ void notify_coverage_end();
 #define MBED_HOSTTEST_TIMEOUT(SECONDS)   notify_timeout(SECONDS)
 #define MBED_HOSTTEST_DESCRIPTION(DESC)  notify_test_description(#DESC)
 #define MBED_HOSTTEST_RESULT(RESULT)     notify_completion(RESULT)
-#define MBED_HOSTTEST_TESTCASE_START(TESTCASE)  notify_testcase_start(#TESTCASE)
-#define MBED_HOSTTEST_TESTCASE_FINISH(TESTCASE,SUCCESS)   notify_testcase_completion(#TESTCASE,SUCCESS)
 #define MBED_HOSTTEST_ASSERT(cond)       \
     do {                                 \
         if (!(cond)) {                   \

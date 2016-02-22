@@ -1,19 +1,19 @@
-/* mbed Microcontroller Library
- * Copyright (c) 2013-2014 ARM Limited
+/*
+ * Copyright (c) 2013-2016, ARM Limited, All Rights Reserved
+ * SPDX-License-Identifier: Apache-2.0
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "mbed-drivers/test_env.h"
 
 // Const strings used in test_end
@@ -125,36 +125,4 @@ unsigned int testenv_randseed()
     seed = long_seed & 0xFFFFFFFF;
 #endif /* MBED_BUILD_TIMESTAMP */
     return seed;
-}
-
-/** \brief Notifies test case start
-  * \param Test Case ID name
-  *
-  * This function notifies test environment abort test case execution start.
-  *
-  */
-void notify_testcase_start(const char *testcase_id)
-{
-    printf("{{testcase_start;%s}}" NL, testcase_id);
-}
-
-/** \brief Return partial (test case) result from test suite
-  * \param Test Case ID name
-  * \param Success code, 0 - success, >0 failure reason, <0 inconclusive
-  *
-  * This function passes partial test suite's test case result to test
-  * environment.
-  * Each test suite (in many cases one binary with tests) can return
-  * multiple partial results used to track test case results.
-  *
-  * Test designers can use success code to return test case:
-  * success == 0 - PASS, test case execution was successful.
-  * success > 0  - FAILure, e.g. success == 404 can be used to
-  *                pass "Server not found".
-  * success < 0  - Inconclusive test case execution, e.g.
-  *
-  */
-void notify_testcase_completion(const char *testcase_id, const int success)
-{
-    printf("{{testcase_finish;%s;%d}}" NL, testcase_id, success);
 }
