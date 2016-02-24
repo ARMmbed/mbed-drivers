@@ -15,34 +15,37 @@
  * limitations under the License.
  */
 #include "mbed-drivers/mbed.h"
-#include "mbed-drivers/test_env.h"
+#include "greentea-client/test_env.h"
+#include "utest/utest.h"
+
+using namespace utest::v1;
 
 DigitalOut led(LED1);
 
-namespace {
-    const int MS_INTERVALS = 1000;
-}
-
-void print_char(char c = '*')
-{
-    printf("%c", c);
-    fflush(stdout);
-}
-
-
-void app_start(int, char*[]) {
-    // !!! FIXME: make this asynchronous
-
-    MBED_HOSTTEST_TIMEOUT(15);
-    MBED_HOSTTEST_SELECT(wait_us_auto);
-    MBED_HOSTTEST_DESCRIPTION(Time us);
-    MBED_HOSTTEST_START("MBED_25");
-
-    while (true) {
-        for (int i = 0; i < MS_INTERVALS; i++) {
+void test_case_ticker() {
+    for (int i=0; i < 10; ++i) {
+        // 10 secs...
+        for (int j = 0; j < 1000; ++j) {
+            // 1000 * 1000us = 1 sec
             wait_us(1000);
         }
         led = !led; // Blink
-        print_char();
+        greentea_send_kv("tick", i);
     }
+}
+
+// Test cases
+Case cases[] = {
+    Case("Timers: wait_us", test_case_ticker),
+};
+
+status_t greentea_test_setup(const size_t number_of_cases) {
+    GREENTEA_SETUP(20, "wait_us_auto");
+    return greentea_test_setup_handler(number_of_cases);
+}
+
+Specification specification(greentea_test_setup, cases, greentea_test_teardown_handler);
+
+void app_start(int, char*[]) {
+    Harness::run(specification);
 }
