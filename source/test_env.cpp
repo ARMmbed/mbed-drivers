@@ -24,9 +24,8 @@ const char* TEST_ENV_MEASURE = "measure";
 const char* TEST_ENV_END = "end";
 
 /* prototype */
-extern "C"
-void gcov_exit(void);
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
+extern "C" void __gcov_flush();
 bool coverage_report = false;
 #endif
 
@@ -67,7 +66,7 @@ void notify_completion(bool success)
     printf("{{%s}}" NL, success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE);
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
     coverage_report = true;
-    gcov_exit();
+    __gcov_flush();
     coverage_report = false;
 #endif
     printf("{{%s}}" NL, TEST_ENV_END);

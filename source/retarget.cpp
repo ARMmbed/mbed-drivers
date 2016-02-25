@@ -71,6 +71,7 @@ using namespace mbed;
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
 #include "mbed-drivers/test_env.h"
 extern bool coverage_report;
+const int gcov_fd = 'g' + ((int)'c' << 8);
 #endif
 
 
@@ -106,21 +107,21 @@ FileHandle::~FileHandle() {
 
 #include "mbed-drivers/Serial.h"
 
-static int stdio_uart_inited;
 
 namespace mbed {
 
-Serial& get_stdio_serial() 
+Serial& get_stdio_serial()
 {
+    static bool stdio_uart_inited = false;
     static Serial stdio_serial(STDIO_UART_TX, STDIO_UART_RX);
-    if (stdio_uart_inited == 0) {
+    if (!stdio_uart_inited) {
         stdio_serial.baud(STDIO_DEFAULT_BAUD);
-        stdio_uart_inited = 1;
+        stdio_uart_inited = true;
     }
     return stdio_serial;
 }
 
-}
+} // namespace mbed
 #endif
 
 static void init_serial() {
@@ -184,9 +185,8 @@ extern "C" FILEHANDLE PREFIX(_open)(const char* name, int openmode) {
     }
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
     else if(coverage_report) {
-        init_serial();
         notify_coverage_start(name);
-        return 3;
+        return gcov_fd;
     }
 #endif
 
@@ -233,7 +233,7 @@ extern "C" FILEHANDLE PREFIX(_open)(const char* name, int openmode) {
 
 extern "C" int PREFIX(_close)(FILEHANDLE fh) {
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
-    if(coverage_report) {
+    if(coverage_report && fh == gcov_fd) {
         notify_coverage_end();
         return 0;
     }
@@ -264,7 +264,7 @@ extern "C" int PREFIX(_write)(FILEHANDLE fh, const unsigned char *buffer, unsign
         n = length;
     }
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
-    else if(coverage_report && fh == 3) {
+    else if(coverage_report && fh == gcov_fd) {
         for (unsigned int i = 0; i < length; i++) {
             printf("%02x", buffer[i]);
         }
@@ -291,6 +291,11 @@ extern "C" int PREFIX(_read)(FILEHANDLE fh, unsigned char *buffer, unsigned int 
 #endif
     (void) mode;
     int n; // n is the number of bytes read
+#ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
+    if(coverage_report && fh == gcov_fd) {
+        return 0;
+    }
+#endif
     if (fh < 3) {
         // only read a character at a time from stdin
 #if DEVICE_SERIAL
@@ -336,6 +341,11 @@ int _lseek(FILEHANDLE fh, int offset, int whence)
 {
     if (fh < 3) return 0;
 
+#ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
+    if(coverage_report && fh == gcov_fd) {
+        return 0;
+    }
+#endif
     FileHandle* fhc = filehandles[fh-3];
     if (fhc == NULL) return -1;
 
@@ -373,6 +383,12 @@ extern "C" int _fstat(int fd, struct stat *st) {
         st->st_mode = S_IFCHR;
         return  0;
     }
+#ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
+    if (coverage_report && fd == gcov_fd) {
+        st->st_size = 0;
+        return 0;
+    }
+#endif
 
     errno = EBADF;
     return -1;
