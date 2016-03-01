@@ -79,12 +79,15 @@ An I2CSegment is a wrapper around an EphemeralBuffer. It provides an I2C transfe
 # Example: constructing I2C transactions
 
 ```C++
+#include "mbed-drivers/mbed.h"
+#include "mbed-drivers/v2/I2C.hpp"
+
 void doneCB(bool dir, I2CTransaction *t, uint32_t event) {
     // Do something
 }
-I2C i2c0(sda, scl);
+mbed::drivers::v2::I2C i2c0(sda, scl);
 void app_start (int, char **) {
-    uint8_t cmd[2] = {0xaa, 0x55};
+    static uint8_t cmd[2] = {0xaa, 0x55};
     i2c0.transfer_to(addr).tx(cmd,2).rx(4).on(I2C_EVENT_ALL, doneCB);
 }
 ```
@@ -92,9 +95,10 @@ void app_start (int, char **) {
 # Example: Handling I2C events
 
 ```C++
- // Read 6 bytes from I2C EEPROM slave at address 0x62
+// Read 6 bytes from I2C EEPROM slave at address 0x62
 
- #include "mbed.h"
+#include "mbed-drivers/mbed.h"
+#include "mbed-drivers/v2/I2C.hpp"
 
 mbed::drivers::v2::I2C i2c(p28, p27);
 
