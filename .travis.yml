@@ -3,15 +3,15 @@ python:
   - "2.7"
 install:
   # Install ARM GCC
-  - sudo apt-get remove binutils-arm-none-eabi gcc-arm-none-eabi
-  - sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa
+  - sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
   - sudo apt-get update
-  - sudo apt-get install gcc-arm-embedded
+  - sudo apt-get install gcc-arm-embedded -y
   # Install yotta
   - pip install --user yotta
 script:
   # Build all tests for frdm-k64f-gcc
   - yotta target frdm-k64f-gcc
+  - yotta install
   - yotta build all_tests
 env:
   - CXX=g++-4.8
