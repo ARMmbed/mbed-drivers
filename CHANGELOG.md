@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Documentation
+- Clarified that I2C.md covers the version 2, experimental I2C API
+
 ## [1.1.0]
 ### Added
 - Prototype of V2 API for I2C. Full documentation at docs/I2C.md
