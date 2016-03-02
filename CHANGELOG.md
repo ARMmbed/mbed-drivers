@@ -3,6 +3,25 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Remove source/test_env.cpp and deprecate mbed-drivers/test_env.h in this module.
+  - From now on we should use compatible greentea-client/test_env.h
+- Add greentea-client added as dependency (to support GCOV prints in retarget.cpp)
+- Add greentea-client added as test dependency (new Async test case model)
+- Remove old test cases from test/ directory
+- Add new test cases supporting Async model:
+  - test 'mbed-drivers-test-c_strings'
+  - test 'mbed-drivers-test-dev_null'
+  - test 'mbed-drivers-test-echo'
+  - test 'mbed-drivers-test-generic_tests'
+  - test 'mbed-drivers-test-rtc'
+  - test 'mbed-drivers-test-stl_features'
+  - test 'mbed-drivers-test-ticker'
+  - test 'mbed-drivers-test-ticker_2'
+  - test 'mbed-drivers-test-ticker_3'
+  - test 'mbed-drivers-test-timeout'
+  - test 'mbed-drivers-test-wait_us'
+- Tests in test/ support Greentea v0.2.0 and Htrun v0.2.0.
 
 ## [1.1.2] - 2016-03-02
 ### Documentation
