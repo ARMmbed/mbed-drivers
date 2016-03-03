@@ -88,3 +88,30 @@ uint32_t pinmap_function(PinName pin, const PinMap* map) {
         error("pinmap not found for function");
     return function;
 }
+
+uint32_t pinmap_peripheral_instance(uint32_t peripheral, const PinMap* map)
+{
+    uint32_t idx = 0;
+    for (uint32_t i = 0; map[i].pin != NC; i++) {
+        if (i) {
+            // check that the peripheral is the first occurrence
+            uint32_t j;
+            for (j = 0; j < i; j++) {
+                if (map[i].peripheral == map[j].peripheral) {
+                    break;
+                }
+            }
+            if(i == j) {
+                // this peripheral does not occur earlier in the map.
+                idx++;
+            } else {
+                // If this is not the first instance, then it can't match the input peripheral
+                continue;
+            }
+        }
+        if ((uint32_t)map[i].peripheral == peripheral) {
+            return idx;
+        }
+    }
+    return (uint32_t)NC;
+}
