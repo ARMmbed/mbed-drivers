@@ -25,6 +25,7 @@
 #include "ualloc/ualloc.h"
 #include "core-util/CriticalSectionLock.h"
 #include "PeripheralPins.h"
+#include "mbed-drivers/mbed_error.h"
 
 namespace mbed {
 namespace drivers {
@@ -130,7 +131,9 @@ I2C::I2C(PinName sda, PinName scl) :
     uint32_t i2c_scl = pinmap_peripheral(scl, PinMap_I2C_SCL);
     int ownerID = pinmap_merge(i2c_sda, i2c_scl);
     _owner = detail::get_i2c_owner(ownerID);
-    CORE_UTIL_ASSERT(I2CError::None == _owner->init(sda, scl));
+    if (I2CError::None != _owner->init(sda, scl)) {
+        error("I2C init failed with an error");
+    }
 }
 
 I2C::~I2C ()
