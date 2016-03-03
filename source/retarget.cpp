@@ -76,7 +76,7 @@ using namespace mbed;
 #include "mbed-drivers/test_env.h"
 #endif
 
-extern bool coverage_report;
+bool coverage_report = false;
 const int gcov_fd = 'g' + ((int)'c' << 8);
 
 // Retarget specific code coverage report start notification
