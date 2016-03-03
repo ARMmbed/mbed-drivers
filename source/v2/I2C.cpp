@@ -14,14 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "mbed-drivers/platform.h"
+
+#if DEVICE_I2C && DEVICE_I2C_ASYNCH
+
 #include "mbed-drivers/v2/I2C.hpp"
 #include "mbed-drivers/v2/EphemeralBuffer.hpp"
 #include "minar/minar.h"
 #include "ualloc/ualloc.h"
 #include "core-util/CriticalSectionLock.h"
 #include "PeripheralPins.h"
-
-#if DEVICE_I2C && DEVICE_I2C_ASYNCH
 
 namespace mbed {
 namespace drivers {
