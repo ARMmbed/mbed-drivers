@@ -17,6 +17,8 @@
 #ifndef TEST_ENV_H_
 #define TEST_ENV_H_
 
+#warning mbed-drivers/test_env.h is deprecated. Please use greentea-client/test_env.h instead.
+
 #include <stdio.h>
 #include "mbed.h"
 
