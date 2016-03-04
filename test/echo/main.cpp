@@ -14,31 +14,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <stdio.h>
+#include <string.h>
 #include "mbed-drivers/mbed.h"
-#include "mbed-drivers/test_env.h"
+#include "greentea-client/test_env.h"
+#include "unity/unity.h"
+#include "utest/utest.h"
 
-#define TXPIN     USBTX
-#define RXPIN     USBRX
+using namespace utest::v1;
 
+// Echo server (echo payload to host)
+template<int N>
+void test_case_echo_server_x() {
+    char _key[10] = {};
+    char _value[128] = {};
+    const int echo_count = N;
 
-namespace {
-    const int BUFFER_SIZE = 48;
-    char buffer[BUFFER_SIZE] = {0};
+    // Handshake with host
+    greentea_send_kv("echo_count", echo_count);
+    greentea_parse_kv(_key, _value, sizeof(_key), sizeof(_value));
+    TEST_ASSERT_EQUAL_INT(echo_count, atoi(_value));
+
+    for (int i=0; i < echo_count; ++i) {
+        greentea_parse_kv(_key, _value, sizeof(_key), sizeof(_value));
+        greentea_send_kv(_key, _value);
+    }
 }
 
+status_t greentea_failure_handler(const Case *const source, const failure_t reason) {
+    greentea_case_failure_abort_handler(source, reason);
+    return STATUS_CONTINUE;
+}
+
+Case cases[] = {
+    Case("Echo server: x16", test_case_echo_server_x<16>, greentea_failure_handler),
+    Case("Echo server: x32", test_case_echo_server_x<32>, greentea_failure_handler),
+    Case("Echo server: x64", test_case_echo_server_x<64>, greentea_failure_handler),
+};
+
+status_t greentea_test_setup(const size_t number_of_cases) {
+    GREENTEA_SETUP(10, "echo");
+    return greentea_test_setup_handler(number_of_cases);
+}
+
+Specification specification(greentea_test_setup, cases, greentea_test_teardown_handler);
+
 void app_start(int, char*[]) {
-    // !!! FIXME: make this asynchronous!
-
-    MBED_HOSTTEST_TIMEOUT(20);
-    MBED_HOSTTEST_SELECT(echo);
-    MBED_HOSTTEST_DESCRIPTION(Serial Echo at 115200);
-    MBED_HOSTTEST_START("MBED_A9");
-
-    Serial pc(TXPIN, RXPIN);
-    pc.baud(115200);
-
-    while (1) {
-        pc.gets(buffer, BUFFER_SIZE - 1);
-        pc.printf("%s", buffer);
-    }
+    Harness::run(specification);
 }

@@ -26,7 +26,7 @@ const char* TEST_ENV_END = "end";
 /* prototype */
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
 extern "C" void __gcov_flush();
-bool coverage_report = false;
+extern bool coverage_report;    // In retarget.cpp
 #endif
 
 static void led_blink(PinName led, float delay)

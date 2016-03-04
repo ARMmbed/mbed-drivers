@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 #include "mbed-drivers/mbed.h"
-#include "mbed-drivers/test_env.h"
+#include "greentea-client/test_env.h"
+#include "utest/utest.h"
+
+using namespace utest::v1;
 
 void ticker_callback_1(void);
 void ticker_callback_2(void);
@@ -24,34 +27,47 @@ DigitalOut led0(LED1);
 DigitalOut led1(LED2);
 Ticker ticker;
 
-void print_char(char c = '*')
-{
-    printf("%c", c);
-    fflush(stdout);
+void send_kv_tick() {
+    static int count = 0;
+    if (count < 10) {
+        greentea_send_kv("tick", count);
+    } else if (count == 10) {
+        Harness::validate_callback();
+    }
+    count++;
 }
 
-void ticker_callback_2(void)
-{
+void ticker_callback_2(void) {
     ticker.detach();
     ticker.attach(ticker_callback_1, 1.0);
     led1 = !led1;
-    print_char();
+    send_kv_tick();
 }
 
-void ticker_callback_1(void)
-{
+void ticker_callback_1(void) {
     ticker.detach();
     ticker.attach(ticker_callback_2, 1.0);
     led0 = !led0;
-    print_char();
+    send_kv_tick();
 }
 
-void app_start(int, char*[])
-{
-    MBED_HOSTTEST_TIMEOUT(15);
-    MBED_HOSTTEST_SELECT(wait_us_auto);
-    MBED_HOSTTEST_DESCRIPTION(Ticker Two callbacks);
-    MBED_HOSTTEST_START("MBED_34");
-
+control_t test_case_ticker() {
     ticker.attach(ticker_callback_1, 1.0);
+    return CaseTimeout(15 * 1000);
+}
+
+// Test cases
+Case cases[] = {
+    Case("Timers: 2x callbacks", test_case_ticker),
+};
+
+status_t greentea_test_setup(const size_t number_of_cases) {
+    GREENTEA_SETUP(20, "wait_us_auto");
+    return greentea_test_setup_handler(number_of_cases);
+}
+
+Specification specification(greentea_test_setup, cases, greentea_test_teardown_handler);
+
+void app_start(int, char*[]) {
+    Harness::run(specification);
 }

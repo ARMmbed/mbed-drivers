@@ -69,10 +69,35 @@
 
 using namespace mbed;
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
+
+#ifdef YOTTA_GREENTEA_CLIENT_VERSION_STRING
+#include "greentea-client/test_env.h"
+#else
 #include "mbed-drivers/test_env.h"
-extern bool coverage_report;
-const int gcov_fd = 'g' + ((int)'c' << 8);
 #endif
+
+bool coverage_report = false;
+const int gcov_fd = 'g' + ((int)'c' << 8);
+
+// Retarget specific code coverage report start notification
+static void retarget_notify_coverage_start(const char *path) {
+#ifdef YOTTA_GREENTEA_CLIENT_VERSION_STRING
+    greentea_notify_coverage_start(path);
+#else
+    notify_coverage_start(path);
+#endif  // YOTTA_GREENTEA_CLIENT_VERSION_STRING
+}
+
+// Retarget specific code coverage report end notification
+static void retarget_notify_coverage_end() {
+#ifdef YOTTA_GREENTEA_CLIENT_VERSION_STRING
+    greentea_notify_coverage_end();
+#else
+    notify_coverage_end();
+#endif  // YOTTA_GREENTEA_CLIENT_VERSION_STRING
+}
+
+#endif  // YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
 
 
 #if defined(__MICROLIB) && (__ARMCC_VERSION>5030000)
@@ -185,7 +210,7 @@ extern "C" FILEHANDLE PREFIX(_open)(const char* name, int openmode) {
     }
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
     else if(coverage_report) {
-        notify_coverage_start(name);
+        retarget_notify_coverage_start(name);
         return gcov_fd;
     }
 #endif
@@ -234,7 +259,7 @@ extern "C" FILEHANDLE PREFIX(_open)(const char* name, int openmode) {
 extern "C" int PREFIX(_close)(FILEHANDLE fh) {
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
     if(coverage_report && fh == gcov_fd) {
-        notify_coverage_end();
+        retarget_notify_coverage_end();
         return 0;
     }
 #endif
@@ -266,7 +291,14 @@ extern "C" int PREFIX(_write)(FILEHANDLE fh, const unsigned char *buffer, unsign
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
     else if(coverage_report && fh == gcov_fd) {
         for (unsigned int i = 0; i < length; i++) {
-            printf("%02x", buffer[i]);
+            if (0x00 == buffer[i]) {
+                // Very simple coverage stream compression
+                // Observation: About 30-35% of coverage stream are bytes with value 0x00
+                // Greentea will pick up '.' and replace with "00"
+                printf(".");
+            } else {
+                printf("%02x", buffer[i]);
+            }
         }
         n = length;
     }
