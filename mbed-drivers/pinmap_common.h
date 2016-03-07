@@ -36,6 +36,26 @@ uint32_t pinmap_merge(uint32_t a, uint32_t b);
 void     pinmap_pinout(PinName pin, const PinMap *map);
 uint32_t pinmap_find_peripheral(PinName pin, const PinMap* map);
 uint32_t pinmap_find_function(PinName pin, const PinMap* map);
+/**
+ * @brief A function for obtaining a unique index for a given peripheral
+ *
+ * This function provides a mechanism to convert an implementation-defined peripheral ID into a peripheral index. The
+ * index is obtained by order of first occurrence in the map provided. In order to prevent clashes in multi-pin
+ * peripherals, the convention is to always use the data transmit pin's map:
+ *
+ * * I2C: PinMap_I2C_SDA
+ * * Serial: PinMap_UART_TX
+ * * SPI: PinMap_SPI_MOSI
+ * * ADC: PinMap_ADC
+ * * DAC: PinMap_DAC
+ * * PWM: PinMap_PWM
+ *
+ * Note that the peripheral index is not defined to match any kind of device-defined ordering; instead, it guarantees a
+ * unique index for every logical peripheral.
+ *
+ * @param[in] peripheral The peripheral ID to search for in map
+ */
+uint32_t pinmap_peripheral_instance(uint32_t peripheral, const PinMap* map);
 
 #ifdef __cplusplus
 }
