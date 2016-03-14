@@ -8,6 +8,11 @@
                 }
             }
         }
+    },
+    "mbed-os": {
+	    "stdio": {
+		    "default-baud": 115200
+	    }
     }
 }
         
