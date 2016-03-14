@@ -1,0 +1,13 @@
+
+{
+    "debug":{
+        "options" : {
+            "coverage" : {
+                "modules" : {
+                    "mbed-drivers" : true
+                }
+            }
+        }
+    }
+}
+        
