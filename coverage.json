@@ -1,0 +1,18 @@
+
+{
+    "debug":{
+        "options" : {
+            "coverage" : {
+                "modules" : {
+                    "mbed-drivers" : true
+                }
+            }
+        }
+    },
+    "mbed-os": {
+	    "stdio": {
+		    "default-baud": 115200
+	    }
+    }
+}
+        
