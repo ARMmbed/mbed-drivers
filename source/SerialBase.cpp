@@ -154,7 +154,7 @@ int SerialBase::set_dma_usage_tx(DMAUsage usage)
 
 int SerialBase::set_dma_usage_rx(DMAUsage usage)
 {
-    if (serial_tx_active(&_serial)) {
+    if (serial_rx_active(&_serial)) {
         return -1;
     }
     _rx_usage = usage;
