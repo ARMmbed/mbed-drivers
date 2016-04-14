@@ -1,15 +1,16 @@
-/* mbed Microcontroller Library
- * Copyright (c) 2006-2015 ARM Limited
+/*
+ * Copyright (c) 2006-2016, ARM Limited, All Rights Reserved
+ * SPDX-License-Identifier: Apache-2.0
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
@@ -86,4 +87,29 @@ uint32_t pinmap_function(PinName pin, const PinMap* map) {
     if ((uint32_t)NC == function) // no mapping available
         error("pinmap not found for function");
     return function;
+}
+
+uint32_t pinmap_peripheral_instance(uint32_t peripheral, const PinMap* map)
+{
+    uint32_t idx = 0;
+    for (uint32_t i = 0; map[i].pin != NC; i++) {
+        if ((uint32_t)map[i].peripheral == peripheral) {
+            // If the peripheral is a match, it must be the first occurence
+            return i ? idx + 1 : 0;
+        }
+        if (i) {
+            // check whether this is the first occurrence of peripheral in the map
+            uint32_t j;
+            for (j = 0; j < i; j++) {
+                if (map[i].peripheral == map[j].peripheral) {
+                    break;
+                }
+            }
+            if(i == j) {
+                // this peripheral does not occur earlier in the map.
+                idx++;
+            }
+        }
+    }
+    return (uint32_t)NC;
 }

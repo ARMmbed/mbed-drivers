@@ -1,19 +1,19 @@
-/* mbed Microcontroller Library
- * Copyright (c) 2013-2014 ARM Limited
+/*
+ * Copyright (c) 2013-2016, ARM Limited, All Rights Reserved
+ * SPDX-License-Identifier: Apache-2.0
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "mbed-drivers/test_env.h"
 
 // Const strings used in test_end
@@ -24,10 +24,9 @@ const char* TEST_ENV_MEASURE = "measure";
 const char* TEST_ENV_END = "end";
 
 /* prototype */
-extern "C"
-void gcov_exit(void);
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
-bool coverage_report = false;
+extern "C" void __gcov_flush();
+extern bool coverage_report;    // In retarget.cpp
 #endif
 
 static void led_blink(PinName led, float delay)
@@ -67,7 +66,7 @@ void notify_completion(bool success)
     printf("{{%s}}" NL, success ? TEST_ENV_SUCCESS : TEST_ENV_FAILURE);
 #ifdef YOTTA_CFG_DEBUG_OPTIONS_COVERAGE
     coverage_report = true;
-    gcov_exit();
+    __gcov_flush();
     coverage_report = false;
 #endif
     printf("{{%s}}" NL, TEST_ENV_END);

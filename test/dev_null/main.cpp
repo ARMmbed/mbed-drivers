@@ -15,7 +15,7 @@
  */
 
 #include "mbed-drivers/mbed.h"
-#include "mbed-drivers/test_env.h"
+#include "greentea-client/test_env.h"
 
 class DevNull : public Stream {
 public:
@@ -32,19 +32,17 @@ protected:
 
 DevNull null("null");
 
-void runTest() {
-    MBED_HOSTTEST_TIMEOUT(20);
-    MBED_HOSTTEST_SELECT(dev_null_auto);
-    MBED_HOSTTEST_DESCRIPTION(stdout redirected to dev null);
-    MBED_HOSTTEST_START("EXAMPLE_1");
-    
-    printf("MBED: re-routing stdout to /null\r\n");
-    freopen("/null", "w", stdout);
-    printf("MBED: printf redirected to /null\r\n");   // This shouldn't appear
-    // If failure message can be seen test should fail :)
-    MBED_HOSTTEST_RESULT(false);   // This is 'false' on purpose
-}
-
 void app_start(int, char*[]) {
-    minar::Scheduler::postCallback(&runTest);
+    GREENTEA_SETUP(2, "dev_null_auto");
+
+    printf("MBED: before re-routing stdout to /null\n");   // This shouldn't appear
+    greentea_send_kv("to_stdout", "re-routing stdout to /null");
+
+    if (freopen("/null", "w", stdout)) {
+        // This shouldn't appear on serial
+        // We should use pure printf here to send KV
+        printf("{{to_null;printf redirected to /null}}\n");
+        printf("MBED: this printf is already redirected to /null\n");
+    }
+    GREENTEA_TESTSUITE_RESULT(false);
 }
