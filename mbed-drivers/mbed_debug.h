@@ -55,8 +55,13 @@ static inline void debug_if(int condition, const char *format, ...) {
 }
 
 #else
-static inline void debug(const char *format, ...) {}
-static inline void debug_if(int condition, const char *format, ...) {}
+static inline void debug(const char *format, ...) {
+    (void)format;
+}
+static inline void debug_if(int condition, const char *format, ...) {
+    (void)condition;
+    (void)format;
+}
 
 #endif
 
