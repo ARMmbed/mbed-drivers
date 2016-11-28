@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include "ticker_api.h"
 #include "cmsis.h"
+#include "core-util/critical.h"
 
 void ticker_set_handler(const ticker_data_t *const data, ticker_event_handler handler) {
     data->interface->init();
@@ -56,7 +57,7 @@ void ticker_irq_handler(const ticker_data_t *const data) {
 
 void ticker_insert_event(const ticker_data_t *const data, ticker_event_t *obj, timestamp_t timestamp, uint32_t id) {
     /* disable interrupts for the duration of the function */
-    __disable_irq();
+    core_util_critical_section_enter();
 
     // initialise our data
     obj->timestamp = timestamp;
@@ -85,11 +86,11 @@ void ticker_insert_event(const ticker_data_t *const data, ticker_event_t *obj, t
     /* if we're at the end p will be NULL, which is correct */
     obj->next = p;
 
-    __enable_irq();
+    core_util_critical_section_exit();
 }
 
 void ticker_remove_event(const ticker_data_t *const data, ticker_event_t *obj) {
-    __disable_irq();
+    core_util_critical_section_enter();
 
     // remove this object from the list
     if (data->queue->head == obj) {
@@ -112,7 +113,7 @@ void ticker_remove_event(const ticker_data_t *const data, ticker_event_t *obj) {
         }
     }
 
-    __enable_irq();
+    core_util_critical_section_exit();
 }
 
 timestamp_t ticker_read(const ticker_data_t *const data)
