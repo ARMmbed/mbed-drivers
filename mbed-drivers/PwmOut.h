@@ -63,6 +63,12 @@ public:
         pwmout_init(&_pwm, pin);
     }
 
+    /** Free PwmOut and related resources
+     */
+    ~PwmOut() {
+        pwmout_free(&_pwm);
+    }
+
     /** Set the ouput duty-cycle, specified as a percentage (float)
      *
      *  @param value A floating-point value representing the output duty-cycle,
