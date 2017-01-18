@@ -81,10 +81,10 @@ public:
 
 protected:
     int slicetime();
-    int _running;          // whether the timer is running
-    unsigned int _start;   // the start time of the latest slice
-    int _time;             // any accumulated time from previous slices
-    const ticker_data_t *const _ticker_data;
+    int _running;          /**< whether the timer is running */
+    unsigned int _start;   /**< the start time of the latest slice */
+    int _time;             /**< any accumulated time from previous slices */
+    const ticker_data_t *const _ticker_data; /**< ticker implementation specific data */
 };
 
 } // namespace mbed
