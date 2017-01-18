@@ -49,6 +49,7 @@
 #include "Serial.h"
 #include "SPI.h"
 #include "I2C.h"
+#include "I2CSlave.h"
 #include "RawSerial.h"
 
 // mbed Internal components
