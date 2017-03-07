@@ -551,7 +551,7 @@ extern "C" void __iar_argc_argv() {
 #endif
 
 // the user should set up their application in app_start
-extern void app_start(int, char**);
+extern "C" void app_start(int, char**);
 extern "C" int main(void) {
     minar::Scheduler::postCallback(
         mbed::util::FunctionPointer2<void, int, char**>(&app_start).bind(0, NULL)
